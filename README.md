@@ -1,76 +1,151 @@
-# MCP Context Optimizer 🚀
+# MCP Context Optimizer
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![TypeScript](https://img.shields.io/badge/Lang-TypeScript-blue)
-![MCP](https://img.shields.io/badge/Protocol-MCP-green)
+> **The first intelligent caching proxy and application firewall for the Model Context Protocol.**
 
-Кэширующий прокси-сервер для "Model Context Protocol" (MCP).
-Снижает затраты на токены LLM, уменьшает время ответа (latency) и оптимизирует контекстное окно AI-агентов (таких как Claude, Cursor, AI Composer), перехватывая и кэшируя вызовы инструментов и чтение ресурсов.
+[![CI/CD](https://github.com/maksboreichuk88-commits/MCP-server/actions/workflows/ci.yml/badge.svg)](https://github.com/maksboreichuk88-commits/MCP-server/actions)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/maksboreichuk88-commits/MCP-server/pkgs/container/mcp-server)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org/)
 
-## Основные возможности
+---
 
-- ⚡ **Двухуровневый кэш (L1 In-Memory + L2 SQLite)**: Мгновенные ответы из памяти с персистентностью на диске. Опциональное Gzip сжатие.
-- 🛡️ **Rate Limiter & Circuit Breaker**: Продвинутая защита от спама агентами и защита целевого сервера в случае недоступности.
-- ♻️ **Умные политики и In-Flight Deduplicator**: Слияние одинаковых параллельных запросов в один (экономия ресурсов сервера). Гибкая настройка TTL для каждого метода отдельно.
-- 📊 **Prometheus Metrics**: Встроенный коллектор метрик и гистограмм latency.
-- ⚙️ **Admin HTTP API**: API для просмотра состояния, очистки кэша и чтения статистики (Secure Bearer Auth + CORS).
-- 🧩 **Passthrough-архитектура**: Прозрачно пропускает Ping, Notification и некэшируемые методы.
+## 📊 Benchmark Results
 
-## Установка
+Benchmarked across **100 realistic tool invocations** with 20 unique queries (simulating a typical AI coding agent session):
+
+| Metric | Value |
+|--------|-------|
+| ✅ Cache Hit Ratio | **80%** |
+| ⚡ Cached Latency | **~0.3ms** (vs ~100ms direct) |
+| 🚀 Speedup Factor | **~333x** for cached calls |
+| 💰 Tokens Saved | **~36,000** per 100 calls |
+| 🔒 Firewall Rules | 4 active (path traversal, prompt injection, oversized payload, dangerous tools) |
+
+> Run it yourself: `npx ts-node tests/benchmark.ts`
+
+---
+
+## 🏗️ What it does
+
+MCP Context Optimizer is a **drop-in transparent proxy** that sits between your AI agent (Claude Desktop, Codex CLI, LangChain) and any MCP tool server. It:
+
+1. **Caches tool responses** (L1 in-memory + L2 SQLite) — dramatically reduces repeated token costs
+2. **Deduplicates in-flight requests** — multiple concurrent agent threads share one backend call
+3. **Protects against prompt injection & path traversal** — built-in MCP Application Firewall
+4. **Provides a real-time Web Dashboard** at `http://localhost:9090`
+
+---
+
+## 🚀 Quick Start
+
+### Docker (recommended)
 
 ```bash
-npm install -g mcp-context-optimizer
+docker run -it --rm \
+  -p 9090:9090 \
+  ghcr.io/maksboreichuk88-commits/mcp-server:latest \
+  node dist/index.js npx -y @modelcontextprotocol/server-filesystem /data
 ```
 
-## Как использовать
+### npm (local)
 
-Просто оберните вызов вашего MCP-сервера в команду `mcp-optimizer`.
+```bash
+npm install -g mcp-context-optimizer  # or clone this repo
+mcp-optimizer npx -y @modelcontextprotocol/server-filesystem /your/path
+```
 
-**В конфигурации Claude Desktop / AI Client:**
+### Claude Desktop
 
-```json
+See [`examples/claude_desktop_config.json`](./examples/claude_desktop_config.json) for a ready-to-use config.
+
+---
+
+## 🛡️ MCP Application Firewall
+
+The built-in firewall automatically blocks:
+
+- **Path Traversal** — requests accessing `/etc/`, `.env`, `.ssh/`, `/proc/`
+- **Prompt Injection** — patterns like `"ignore previous instructions"`, `"act as root"`
+- **Oversized Payloads** — tool args larger than 256KB (OOM protection)
+- **Dangerous Tool Names** — `exec`, `eval`, `shell`, `subprocess`
+
+---
+
+## ⚙️ Configuration
+
+Create `mcp-optimizer.json` in your project root:
+
+```jsonc
 {
-  "mcpServers": {
-    "my-heavy-database": {
-      "command": "mcp-optimizer",
-      "args": ["--", "npx", "-y", "my-heavy-mcp-db-server@latest"]
-    }
+  "admin": { "enabled": true, "port": 9090 },
+  "cache": {
+    "ttlSeconds": 300,
+    "alwaysCacheTools": ["read_file", "list_directory", "search_files"],
+    "neverCacheTools": ["write_file", "create_file", "execute_command"]
   }
 }
 ```
 
-Все аргументы после `--` будут восприняты как команда запуска вашего целевого (Target) MCP-сервера.
+### Environment Variables
 
-## Конфигурация
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MCP_CACHE_TTL_SECONDS` | Cache TTL | `300` |
+| `MCP_ADMIN_PORT` | Admin/Dashboard port | `9090` |
+| `ADMIN_TOKEN` | Bearer token for Admin API | (none) |
+| `MCP_VERBOSE` | Enable debug logging | `false` |
 
-Помимо CLI аргументов, прокси можно настроить через переменные окружения, например:
-- `MCP_CACHE_TTL_SECONDS=3600` (Кэш на час)
-- `MCP_RATE_LIMIT_ENABLED=true` 
-- `MCP_ADMIN_ENABLED=true`
-- `MCP_ADMIN_PORT=8080`
+---
 
-Или создать файл `mcp-proxy.config.json` в корне проекта со всеми параметрами.
+## 🏛️ Architecture
 
-## Встроенный HTTP Admin Server (Метрики и Управление)
-
-При включенном Admin API вы можете смотреть статусы:
-
-```bash
-# Получить общую статистику в JSON
-curl -H "Authorization: Bearer <token>" http://localhost:8080/stats
-
-# Экспорт для Prometheus
-curl http://localhost:8080/stats?format=prometheus
-
-# Очистить весь кэш
-curl -X DELETE http://localhost:8080/cache
+```
+AI Agent (Claude / Codex / LangChain)
+        │  (stdio JSON-RPC)
+        ▼
+┌─────────────────────────────────────┐
+│        MCP Context Optimizer        │
+│                                     │
+│  Firewall → Dedup → Cache L1 (RAM)  │
+│                  └─→ Cache L2 (DB)  │
+│                  └─→ Target Server  │
+│                                     │
+│  Admin HTTP API + Web Dashboard     │
+└─────────────────────────────────────┘
+        │  (stdio JSON-RPC)
+        ▼
+   Target MCP Server (filesystem, github, etc.)
 ```
 
-## Требования
+---
 
-- Node.js >= 20.0
-- SQLite3 (Встроен через better-sqlite3)
+## 🧪 Run Benchmark
 
-## Лицензия
+```bash
+npm install
+npx ts-node tests/benchmark.ts
+```
 
-MIT.
+---
+
+## 📂 Project Structure
+
+```
+src/
+  proxy/         — Core proxy engine, circuit breaker, retry, timeout
+  cache/         — L1 LRU + L2 SQLite hybrid cache
+  middleware/    — Rate limiter, deduplicator, normalizer, firewall
+  admin/         — HTTP Admin API + static UI server
+  config/        — Zod schema + multi-source config loader
+ui/              — React/Vite web dashboard
+examples/        — Integration examples (Claude Desktop, LangChain)
+tests/           — Unit tests + benchmark script
+```
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md). PRs welcome!
+
+**License:** MIT
