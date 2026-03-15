@@ -19,6 +19,7 @@ import {
 import { isPassthroughMessage } from "./passthrough.js";
 import { nowMs, elapsed, hrNow } from "../utils/time.js";
 import { TargetServerError } from "../errors.js";
+import { createFirewall, type FirewallEvaluator } from "../middleware/firewall.js";
 
 interface DeferredTargetResponse {
   resolve: (value: unknown) => void;
@@ -35,6 +36,7 @@ export class ProxyEngine {
   private readonly circuitBreaker: CircuitBreaker;
   private readonly interceptor: ResponseInterceptor;
   private readonly inFlightDeduplicator = new InFlightDeduplicator<unknown>();
+  private readonly firewall: FirewallEvaluator;
 
   private readonly pendingTargetCalls = new Map<string | number, DeferredTargetResponse>();
 
@@ -43,6 +45,7 @@ export class ProxyEngine {
     this.circuitBreaker = new CircuitBreaker(config.circuitBreaker);
     this.interceptor = new ResponseInterceptor();
     this.serverId = buildServerId(config.target.command, config.target.args);
+    this.firewall = createFirewall();
 
     setInterval(() => {
       this.interceptor.cleanupStaleRequests(config.timeout.requestMs * 2);
@@ -79,6 +82,16 @@ export class ProxyEngine {
     }
 
     const req = message as { jsonrpc: string; id: string | number; method: string; params?: Record<string, unknown> };
+
+    const firewallDecision = this.firewall(req.method, req.params);
+    if (firewallDecision.blocked) {
+      this.sendToClientRaw(buildRpcErrorResponse(
+        req.id,
+        -32001,
+        `[MCP Firewall] Request blocked by rule '${firewallDecision.ruleName}': ${firewallDecision.reason}`
+      ));
+      return;
+    }
 
     try {
       const cacheResult = await this.cacheManager.get(this.serverId, req.method, req.params);
