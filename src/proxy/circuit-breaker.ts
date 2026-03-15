@@ -14,6 +14,7 @@ export class CircuitBreaker {
   private failureCount = 0;
   private successCount = 0;
   private nextAttemptMs = 0;
+  private halfOpenProbes = 0;
 
   constructor(private readonly config: CircuitBreakerConfig) {}
 
@@ -22,12 +23,17 @@ export class CircuitBreaker {
 
     if (this.state === CircuitState.OPEN) {
       if (nowMs() >= this.nextAttemptMs) {
-        
         this.transitionTo(CircuitState.HALF_OPEN);
       } else {
-        
         throw new CircuitBreakerOpenError(method);
       }
+    }
+
+    if (this.state === CircuitState.HALF_OPEN) {
+      if (this.halfOpenProbes >= this.config.successThreshold) {
+        throw new CircuitBreakerOpenError(method);
+      }
+      this.halfOpenProbes++;
     }
   }
 
@@ -80,6 +86,7 @@ export class CircuitBreaker {
         );
         break;
       case CircuitState.HALF_OPEN:
+        this.halfOpenProbes = 0;
         logger.warn("🔌 Circuit Breaker: HALF_OPEN (пробный пропуск запросов для проверки)");
         break;
     }
