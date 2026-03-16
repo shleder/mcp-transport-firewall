@@ -34,7 +34,7 @@ export class RateLimiter {
     }
 
     if (bucket.tokens < tokens) {
-      logger.warn(`🛑 Rate Limiter: Превышен лимит для [${key}]. Ожидание пополнения.`);
+      logger.warn(`🛑 Rate Limiter: Limit exceeded for [${key}]. Waiting for refill.`);
       throw new RateLimitExceededError(this.config.maxRequests, this.config.windowMs);
     }
 

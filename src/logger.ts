@@ -47,6 +47,6 @@ export const logger = {
 
   cacheMiss: (method: string) =>
     process.stderr.write(
-      `${prefix()} ${YELLOW}⟳ Cache Miss${RESET} — проксирую: ${MAGENTA}${method}${RESET}\n`
+      `${prefix()} ${YELLOW}⟳ Cache Miss${RESET} - proxying: ${MAGENTA}${method}${RESET}\n`
     ),
 };

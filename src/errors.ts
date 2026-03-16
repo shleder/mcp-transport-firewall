@@ -40,7 +40,7 @@ export class ConfigurationError extends McpOptimizerError {
 export class InvalidConfigValueError extends ConfigurationError {
   constructor(field: string, value: unknown, expected: string) {
     super(
-      `Неверное значение поля конфигурации '${field}': получено ${JSON.stringify(value)}, ожидалось ${expected}`,
+      `Invalid config value for '${field}': got ${JSON.stringify(value)}, expected ${expected}`,
       { field, value, expected }
     );
     this.name = "InvalidConfigValueError";
@@ -49,7 +49,7 @@ export class InvalidConfigValueError extends ConfigurationError {
 
 export class MissingConfigError extends ConfigurationError {
   constructor(field: string) {
-    super(`Обязательное поле конфигурации '${field}' не задано`, { field });
+    super(`Required configuration field '${field}' is not defined`, { field });
     this.name = "MissingConfigError";
   }
 }
@@ -62,14 +62,14 @@ export class CacheError extends McpOptimizerError {
 
 export class CacheReadError extends CacheError {
   constructor(key: string, cause?: unknown) {
-    super(`Ошибка чтения из кэша по ключу: ${key}`, "CACHE_READ_ERROR", { key, cause });
+    super(`Cache read error for key: ${key}`, "CACHE_READ_ERROR", { key, cause });
     this.name = "CacheReadError";
   }
 }
 
 export class CacheWriteError extends CacheError {
   constructor(key: string, cause?: unknown) {
-    super(`Ошибка записи в кэш по ключу: ${key}`, "CACHE_WRITE_ERROR", { key, cause });
+    super(`Cache write error for key: ${key}`, "CACHE_WRITE_ERROR", { key, cause });
     this.name = "CacheWriteError";
   }
 }
@@ -77,7 +77,7 @@ export class CacheWriteError extends CacheError {
 export class CachePayloadTooLargeError extends CacheError {
   constructor(method: string, sizeBytes: number, maxBytes: number) {
     super(
-      `Ответ метода '${method}' слишком большой для кэширования: ${sizeBytes} байт > ${maxBytes} байт`,
+      `Response for method '${method}' is too large for caching: ${sizeBytes} bytes > ${maxBytes} bytes`,
       "CACHE_PAYLOAD_TOO_LARGE",
       { method, sizeBytes, maxBytes }
     );
@@ -88,7 +88,7 @@ export class CachePayloadTooLargeError extends CacheError {
 export class CacheSerializationError extends CacheError {
   constructor(operation: "serialize" | "deserialize", cause?: unknown) {
     super(
-      `Ошибка ${operation === "serialize" ? "сериализации" : "десериализации"} данных кэша`,
+      `Cache data ${operation === "serialize" ? "serialization" : "deserialization"} error`,
       "CACHE_SERIALIZATION_ERROR",
       { operation, cause }
     );
@@ -105,7 +105,7 @@ export class ProxyError extends McpOptimizerError {
 export class InvalidJsonRpcError extends ProxyError {
   constructor(raw: string) {
     super(
-      `Получено невалидное JSON-RPC сообщение`,
+      `Invalid JSON-RPC message received`,
       "INVALID_JSONRPC",
       HTTP_STATUS.BAD_REQUEST,
       { raw: raw.slice(0, 200) } 
@@ -117,7 +117,7 @@ export class InvalidJsonRpcError extends ProxyError {
 export class TargetServerError extends ProxyError {
   constructor(message: string, exitCode?: number) {
     super(
-      `Ошибка целевого MCP-сервера: ${message}`,
+      `Target MCP server error: ${message}`,
       "TARGET_SERVER_ERROR",
       HTTP_STATUS.SERVICE_UNAVAILABLE,
       { exitCode }
@@ -129,7 +129,7 @@ export class TargetServerError extends ProxyError {
 export class TargetServerTimeoutError extends ProxyError {
   constructor(method: string, timeoutMs: number) {
     super(
-      `Таймаут ожидания ответа от целевого сервера на метод '${method}' (${timeoutMs}ms)`,
+      `Timeout waiting for target server response on method '${method}' (${timeoutMs}ms)`,
       "TARGET_SERVER_TIMEOUT",
       HTTP_STATUS.SERVICE_UNAVAILABLE,
       { method, timeoutMs }
@@ -141,7 +141,7 @@ export class TargetServerTimeoutError extends ProxyError {
 export class PayloadTooLargeError extends ProxyError {
   constructor(sizeBytes: number, maxBytes: number) {
     super(
-      `Входящий payload слишком большой: ${sizeBytes} байт > ${maxBytes} байт`,
+      `Incoming payload is too large: ${sizeBytes} bytes > ${maxBytes} bytes`,
       "PAYLOAD_TOO_LARGE",
       HTTP_STATUS.PAYLOAD_TOO_LARGE,
       { sizeBytes, maxBytes }
@@ -153,7 +153,7 @@ export class PayloadTooLargeError extends ProxyError {
 export class CircuitBreakerOpenError extends McpOptimizerError {
   constructor(method: string) {
     super(
-      `Circuit Breaker открыт — запросы к целевому серверу временно заблокированы (метод: ${method})`,
+      `Circuit Breaker is open - requests to target server are temporarily blocked (method: ${method})`,
       "CIRCUIT_BREAKER_OPEN",
       HTTP_STATUS.SERVICE_UNAVAILABLE,
       { method }
@@ -165,7 +165,7 @@ export class CircuitBreakerOpenError extends McpOptimizerError {
 export class RateLimitExceededError extends McpOptimizerError {
   constructor(limit: number, windowMs: number) {
     super(
-      `Превышен лимит запросов: максимум ${limit} запросов за ${windowMs / 1000} секунд`,
+      `Request limit exceeded: max ${limit} requests per ${windowMs / 1000} seconds`,
       "RATE_LIMIT_EXCEEDED",
       HTTP_STATUS.TOO_MANY_REQUESTS,
       { limit, windowMs }
@@ -182,14 +182,14 @@ export class AdminApiError extends McpOptimizerError {
 
 export class UnauthorizedError extends AdminApiError {
   constructor() {
-    super("Неавторизованный доступ — требуется Bearer токен", "UNAUTHORIZED", HTTP_STATUS.UNAUTHORIZED);
+    super("Unauthorized access - Bearer token required", "UNAUTHORIZED", HTTP_STATUS.UNAUTHORIZED);
     this.name = "UnauthorizedError";
   }
 }
 
 export class NotFoundError extends AdminApiError {
   constructor(resource: string) {
-    super(`Ресурс не найден: ${resource}`, "NOT_FOUND", HTTP_STATUS.NOT_FOUND);
+    super(`Resource not found: ${resource}`, "NOT_FOUND", HTTP_STATUS.NOT_FOUND);
     this.name = "NotFoundError";
   }
 }
@@ -211,7 +211,7 @@ export class TransportError extends McpOptimizerError {
 
 export class StdioTransportError extends TransportError {
   constructor(message: string, cause?: unknown) {
-    super(`Ошибка stdio транспорта: ${message}`, { cause });
+    super(`Stdio transport error: ${message}`, { cause });
     this.name = "StdioTransportError";
   }
 }

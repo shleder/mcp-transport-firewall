@@ -17,7 +17,7 @@ export class AdminServer {
 
   start(): void {
     if (!this.config.admin.enabled) {
-      logger.info("Admin API отключен в конфигурации.");
+      logger.info("Admin API is disabled in configuration.");
       return;
     }
 
@@ -28,11 +28,11 @@ export class AdminServer {
     });
 
     this.server.on("error", (err) => {
-      logger.error(`❌ Ошибка Admin API сервера:`, err);
+      logger.error(`❌ Admin API server error:`, err);
     });
 
     this.server.listen(port, host, () => {
-      logger.info(`✨ Admin API запущен на http://${host}:${port}`);
+      logger.info(`✨ Admin API started at http://${host}:${port}`);
       logger.info(`   - Health: http://${host}:${port}/health`);
       logger.info(`   - Stats:  http://${host}:${port}/stats`);
       logger.info(`   - Config: http://${host}:${port}/config`);
@@ -43,10 +43,10 @@ export class AdminServer {
     if (!this.server) return;
 
     return new Promise((resolve, reject) => {
-      logger.info("🛑 Остановка Admin API сервера...");
+      logger.info("🛑 Stopping Admin API server...");
       this.server!.close((err) => {
         if (err) {
-          logger.error("❌ Ошибка при остановке Admin API:", err);
+          logger.error("❌ Error stopping Admin API:", err);
           return reject(err);
         }
         this.server = null;

@@ -5,7 +5,7 @@ export class Counter {
 
   inc(value = 1): void {
     if (value < 0) {
-      throw new Error(`Counter ${this.name} не поддерживает отрицательные инкременты.`);
+      throw new Error(`Counter ${this.name} does not support negative increments.`);
     }
     this.count += value;
   }

@@ -9,7 +9,7 @@ export function formatBytes(bytes: number, decimals = 1): string {
 
 export function parseBytes(input: string): number {
   const match = /^(\d+(?:\.\d+)?)\s*(B|KB|MB|GB)?$/i.exec(input.trim());
-  if (!match) throw new Error(`Невозможно распарсить размер: ${input}`);
+  if (!match) throw new Error(`Unable to parse size: ${input}`);
   const [, numStr, unit = "B"] = match;
   const num = parseFloat(numStr);
   switch (unit.toUpperCase()) {

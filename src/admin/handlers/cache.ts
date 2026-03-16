@@ -11,7 +11,7 @@ async function readJsonBody(req: IncomingMessage): Promise<any> {
       try {
         resolve(body ? JSON.parse(body) : {});
       } catch (err) {
-        reject(new ValidationError("Невалидный JSON тело запроса"));
+        reject(new ValidationError("Invalid JSON request body"));
       }
     });
     req.on("error", reject);
@@ -36,7 +36,7 @@ export async function handleCacheRoutes(
   if (method === "DELETE" && path === "/cache") {
     cacheManager.clear();
     res.writeHead(HTTP_STATUS.OK, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok", message: "Кэш полностью очищен" }));
+    res.end(JSON.stringify({ status: "ok", message: "Cache has been fully cleared" }));
     return;
   }
 
@@ -57,7 +57,7 @@ export async function handleCacheRoutes(
       return;
     }
 
-    throw new ValidationError("Для инвалидации укажите 'key' или 'method' в теле запроса");
+    throw new ValidationError("Specify 'key' or 'method' in the request body for invalidation");
   }
 
   throw new NotFoundError(path);

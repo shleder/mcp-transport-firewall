@@ -14,71 +14,84 @@ export interface FirewallDecision {
   reason?: string;
 }
 
-const DANGEROUS_PATH_PATTERNS = [
-  /\/etc\//i,
-  /\.env(\.|$)/i,
-  /\.ssh\//i,
-  /\/proc\//i,
-  /\/sys\//i,
-  /C:\\Windows/i,
-  /credentials/i,
-  /secret/i,
-  /private_key/i,
-];
+export interface FirewallConfig {
+  allowedPaths?: string[];
+  additionalInjectionPatterns?: RegExp[];
+  maxPayloadSize?: number;
+}
 
-const PROMPT_INJECTION_PATTERNS = [
-  /ignore (previous|all) instructions/i,
-  /forget your (system prompt|rules)/i,
-  /you are now/i,
-  /act as (root|admin|sudo)/i,
-  /\x00/,
-];
+export function createFirewall(config: FirewallConfig = {}, customRules: FirewallRule[] = []) {
+  const allowedPaths = config.allowedPaths || [];
+  
+  const defaultDangerousPaths = [
+    /\/etc\//i,
+    /\.env(\.|$)/i,
+    /\.ssh\//i,
+    /\/proc\//i,
+    /\/sys\//i,
+    /C:\\Windows/i,
+    /credentials/i,
+    /secret/i,
+    /private_key/i,
+  ];
 
-const DEFAULT_RULES: FirewallRule[] = [
-  {
-    name: "PATH_TRAVERSAL",
-    description: "Blocks access to sensitive file system paths",
-    severity: "block",
-    check: (_method, params) => {
-      if (!params) return false;
-      const str = JSON.stringify(params);
-      return DANGEROUS_PATH_PATTERNS.some(p => p.test(str));
-    }
-  },
-  {
-    name: "PROMPT_INJECTION",
-    description: "Blocks tool calls containing prompt injection attempts",
-    severity: "block",
-    check: (_method, params) => {
-      if (!params) return false;
-      const str = JSON.stringify(params);
-      return PROMPT_INJECTION_PATTERNS.some(p => p.test(str));
-    }
-  },
-  {
-    name: "OVERSIZED_PAYLOAD",
-    description: "Blocks params larger than 256KB",
-    severity: "block",
-    check: (_method, params) => {
-      if (!params) return false;
-      const size = Buffer.byteLength(JSON.stringify(params), "utf8");
-      return size > 256 * 1024;
-    }
-  },
-  {
-    name: "DANGEROUS_TOOL_NAME",
-    description: "Warns on potentially destructive tool names",
-    severity: "warn",
-    check: (method, params) => {
-      if (method !== "tools/call" || !params) return false;
-      const name = String(params.name ?? "").toLowerCase();
-      return ["exec", "eval", "shell", "subprocess", "os.system"].some(d => name.includes(d));
-    }
-  }
-];
+  const dangerousPaths = defaultDangerousPaths.filter(pattern => {
+    return !allowedPaths.some(allowed => pattern.test(allowed));
+  });
 
-export function createFirewall(customRules: FirewallRule[] = []) {
-  const rules = [...DEFAULT_RULES, ...customRules];
+  const injectionPatterns = [
+    /ignore (previous|all) instructions/i,
+    /forget your (system prompt|rules)/i,
+    /you are now/i,
+    /act as (root|admin|sudo)/i,
+    /\x00/,
+    ...(config.additionalInjectionPatterns || [])
+  ];
+
+  const defaultRules: FirewallRule[] = [
+    {
+      name: "PATH_TRAVERSAL",
+      description: "Blocks access to sensitive file system paths",
+      severity: "block",
+      check: (_method, params) => {
+        if (!params) return false;
+        const str = JSON.stringify(params);
+        return dangerousPaths.some(p => p.test(str));
+      }
+    },
+    {
+      name: "PROMPT_INJECTION",
+      description: "Blocks tool calls containing prompt injection attempts",
+      severity: "block",
+      check: (_method, params) => {
+        if (!params) return false;
+        const str = JSON.stringify(params);
+        return injectionPatterns.some(p => p.test(str));
+      }
+    },
+    {
+      name: "OVERSIZED_PAYLOAD",
+      description: "Blocks oversized params",
+      severity: "block",
+      check: (_method, params) => {
+        if (!params) return false;
+        const size = Buffer.byteLength(JSON.stringify(params), "utf8");
+        return size > (config.maxPayloadSize || 256 * 1024);
+      }
+    },
+    {
+      name: "DANGEROUS_TOOL_NAME",
+      description: "Warns on potentially destructive tool names",
+      severity: "warn",
+      check: (method, params) => {
+        if (method !== "tools/call" || !params) return false;
+        const name = String(params.name ?? "").toLowerCase();
+        return ["exec", "eval", "shell", "subprocess", "os.system"].some(d => name.includes(d));
+      }
+    }
+  ];
+
+  const rules = [...defaultRules, ...customRules];
 
   return function evaluateFirewall(
     method: string,
@@ -88,14 +101,13 @@ export function createFirewall(customRules: FirewallRule[] = []) {
       try {
         if (rule.check(method, params)) {
           if (rule.severity === "block") {
-            logger.warn(`🔥 [Firewall] BLOCKED by rule "${rule.name}": ${rule.description}`);
+            logger.warn(`[Firewall] BLOCKED by rule "${rule.name}": ${rule.description}`);
             return { blocked: true, ruleName: rule.name, reason: rule.description };
           } else {
-            logger.warn(`⚠️  [Firewall] WARNING by rule "${rule.name}": ${rule.description}`);
+            logger.warn(`[Firewall] WARNING by rule "${rule.name}": ${rule.description}`);
           }
         }
       } catch {
-        // rule check errors should never crash the proxy
       }
     }
     return { blocked: false };
