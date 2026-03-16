@@ -81,35 +81,61 @@ interface CliResult {
   adminOnly?: boolean;
 }
 
+function parseCommandStr(cmdString: string): string[] {
+  const regex = /([^\s"']+)|"([^"]*)"|'([^']*)'/g;
+  const result: string[] = [];
+  let match;
+  while ((match = regex.exec(cmdString)) !== null) {
+    if (match[2]) {
+      result.push(match[2]);
+    } else if (match[3]) {
+      result.push(match[3]);
+    } else {
+      result.push(match[1]);
+    }
+  }
+  return result;
+}
+
 function parseCli(args: string[]): CliResult {
-  const remaining: string[] = [];
   let configFile: string | undefined;
   let verbose: boolean | undefined;
   let adminOnly = false;
+  let targetString: string | undefined;
 
   let i = 0;
   while (i < args.length) {
     const arg = args[i];
     if (arg === "--config" || arg === "-c") {
       i++;
-      configFile = args[i];
+      if (i < args.length) configFile = args[i];
     } else if (arg === "--verbose" || arg === "-v") {
       verbose = true;
     } else if (arg === "--admin-only") {
       adminOnly = true;
-    } else {
-      remaining.push(arg);
+    } else if (arg === "--target" || arg === "-t") {
+      i++;
+      if (i < args.length) targetString = args[i];
     }
     i++;
   }
 
-  const [targetCommand = "", ...targetArgs] = remaining;
+  let targetCommand = "";
+  let targetArgs: string[] = [];
+
+  if (targetString) {
+    const parsed = parseCommandStr(targetString);
+    if (parsed.length > 0) {
+      targetCommand = parsed[0];
+      targetArgs = parsed.slice(1);
+    }
+  }
 
   if (!targetCommand && !adminOnly) {
     throw new ConfigurationError(
       "Не указана команда целевого MCP-сервера. " +
-      "Использование: mcp-optimizer [--config file] <command> [args...]" +
-      "  Или: mcp-optimizer --admin-only --config file (только Admin API без прокси)"
+      "Использование: mcp-optimizer --target \"command [args...]\" [--config file]\n" +
+      "  Или: mcp-optimizer --admin-only --config file"
     );
   }
 

@@ -10,4 +10,8 @@ logs/
 *.sqlite-shm
 *.sqlite-wal
 
+.mcp-cache/
+coverage/
+__pycache__/
+
 ui/node_modules/
