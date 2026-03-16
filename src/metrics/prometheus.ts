@@ -3,7 +3,7 @@ import type { MetricsCollector } from "./collector.js";
 export function formatPrometheus(collector: MetricsCollector): string {
   const metrics = collector.getAllMetrics();
   if (metrics.disabled) {
-    return "# HELP mcp_optimizer_metrics_enabled Сбор метрик отключен в конфигурации.\n" +
+    return "# HELP mcp_optimizer_metrics_enabled Metrics collection is disabled in configuration.\n" +
            "# TYPE mcp_optimizer_metrics_enabled gauge\n" +
            "mcp_optimizer_metrics_enabled 0\n";
   }
@@ -11,7 +11,7 @@ export function formatPrometheus(collector: MetricsCollector): string {
   const lines: string[] = [];
   const prefix = "mcp_optimizer_";
 
-  lines.push(`# HELP ${prefix}uptime_seconds Uptime процесса в секундах.`);
+  lines.push(`# HELP ${prefix}uptime_seconds Process uptime in seconds.`);
   lines.push(`# TYPE ${prefix}uptime_seconds gauge`);
   lines.push(`${prefix}uptime_seconds ${metrics.uptime_seconds}`);
   lines.push("");
@@ -20,7 +20,7 @@ export function formatPrometheus(collector: MetricsCollector): string {
   for (const [name, value] of Object.entries(counters)) {
 
     const safeName = name.replace(/[^a-zA-Z0-9_]/g, "_");
-    lines.push(`# HELP ${prefix}${safeName} Общий счётчик ${name}`);
+    lines.push(`# HELP ${prefix}${safeName} Total counter for ${name}`);
     lines.push(`# TYPE ${prefix}${safeName} counter`);
     lines.push(`${prefix}${safeName} ${value}`);
   }
@@ -29,7 +29,7 @@ export function formatPrometheus(collector: MetricsCollector): string {
   const histograms = metrics.histograms as Record<string, { sum: number; count: number; buckets: Record<string, number> }>;
   for (const [name, data] of Object.entries(histograms)) {
     const safeName = name.replace(/[^a-zA-Z0-9_]/g, "_");
-    lines.push(`# HELP ${prefix}${safeName} Гистограмма ${name}`);
+    lines.push(`# HELP ${prefix}${safeName} Histogram for ${name}`);
     lines.push(`# TYPE ${prefix}${safeName} histogram`);
 
     lines.push(`${prefix}${safeName}_sum ${data.sum}`);

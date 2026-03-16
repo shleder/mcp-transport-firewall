@@ -3,7 +3,7 @@
 export class TimeoutError extends Error {
   constructor(ms: number, operation?: string) {
     super(
-      `Операция${operation ? ` '${operation}'` : ""} превысила таймаут ${ms}ms`
+      `Operation${operation ? ` '${operation}'` : ""} exceeded timeout of ${ms}ms`
     );
     this.name = "TimeoutError";
   }

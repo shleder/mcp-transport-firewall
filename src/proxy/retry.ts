@@ -34,9 +34,9 @@ export async function withProxyRetry<T>(
     onRetry: (err, attempt, nextDelayMs) => {
       const msg = err instanceof Error ? err.message : String(err);
       logger.warn(
-        `🔁 [${operationName}] Ошибка: ${msg} | ` +
-        `Попытка ${attempt}/${maxRetries} ` +
-        `через ${nextDelayMs}ms`
+        `🔁 [${operationName}] Error: ${msg} | ` +
+        `Attempt ${attempt}/${maxRetries} ` +
+        `in ${nextDelayMs}ms`
       );
     },
   });

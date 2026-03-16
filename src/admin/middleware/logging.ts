@@ -12,7 +12,7 @@ export async function withLogging(
   const method = req.method ?? "UNKNOWN";
   const url = req.url ?? "/";
 
-  logger.debug(`[Admin HTTP ${id}] ${method} ${url} - Начат`);
+  logger.debug(`[Admin HTTP ${id}] ${method} ${url} - Started`);
 
   const originalEnd = res.end;
   let responseSent = false;
@@ -37,7 +37,7 @@ export async function withLogging(
         
         throw err; 
       }
-      logger.error(`[Admin HTTP ${id}] ❌ Ошибка выполнения ${method} ${url}:`, err);
+      logger.error(`[Admin HTTP ${id}] ❌ Execution error ${method} ${url}:`, err);
       throw err;
     }
   }

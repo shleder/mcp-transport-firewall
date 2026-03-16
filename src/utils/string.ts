@@ -53,20 +53,14 @@ export function maskAuthHeader(header: string): string {
   return `${scheme} ${maskSecret(token)}`;
 }
 
-export function pluralizeRu(n: number, one: string, few: string, many: string): string {
-  const abs = Math.abs(n);
-  const lastTwo = abs % 100;
-  const last = abs % 10;
-  if (lastTwo >= 11 && lastTwo <= 19) return `${n} ${many}`;
-  if (last === 1) return `${n} ${one}`;
-  if (last >= 2 && last <= 4) return `${n} ${few}`;
-  return `${n} ${many}`;
+export function pluralize(n: number, one: string, other: string): string {
+  return n === 1 ? `${n} ${one}` : `${n} ${other}`;
 }
 
 export function joinWithAnd(items: string[]): string {
   if (items.length === 0) return "";
   if (items.length === 1) return items[0];
-  return items.slice(0, -1).join(", ") + " и " + items[items.length - 1];
+  return items.slice(0, -1).join(", ") + " and " + items[items.length - 1];
 }
 
 export function isValidJson(str: string): boolean {

@@ -93,6 +93,6 @@ export function jsonByteSize(value: unknown): number {
 }
 
 export function truncateForLog(value: unknown, maxLength = 200): string {
-  const str = typeof value === "string" ? value : JSON.stringify(value) ?? "[неизвестно]";
+  const str = typeof value === "string" ? value : JSON.stringify(value) ?? "[unknown]";
   return str.length > maxLength ? str.slice(0, maxLength) + "…" : str;
 }

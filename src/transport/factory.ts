@@ -4,6 +4,6 @@ import { logger } from "../logger.js";
 
 export function createTransport(engine: ProxyEngine): StdioTransport {
   
-  logger.debug("Инициализация транспорта: stdio");
+  logger.debug("Initializing transport: stdio");
   return new StdioTransport(engine);
 }

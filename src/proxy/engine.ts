@@ -102,7 +102,7 @@ export class ProxyEngine {
         return;
       }
     } catch (err) {
-      logger.error("Ошибка при чтении из кэша. Fallback к реальному серверу.", err);
+      logger.error("Error reading from cache. Falling back to real server.", err);
     }
 
     const dedupKey = `${this.serverId}::${req.method}::${JSON.stringify(req.params)}`;
@@ -195,7 +195,7 @@ export class ProxyEngine {
   private spawnTarget(): void {
     if (this.isShuttingDown) return;
 
-    logger.info(`🚀 Запуск целевого сервера: ${this.config.target.command} ${this.config.target.args.join(" ")}`);
+    logger.info(`🚀 Starting target server: ${this.config.target.command} ${this.config.target.args.join(" ")}`);
     
     this.targetProcess = spawn(this.config.target.command, this.config.target.args, {
       cwd: this.config.target.cwd ? resolve(this.config.target.cwd) : process.cwd(),
@@ -204,7 +204,7 @@ export class ProxyEngine {
     });
 
     this.targetProcess.on("error", (err) => {
-      logger.error(`❌ Не удалось запустить целевой сервер:`, err);
+      logger.error(`❌ Failed to start target server:`, err);
     });
 
     this.targetProcess.stdout?.on("data", (chunk: Buffer) => {
@@ -220,7 +220,7 @@ export class ProxyEngine {
         try {
            parsed = JSON.parse(msg);
         } catch {
-           logger.error("Target Server вернул невалидный JSON: " + msg.slice(0, 100));
+           logger.error("Target Server returned invalid JSON: " + msg.slice(0, 100));
            continue;
         }
 
@@ -258,7 +258,7 @@ export class ProxyEngine {
     });
 
     this.targetProcess.on("close", (code) => {
-      logger.warn(`⚠ Целевой сервер завершился с кодом ${code}. Перезапуск через 3 секунды...`);
+      logger.warn(`⚠ Target server exited with code ${code}. Restarting in 3 seconds...`);
       this.targetProcess = null;
       if (!this.isShuttingDown) {
         setTimeout(() => this.spawnTarget(), 3000);
@@ -268,7 +268,7 @@ export class ProxyEngine {
 
   private sendToTargetRaw(rawOrObj: string | unknown): void {
     if (!this.targetProcess || !this.targetProcess.stdin || !this.targetProcess.stdin.writable) {
-       logger.warn("Попытка отправить на целевой сервер, но пайп не доступен.");
+       logger.warn("Attempted to send to target server, but pipe is not available.");
        return;
     }
     const str = typeof rawOrObj === "string" ? rawOrObj : JSON.stringify(rawOrObj);
@@ -281,7 +281,7 @@ export class ProxyEngine {
 
   async close(): Promise<void> {
     this.isShuttingDown = true;
-    logger.info("🛑 Завершение работы Proxy Engine...");
+    logger.info("🛑 Shutting down Proxy Engine...");
     
     if (this.targetProcess) {
       this.targetProcess.kill("SIGTERM");

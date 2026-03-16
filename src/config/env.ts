@@ -15,7 +15,7 @@ function envNumber(key: string, fallback?: number): number | undefined {
   const parsed = Number(val);
   if (!Number.isFinite(parsed)) {
     process.stderr.write(
-      `[mcp-optimizer] Предупреждение: ENV ${key}="${val}" не является числом, используется значение по умолчанию\n`
+      `[mcp-optimizer] Warning: ENV ${key}="${val}" is not a number, using default value\n`
     );
     return fallback;
   }
@@ -28,7 +28,7 @@ function envBool(key: string, fallback?: boolean): boolean | undefined {
   if (val === "true" || val === "1" || val === "yes") return true;
   if (val === "false" || val === "0" || val === "no") return false;
   process.stderr.write(
-    `[mcp-optimizer] Предупреждение: ENV ${key}="${val}" — ожидалось true/false, используется значение по умолчанию\n`
+    `[mcp-optimizer] Warning: ENV ${key}="${val}" - expected true/false, using default value\n`
   );
   return fallback;
 }

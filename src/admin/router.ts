@@ -54,7 +54,7 @@ export class AdminRouter {
         return await handleCacheRoutes(req, res, this.cacheManager);
       }
 
-      // Раздача статики Web Dashboard (Fallback logic)
+      // Serve Web Dashboard assets (Fallback logic)
       if (req.method === "GET") {
         if (this.serveStatic(path, res)) {
           return;

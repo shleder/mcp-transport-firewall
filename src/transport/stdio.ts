@@ -5,7 +5,7 @@ export class StdioTransport {
   constructor(private readonly engine: ProxyEngine) {}
 
   start(): void {
-    logger.info("📡 StdioTransport: Ожидание сообщений на stdin...");
+    logger.info("📡 StdioTransport: Waiting for messages on stdin...");
 
     process.stdin.setEncoding("utf8");
 
@@ -26,19 +26,19 @@ export class StdioTransport {
     });
 
     process.stdin.on("end", () => {
-      logger.info("📡 StdioTransport: Клиент закрыл соединение (EOF). Завершение работы...");
+      logger.info("📡 StdioTransport: Client closed connection (EOF). Shutting down...");
       this.engine.close().finally(() => process.exit(0));
     });
 
     process.stdin.on("error", (err) => {
-      logger.error("❌ StdioTransport: Ошибка чтения stdin", err);
+      logger.error("❌ StdioTransport: Error reading stdin", err);
     });
   }
 
   private handleIncomingLine(line: string): void {
 
     this.engine.handleClientMessage(line).catch(err => {
-      logger.error("❌ Ошибка при обработке сообщения от клиента:", err);
+      logger.error("❌ Error processing client message:", err);
     });
   }
 }

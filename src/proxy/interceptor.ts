@@ -32,7 +32,7 @@ export class ResponseInterceptor {
     
     if (response.id === null || response.id === undefined) {
       
-      logger.warn("Получен ответ (Response) от сервера без поля id");
+      logger.warn("Received response from server without an id field");
       return { isPassthrough: true };
     }
 
@@ -58,7 +58,7 @@ export class ResponseInterceptor {
     }
     
     if (cleaned > 0) {
-      logger.warn(`🧹 Очищено ${cleaned} зависших запросов (без ответа от сервера)`);
+      logger.warn(`🧹 Cleaned up ${cleaned} stale requests (no response from server)`);
     }
     return cleaned;
   }

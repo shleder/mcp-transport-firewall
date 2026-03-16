@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { loadConfig } from "./config/loader.js";
 import { initLogger, logger } from "./logger.js";
 import { ProxyEngine } from "./proxy/engine.js";
@@ -14,7 +12,7 @@ async function main() {
 
     initLogger({ level: config.logging.level, format: "text", verbose: config.verbose });
 
-    logger.debug("Настройка окружения...");
+    logger.debug("Setting up environment...");
 
     const collector = initGlobalMetrics(config.metrics);
     const reporter = new MetricsReporter(collector, config.metrics);
@@ -30,7 +28,7 @@ async function main() {
     transport.start();
 
     const shutdown = async () => {
-      logger.info("🛑 Сигнал завершения получен. Закрытие служб...");
+      logger.info("Shutdown signal received. Closing services...");
       reporter.stop();
       await adminServer.stop();
       await engine.close();
@@ -40,10 +38,10 @@ async function main() {
     process.on("SIGINT", shutdown);
     process.on("SIGTERM", shutdown);
 
-    logger.info("✅ MCP Context Optimizer запущен!");
+    logger.info("MCP Context Optimizer started!");
 
   } catch (err) {
-    console.error("❌ Фатальная ошибка при запуске MCP Context Optimizer:");
+    console.error("Fatal error during MCP Context Optimizer startup:");
     console.error(err);
     process.exit(1);
   }

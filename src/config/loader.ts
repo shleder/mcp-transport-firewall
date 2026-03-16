@@ -7,13 +7,9 @@ import { ConfigurationError } from "../errors.js";
 import { logger } from "../logger.js";
 
 export interface LoadConfigOptions {
-  
   cliArgs: string[];
-  
   configFile?: string;
-  
   ignoreEnv?: boolean;
-  
   skipValidation?: boolean;
 }
 
@@ -32,14 +28,14 @@ function findConfigFile(): string | undefined {
 function loadJsonConfig(filePath: string): Partial<ProxyConfig> {
   const absPath = resolve(filePath);
   if (!existsSync(absPath)) {
-    throw new ConfigurationError(`Файл конфигурации не найден: ${absPath}`);
+    throw new ConfigurationError(`Configuration file not found: ${absPath}`);
   }
   try {
     const raw = readFileSync(absPath, "utf-8");
     return JSON.parse(raw) as Partial<ProxyConfig>;
   } catch (err) {
     throw new ConfigurationError(
-      `Невозможно прочитать файл конфигурации: ${absPath}`,
+      `Unable to read configuration file: ${absPath}`,
       err
     );
   }
@@ -133,9 +129,9 @@ function parseCli(args: string[]): CliResult {
 
   if (!targetCommand && !adminOnly) {
     throw new ConfigurationError(
-      "Не указана команда целевого MCP-сервера. " +
-      "Использование: mcp-optimizer --target \"command [args...]\" [--config file]\n" +
-      "  Или: mcp-optimizer --admin-only --config file"
+      "Target MCP server command not specified. " +
+      "Usage: mcp-optimizer --target \"command [args...]\" [--config file]\n" +
+      "  Or: mcp-optimizer --admin-only --config file"
     );
   }
 
@@ -152,7 +148,7 @@ export function loadConfig(options: LoadConfigOptions): ProxyConfig {
   let fileConfig: Partial<ProxyConfig> = {};
   if (resolvedConfigFile) {
     fileConfig = loadJsonConfig(resolvedConfigFile);
-    logger.info(`📄 Загружена конфигурация из файла: ${resolvedConfigFile}`);
+    logger.info(`Loaded configuration from file: ${resolvedConfigFile}`);
   }
 
   const envConfig = ignoreEnv ? null : readEnvConfig();
@@ -162,20 +158,13 @@ export function loadConfig(options: LoadConfigOptions): ProxyConfig {
       command: cli.targetCommand || "echo",
       args: cli.targetArgs,
     },
-    
     cache: deepMerge(
-      deepMerge(
-        (fileConfig.cache ?? {}) as Record<string, unknown>,
-        (envConfig?.cache ?? {}) as Record<string, unknown>
-      ),
-      {} as Record<string, unknown>
+      (fileConfig.cache ?? {}) as Record<string, unknown>,
+      (envConfig?.cache ?? {}) as Record<string, unknown>
     ),
     admin: deepMerge(
-      deepMerge(
-        (fileConfig.admin ?? {}) as Record<string, unknown>,
-        (envConfig?.admin ?? {}) as Record<string, unknown>
-      ),
-      {} as Record<string, unknown>
+      (fileConfig.admin ?? {}) as Record<string, unknown>,
+      (envConfig?.admin ?? {}) as Record<string, unknown>
     ),
     metrics: deepMerge(
       (fileConfig.metrics ?? {}) as Record<string, unknown>,
@@ -210,7 +199,7 @@ export function loadConfig(options: LoadConfigOptions): ProxyConfig {
       .map((i) => `  • ${i.path.join(".")}: ${i.message}`)
       .join("\n");
     throw new ConfigurationError(
-      `Неверная конфигурация:\n${issues}`,
+      `Invalid configuration:\n${issues}`,
       parseResult.error.issues
     );
   }
@@ -228,7 +217,7 @@ export function loadConfig(options: LoadConfigOptions): ProxyConfig {
   if (config.verbose && !ignoreEnv) {
     const detected = getDetectedEnvVars();
     if (Object.keys(detected).length > 0) {
-      logger.info(`🔧 Обнаруженные ENV-переменные: ${JSON.stringify(detected)}`);
+      logger.info(`Detected environment variables: ${JSON.stringify(detected)}`);
     }
   }
 
