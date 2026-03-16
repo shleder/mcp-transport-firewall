@@ -124,7 +124,9 @@ export function createFirewall(config: FirewallConfig = {}, customRules: Firewal
             logger.warn(`[Firewall] WARNING by rule "${rule.name}": ${rule.description}`);
           }
         }
-      } catch {
+      } catch (err) {
+        logger.error(`[Firewall] ERROR during rule "${rule.name}" evaluation. Failing closed.`, err);
+        return { blocked: true, ruleName: rule.name, reason: "Internal firewall error during rule evaluation" };
       }
     }
     return { blocked: false };
