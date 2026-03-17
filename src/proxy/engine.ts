@@ -20,8 +20,8 @@ import { isPassthroughMessage } from "./passthrough.js";
 import { nowMs, elapsed, hrNow } from "../utils/time.js";
 import { TargetServerError } from "../errors.js";
 import { createFirewall, type FirewallEvaluator } from "../middleware/firewall.js";
-import { createLicenseVerifier } from "../middleware/license-verifier.js";
 import { Pipeline, type MiddlewareContext } from "../middleware/pipeline.js";
+
 import { RateLimiter } from "../middleware/rate-limiter.js";
 import { withDeduplication } from "../middleware/deduplicator.js";
 import { normalizeRequest } from "../middleware/normalizer.js";
@@ -103,14 +103,8 @@ export class ProxyEngine {
        await next();
     });
 
-    // 3. Enterprise License Verifier (Fail-Closed)
-    // Проверка ключа Lemon Squeezy (если ключа нет, запросы будут заблокированы)
-    this.pipeline.use(createLicenseVerifier(
-        config.enterprise.licenseKey,
-        config.enterprise.productId
-    ));
+    // 3. Rate Limiter
 
-    // 4. Rate Limiter
     const rateLimiter = new RateLimiter(config.rateLimiter);
     this.pipeline.use(async (ctx, next) => {
        rateLimiter.consume(ctx.serverId);
@@ -170,7 +164,6 @@ export class ProxyEngine {
           let code = -32000;
           if (err instanceof Error && err.message.includes("Rate Limiter")) code = -32005; // TOO_MANY_REQUESTS equivalent
           else if (err instanceof Error && err.message.includes("Firewall")) code = -32001;
-          else if (err instanceof Error && err.message.includes("License")) code = -32002; // Enterprise license error
           
           const reason = ctx.blockReason || (err instanceof Error ? err.message : "Blocked by proxy middleware");
           this.sendToClientRaw(buildRpcErrorResponse(req.id, code, reason));
