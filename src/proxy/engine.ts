@@ -21,6 +21,26 @@ import { nowMs, elapsed, hrNow } from "../utils/time.js";
 import { TargetServerError } from "../errors.js";
 import { createFirewall, type FirewallEvaluator } from "../middleware/firewall.js";
 
+export function sanitizeShadowLeak(msg: string, data?: unknown): { msg: string; data?: unknown } {
+  const shadowLeakPatterns = [
+    /at\s+.*:\d+:\d+/i, // Stack traces
+    /node_modules/i,
+    /\/etc\//i,
+    /C:(?:\\\\|\\)Windows/i,
+    /\.env/i,
+    /sk-[a-zA-Z0-9]{20,}/ // API tokens
+  ];
+
+  const strToTest = JSON.stringify({ msg, data });
+  for (const pattern of shadowLeakPatterns) {
+    if (pattern.test(strToTest)) {
+      return { msg: "Target server encountered an internal error.", data: undefined };
+    }
+  }
+
+  return { msg, data };
+}
+
 interface DeferredTargetResponse {
   resolve: (value: unknown) => void;
   reject: (err: Error) => void;
@@ -146,7 +166,8 @@ export class ProxyEngine {
         code = -32001;
       }
 
-      this.sendToClientRaw(buildRpcErrorResponse(req.id, code, msg, data));
+      const sanitized = sanitizeShadowLeak(msg, data);
+      this.sendToClientRaw(buildRpcErrorResponse(req.id, code, sanitized.msg, sanitized.data));
     }
   }
 
@@ -227,6 +248,15 @@ export class ProxyEngine {
         const { req, isPassthrough } = this.interceptor.processTargetMessage(parsed);
 
         if (isPassthrough) {
+          // Sanitize shadow leaks in passthrough error messages
+          if (parsed && typeof parsed === "object" && "error" in parsed) {
+             const respErr = (parsed as any).error;
+             if (respErr && typeof respErr.message === "string") {
+                const sanitized = sanitizeShadowLeak(respErr.message, respErr.data);
+                respErr.message = sanitized.msg;
+                respErr.data = sanitized.data;
+             }
+          }
           this.sendToClientRaw(parsed);
         } else if (req) {
           const response = parsed as { result?: unknown, error?: { code: number, message: string, data?: unknown } };

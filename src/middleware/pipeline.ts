@@ -4,6 +4,8 @@ export type MiddlewareContext = {
   serverId: string;
   isCached?: boolean;
   rateLimitTokens?: number;
+  blocked?: boolean;     // Fail-Closed флаг
+  blockReason?: string;  // Причина блокировки
   [key: string]: unknown;
 };
 
@@ -27,7 +29,14 @@ export class Pipeline {
       let fn = this.middlewares[i];
       if (!fn) return; 
 
-      await fn(ctx, dispatch.bind(null, i + 1));
+      try {
+        await fn(ctx, dispatch.bind(null, i + 1));
+      } catch (err) {
+        // Fail-Closed логика: блокируем выполнение при любой ошибке в middleware
+        ctx.blocked = true;
+        ctx.blockReason = err instanceof Error ? `Fail-Closed: Ошибка в middleware: ${err.message}` : "Fail-Closed: Неизвестная ошибка в middleware";
+        throw err; // Проброс ошибки для обработки выше по стеку, если необходимо
+      }
     };
 
     return dispatch(0);

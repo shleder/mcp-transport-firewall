@@ -1,0 +1,9 @@
+# v1.1 - Security & Reliability Update
+
+## Features
+- **Fail-Closed Middleware**: The middleware pipeline now implements fail-closed logic, ensuring that any unhandled errors gracefully block requests rather than allowing them to proceed or crash the proxy server.
+- **ShadowLeak Mitigation**: Target server errors are now sanitized before being sent to the client. This prevents the leakage of sensitive internal information such as stack traces, local file paths, and API tokens.
+
+## Testing
+- Added unit tests for pipeline middleware using lightweight mocks.
+- Added unit tests for ShadowLeak protection, successfully covering edge cases like Windows path escapes.
