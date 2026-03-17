@@ -158,13 +158,8 @@ export function loadConfig(options: LoadConfigOptions): ProxyConfig {
       command: cli.targetCommand || "echo",
       args: cli.targetArgs,
     },
-    enterprise: {
-      licenseKey: process.env.ENTERPRISE_LICENSE_KEY || undefined,
-      productId: process.env.ENTERPRISE_PRODUCT_ID || undefined,
-      ...(fileConfig.enterprise || {}),
-      ...(envConfig?.enterprise || {})
-    },
     cache: deepMerge(
+
       (fileConfig.cache ?? {}) as Record<string, unknown>,
       (envConfig?.cache ?? {}) as Record<string, unknown>
     ),

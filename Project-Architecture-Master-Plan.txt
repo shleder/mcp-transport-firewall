@@ -1,0 +1,79 @@
+# MCP Context Optimizer: Technical Master Specification & Architecture
+
+## 1. Executive Summary
+**MCP Context Optimizer** — это отказоустойчивый кэширующий прокси-сервер корпоративного уровня, разработанный для протокола **Model Context Protocol (MCP)**. 
+
+### Mission
+Минимизация операционных расходов (Token Save), снижение задержек (Low Latency) и обеспечение бескомпромиссной безопасности (Fail-Closed Security) при взаимодействии ИИ-агентов с локальными и удаленными инструментами.
+
+---
+
+## 2. Core Architecture: The Pipeline Model
+Сервер построен на базе асинхронного конвейера (Middleware Pipeline), через который проходит каждый JSON-RPC запрос.
+
+### Execution Flow:
+1.  **Normalization**: Приведение запроса к стандартному виду.
+2.  **Firewall v1.1**: Проверка на безопасность (Prompt Injection, Path Traversal).
+3.  **License Verifier**: Проверка Enterprise-ключа через Lemon Squeezy API.
+4.  **Rate Limiter**: Защита от перегрузки целевого сервера.
+5.  **Cache Lookup**: Поиск в L1/L2 слоях.
+6.  **Proxying**: Вызов целевого MCP-сервера (если не в кэше).
+7.  **Response Interception**: Санитизация ответа перед отправкой клиенту.
+
+---
+
+## 3. High-Performance Caching System
+Система использует гибридную схему для обеспечения баланса между скоростью и долговечностью данных.
+
+- **L1 (In-Memory)**: Использует `lru-cache`. Хранит горячие данные. Лимитирован по количеству элементов и объему памяти.
+- **L2 (Persistent)**: Использует **SQLite (better-sqlite3)**. Обеспечивает сохранность кэша после перезагрузки. Все SQL-запросы строго параметризованы для защиты от инъекций.
+- **In-Flight Deduplication**: Предотвращает "Cache Stampede" — если 10 параллельных запросов просят одно и то же, прокси сделает только 1 реальный вызов к бэкенду.
+
+---
+
+## 4. Security Framework (Enterprise Layer)
+
+### A. Fail-Closed Firewall v1.1
+Файрвол блокирует запросы по следующим правилам:
+- **PATH_TRAVERSAL**: Запрет доступа к `/etc/`, `.env`, `C:\Windows` и др.
+- **PROMPT_INJECTION**: Обнаружение попыток сброса системных инструкций ("ignore previous instructions").
+- **DANGEROUS_TOOL_NAME**: Мониторинг вызовов `exec`, `eval`, `shell`.
+
+### B. ShadowLeak Interceptor
+Функция `sanitizeShadowLeak` сканирует ответы от инструментов ИИ. Если в ответе обнаружены:
+- Стек-трейсы ошибок.
+- Пути к `node_modules`.
+- API токены (`sk-...`).
+- Системные конфиги.
+Светящиеся данные вырезаются, и клиент получает безопасную ошибку.
+
+### C. Enterprise Licensing
+Интеграция с **Lemon Squeezy API**:
+- Валидация ключа в режиме реального времени.
+- Кэширование статуса на 12 часов.
+- **Grace Period (24ч)**: Если API валидации недоступно, прокси продолжает работать на закэшированных данных, обеспечивая непрерывность бизнеса.
+
+---
+
+## 5. Resilience & Observability
+
+### Reliability Patterns:
+- **Circuit Breaker**: Автоматическое размыкание цепи при каскадных сбоях целевого сервера. Предотвращает накопление "зависших" запросов.
+- **Request Timeouts & Retries**: Настраиваемая политика повторных попыток с экспоненциальным бэк-оффом.
+
+### Monitoring:
+- **Prometheus Metrics**: Полная поддержка экспорта метрик в формате Prometheus.
+- **Admin Dashboard**: React-интерфейс для мониторинга:
+  - `mcp_total_requests`: Общая нагрузка.
+  - `mcp_blocked_covert`: Отраженные атаки.
+  - `mcp_intercepted_shadowleak`: Предотвращенные утечки данных.
+
+---
+
+## 6. Development Discipline
+- **TypeScript Strict Mode**: Zero `any` policy.
+- **Zod Validation**: Строгая типизация всех входящих JSON-RPC сообщений.
+- **Automated Testing**: Интеграционные тесты для всех критических middleware.
+
+---
+**MCP Context Optimizer** — не просто прокси, а полноценный шлюз безопасности и эффективности для ИИ-инфраструктуры будущего.

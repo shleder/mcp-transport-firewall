@@ -78,12 +78,9 @@ export interface EnvConfig {
     enabled?: boolean;
     failureThreshold?: number;
   };
-  enterprise: {
-    licenseKey?: string;
-    productId?: string;
-  };
   verbose?: boolean;
 }
+
 
 export function readEnvConfig(): EnvConfig {
   return {
@@ -124,13 +121,10 @@ export function readEnvConfig(): EnvConfig {
       enabled: envBool(ENV_KEYS.CB_ENABLED),
       failureThreshold: envNumber(ENV_KEYS.CB_FAILURE_THRESHOLD),
     },
-    enterprise: {
-      licenseKey: envString("ENTERPRISE_LICENSE_KEY"),
-      productId: envString("ENTERPRISE_PRODUCT_ID"),
-    },
     verbose: envBool(ENV_KEYS.VERBOSE),
   };
 }
+
 
 export function getDetectedEnvVars(): Record<string, string> {
   const result: Record<string, string> = {};
