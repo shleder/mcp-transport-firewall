@@ -15,3 +15,18 @@ coverage/
 __pycache__/
 
 ui/node_modules/
+
+# AI assistant internal files
+.agent/
+.agents/
+
+# Grant drafts (internal only)
+.grants/
+
+# Local build / test artifacts
+compile.log
+coverage_report.txt
+coverage_report2.txt
+
+# Internal planning docs
+Project-Architecture-Master-Plan.txt
