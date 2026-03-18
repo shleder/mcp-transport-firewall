@@ -1,11 +1,11 @@
 export type MiddlewareContext = {
   rawMessage: string;
-  message?: unknown; 
+  message?: unknown;
   serverId: string;
   isCached?: boolean;
   rateLimitTokens?: number;
-  blocked?: boolean;     // Fail-Closed флаг
-  blockReason?: string;  // Причина блокировки
+  blocked?: boolean;     // Fail-Closed flag
+  blockReason?: string;  // Human-readable block reason
   [key: string]: unknown;
 };
 
@@ -26,16 +26,18 @@ export class Pipeline {
       if (i <= index) throw new Error("next() called multiple times");
       index = i;
 
-      let fn = this.middlewares[i];
-      if (!fn) return; 
+      const fn = this.middlewares[i];
+      if (!fn) return;
 
       try {
         await fn(ctx, dispatch.bind(null, i + 1));
       } catch (err) {
-        // Fail-Closed логика: блокируем выполнение при любой ошибке в middleware
+        // Fail-Closed: block execution on any middleware error
         ctx.blocked = true;
-        ctx.blockReason = err instanceof Error ? `Fail-Closed: Ошибка в middleware: ${err.message}` : "Fail-Closed: Неизвестная ошибка в middleware";
-        throw err; // Проброс ошибки для обработки выше по стеку, если необходимо
+        ctx.blockReason = err instanceof Error
+          ? `Fail-Closed: middleware error: ${err.message}`
+          : "Fail-Closed: unknown middleware error";
+        throw err;
       }
     };
 

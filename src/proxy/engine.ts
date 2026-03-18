@@ -159,7 +159,7 @@ export class ProxyEngine {
     try {
        await this.pipeline.execute(ctx);
     } catch (err) {
-       // Middleware pipeline failed (e.g. Rate Limiter, Firewall, License Verifier)
+       // Middleware pipeline failed (e.g. Rate Limiter, Firewall)
        if (ctx.blocked) {
           let code = -32000;
           if (err instanceof Error && err.message.includes("Rate Limiter")) code = -32005; // TOO_MANY_REQUESTS equivalent

@@ -1,28 +1,17 @@
-PROJECT: MCP Context Optimizer — MCP Application Firewall
-GRANT: OpenAI Codex for OSS (API credits + Codex Security access)
-TARGET: Security / Developer Infrastructure
+Grant Application — Ecosystem Importance Clause
+Project: mcp-proxy-firewall
+Category: Open-Source Security Infrastructure
 
-PROBLEM:
-MCP stdio traffic between AI agents and local tool servers (file system, shell,
-databases) is unfiltered. A compromised or misconfigured LLM can issue tool calls
-that traverse restricted paths (/etc/, .env, .ssh/) or embed prompt injection
-payloads targeting the tool server's execution context.
+---
 
-SOLUTION:
-src/middleware/firewall.ts — the first open-source MCP Application Firewall.
-Implements four blocking rules as composable, pluggable functions:
-  1. PATH_TRAVERSAL  — regex-blocks /etc/, .env, .ssh/, /proc/, credentials
-  2. PROMPT_INJECTION — blocks "ignore previous instructions", "act as root", etc.
-  3. OVERSIZED_PAYLOAD — blocks params > 256KB (OOM attack vector)
-  4. DANGEROUS_TOOLS — warns on exec, eval, shell, subprocess tool names
+PROBLEM
 
-BENCHMARK: 80% cache hit ratio, 36,000 tokens saved per 100 calls, 4x latency drop.
+The Model Context Protocol transport layer has no mandatory enforcement boundary between untrusted tool output and agent execution context. CVE-2026-25536 formalised this gap: a malicious or compromised MCP server can inject structured payloads that hijack subsequent tool calls in the same session (Cross-Tool Hijacking). Derivatives of this vector — including the Clinejection class of attacks, which abuse MCP client auto-approval flows, and zero-click exfiltration via covert channel embedding in nominally benign tool responses (ShadowLeak) — require no user interaction and leave no observable trace in standard application logs. Because the MCP standard itself operates at the stdio framing layer and defines no normative security boundary, any agentic system that composes multiple MCP servers is exposed by default, regardless of the LLM vendor or orchestration framework in use.
 
-GRANT RATIONALE:
-Codex API credits and Codex Security program access are required to integrate static
-vulnerability analysis into MCP transit streams — specifically, to run Codex-powered
-taint analysis on tool call arguments before they reach the target server. This extends
-the firewall from pattern-matching to semantic threat detection.
+SOLUTION
 
-REPOSITORY: https://github.com/maksboreichuk88-commits/MCP-server
-LICENSE: MIT
+mcp-proxy-firewall is a model-agnostic, vendor-neutral stdio interceptor that inserts a hardware-enforced security boundary between any MCP client and any MCP server without modifying either endpoint. The proxy implements a layered middleware pipeline: Zod schema validation rejects malformed JSON-RPC payloads before processing; a stateless Firewall stage evaluates every inbound request against a configurable rule set covering path traversal, prompt-injection patterns, and covert tool invocation signatures; and a ShadowLeak sanitiser scrubs all outbound error envelopes of stack traces, filesystem paths, and credential tokens before they reach the client context window. All stages operate under a strict Fail-Closed policy — any middleware fault results in request termination with a structured error response, never in pass-through — satisfying the non-human identity (NHI) protection requirements outlined in Microsoft's Secure Future Initiative guidance. The Trust Gate architecture, whereby each middleware stage must explicitly pass execution to the next stage or the chain terminates, is consistent with the Zero Trust principles defined in the Cloud Security Alliance's CCM v4 framework. The proxy requires zero configuration for baseline protection and is deployable as a drop-in wrapper via a single command.
+
+FUNDING REQUEST
+
+We request grant funding under the Ecosystem Importance Clause on the grounds that mcp-proxy-firewall addresses a structural vulnerability in a protocol that underlies an expanding class of autonomous agentic systems across the open-source ecosystem. Because the attack surface described above is protocol-level rather than application-level, no individual vendor or downstream project can close it unilaterally; a shared, independently maintained transport firewall is the appropriate remediation layer. Requested funds will support full-time security engineering for expanded rule coverage, formal threat modelling against published MCP extension specifications, integration test infrastructure for heterogeneous MCP server configurations, and sustainability of the project as a neutral, non-commercial public good. No proprietary APIs, commercial licences, or vendor-specific dependencies are involved at any stage of the project.

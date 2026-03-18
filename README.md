@@ -1,43 +1,47 @@
-# MCP Context Optimizer
+# mcp-proxy-firewall
 
-**High-performance proxy and Application Firewall for the Model Context Protocol (MCP).**
+**Model-Agnostic Transport Firewall for the Model Context Protocol.**
 
-**Benchmark (100 calls, 20 unique tool invocations):** Cache Hit Ratio **80%** · Tokens saved **~36,000** · Latency reduced from **~110ms to ~26ms (4x)**
+A zero-config, vendor-neutral stdio interceptor that enforces a Fail-Closed security boundary between any MCP client and any MCP server — without modifying either endpoint.
 
 [![CI/CD](https://github.com/maksboreichuk88-commits/MCP-server/actions/workflows/ci.yml/badge.svg)](https://github.com/maksboreichuk88-commits/MCP-server/actions)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/maksboreichuk88-commits/MCP-server/pkgs/container/mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-## Integration
-
-| Client | Config |
-|--------|--------|
-| Claude Desktop | [`examples/claude_desktop_config.json`](./examples/claude_desktop_config.json) |
-| LangChain / Python | [`examples/langchain_integration.py`](./examples/langchain_integration.py) |
-| Docker | `docker run ghcr.io/maksboreichuk88-commits/mcp-server:latest node dist/index.js <target-cmd>` |
-
 ---
 
 ## What It Does
 
-MCP Context Optimizer is a **transparent stdio proxy** between any MCP client (Claude Desktop, Codex CLI, LangChain) and a target MCP server. It intercepts JSON-RPC traffic and provides:
+`mcp-proxy-firewall` sits between your MCP client (Claude Desktop, Codex CLI, LangChain, any stdio-based agent) and a target MCP server. It intercepts all JSON-RPC traffic over stdio and enforces a layered security pipeline before any request reaches the target or any response reaches the client.
 
-- **L1 + L2 Hybrid Cache** — LRU in-memory (fast) + SQLite (persistent across restarts). Cache keys are SHA-256 hashes of `(server + method + params)`.
-- **Selective Caching** — `alwaysCacheTools` / `neverCacheTools` config fields prevent caching of state-mutating tools (`write_file`, `execute_command`, etc.).
-- **Application Firewall** — blocks path traversal (`/etc/`, `.env`, `.ssh/`), prompt injection patterns, payloads > 256KB, and dangerous tool names (`exec`, `eval`, `shell`).
-- **Circuit Breaker** — prevents cascade failures when the target MCP server is unavailable.
-- **Request Deduplication** — concurrent identical requests are collapsed into a single backend call.
-- **Web Dashboard** — real-time metrics at `http://localhost:9090` after `node dist/index.js --admin-only`.
+### Pipeline (executed in order, Fail-Closed at every stage)
+
+```
+stdin → [Zod Validation] → [Firewall] → [Rate Limiter] → Target MCP Server
+                                                              │
+stdout ← [ShadowLeak Sanitiser] ← [L1/L2 Cache] ←──────────┘
+```
+
+| Stage | What it blocks |
+|---|---|
+| **Zod Validation** | Malformed JSON-RPC payloads, oversized requests (> 256 KB) |
+| **Firewall** | Path traversal (`/etc/`, `.env`, `.ssh/`), prompt-injection patterns, covert tool invocation (Cross-Tool Hijacking), dangerous tool names (`exec`, `eval`, `shell`) |
+| **Rate Limiter** | Burst floods from a single client session |
+| **ShadowLeak Sanitiser** | Stack traces, filesystem paths, API tokens in outbound error envelopes — zero-click exfiltration vectors |
+| **Circuit Breaker** | Cascade failures when the target server is unavailable |
+| **L1 + L2 Cache** | LRU in-memory (fast) + SQLite (persistent). Keyed by SHA-256 of `(server + method + params)` |
+
+**Fail-Closed guarantee:** any middleware fault terminates the request with a structured JSON-RPC error. There is no pass-through fallback.
 
 ---
 
 ## Quick Start
 
-### npm
-
 ```bash
 git clone https://github.com/maksboreichuk88-commits/MCP-server.git
-cd MCP-server && npm install && npm run build
+cd MCP-server
+npm install
+npm run build
 node dist/index.js npx -y @modelcontextprotocol/server-filesystem /your/path
 ```
 
@@ -49,11 +53,23 @@ docker run -it --rm -p 9090:9090 \
   node dist/index.js npx -y @modelcontextprotocol/server-filesystem /data
 ```
 
+The proxy wraps any target command — replace `npx -y @modelcontextprotocol/server-filesystem /your/path` with whatever command your MCP server uses.
+
+---
+
+## Integration
+
+| Client | Config |
+|--------|--------|
+| Claude Desktop | [`examples/claude_desktop_config.json`](./examples/claude_desktop_config.json) |
+| LangChain / Python | [`examples/langchain_integration.py`](./examples/langchain_integration.py) |
+| Docker | `docker run ghcr.io/maksboreichuk88-commits/mcp-server:latest node dist/index.js <target-cmd>` |
+
 ---
 
 ## Configuration
 
-`mcp-optimizer.json` (place in project root):
+Place `mcp-optimizer.json` in the project root:
 
 ```jsonc
 {
@@ -68,16 +84,52 @@ docker run -it --rm -p 9090:9090 \
 
 | ENV Variable | Description | Default |
 |---|---|---|
-| `MCP_CACHE_TTL_SECONDS` | Cache entry TTL | `300` |
-| `MCP_ADMIN_PORT` | Dashboard / Admin API port | `9090` |
+| `MCP_CACHE_TTL_SECONDS` | Cache entry TTL in seconds | `300` |
+| `MCP_ADMIN_PORT` | Admin API / Dashboard port | `9090` |
 | `ADMIN_TOKEN` | Bearer token for Admin API | *(none)* |
-| `MCP_VERBOSE` | Enable debug logging | `false` |
+| `MCP_VERBOSE` | Enable debug logging to stderr | `false` |
 
 ---
 
-## Benchmark
+## Running Integration Tests
+
+> Requires Node.js v20+ and Python 3.9+.
+
+### 1. Install dependencies and build
+
+```bash
+npm install
+npm run build
+```
+
+### 2. Run TypeScript unit and integration tests
+
+```bash
+npm test
+```
+
+### 3. Run Python integration tests via MCP client wrapper
+
+```bash
+# Install Python test dependencies (one-time)
+pip install pytest mcp
+
+# Run the integration suite
+pytest tests/integration/test_langchain_wrapper.py -v
+```
+
+Expected output:
 
 ```
+tests/integration/test_langchain_wrapper.py::test_optimized_command_basic PASSED
+tests/integration/test_langchain_wrapper.py::test_optimized_command_with_options PASSED
+tests/integration/test_langchain_wrapper.py::test_optimized_command_with_spaces PASSED
+tests/integration/test_langchain_wrapper.py::test_empty_command PASSED
+```
+
+### 4. Run the performance benchmark
+
+```bash
 npx tsx tests/benchmark.ts
 ```
 
@@ -97,19 +149,23 @@ Tokens Saved: ~36,000
 ## Architecture
 
 ```
-MCP Client (Claude / Codex / LangChain)
-        │ stdio JSON-RPC
+MCP Client (any — Claude / Codex / LangChain / custom)
+        │  stdio  JSON-RPC
         ▼
-┌─────────────────────────────────┐
-│     MCP Context Optimizer       │
-│                                 │
-│  Firewall → Dedup → L1 Cache    │
-│                  └─▶ L2 Cache   │
-│                  └─▶ Target     │
-│                                 │
-│  Admin HTTP API + Dashboard     │
-└─────────────────────────────────┘
-        │ stdio JSON-RPC
+┌───────────────────────────────────────┐
+│          mcp-proxy-firewall           │
+│                                       │
+│  Zod → Firewall → RateLimit           │
+│                     │                 │
+│              [Cache Hit?]             │
+│              ├── yes → return cached  │
+│              └── no  → Target Server  │
+│                           │           │
+│              ShadowLeak Sanitiser     │
+│                           │           │
+│              Admin HTTP API :9090     │
+└───────────────────────────────────────┘
+        │  stdio  JSON-RPC
         ▼
    Target MCP Server
 ```
@@ -121,13 +177,15 @@ MCP Client (Claude / Codex / LangChain)
 ```
 src/proxy/       — Engine, circuit breaker, retry, timeout
 src/cache/       — L1 LRU + L2 SQLite, cache policies
-src/middleware/  — Rate limiter, deduplicator, normalizer, firewall
-src/admin/       — HTTP Admin API + static UI file server
-src/config/      — Zod schema + multi-source loader (JSON/ENV/CLI)
-ui/              — React/Vite dashboard (Recharts)
+src/middleware/  — Zod validation, firewall, rate limiter, deduplicator, normalizer
+src/admin/       — HTTP Admin API + static dashboard
+src/config/      — Zod schema + multi-source config loader (JSON / ENV / CLI)
+ui/              — Admin dashboard (React + Vite + Recharts)
 examples/        — Claude Desktop + LangChain integration configs
-tests/           — Unit tests + benchmark script
+tests/           — Unit tests, integration tests, benchmark
 .github/         — CI/CD: typecheck, build, Docker publish to ghcr.io
 ```
 
-**License:** MIT
+---
+
+**License:** MIT · No proprietary APIs · No LLM-vendor dependencies
