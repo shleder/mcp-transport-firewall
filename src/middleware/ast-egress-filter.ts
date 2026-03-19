@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { EpistemicSecurityException } from '../errors.js';
 
 const SENSITIVE_PATH_PATTERNS: RegExp[] = [
   /\.env\b/i,
@@ -22,16 +23,11 @@ const SHELL_INJECTION_PATTERNS: RegExp[] = [
   /&&\s*(rm|curl|wget|bash|sh)\b/,
 ];
 
-const SINGLE_CHAR_QUERY_THRESHOLD = 3;
+const EPISTEMIC_CONTRADICTION_PATTERNS: RegExp[] = [
+  /\b(uncertain|hallucinat|contradict|ignore previous|not sure)\b/i,
+];
 
-const writeAuditLog = (event: string, details: Record<string, unknown>): void => {
-  const entry = JSON.stringify({
-    timestamp: new Date().toISOString(),
-    event,
-    ...details,
-  });
-  process.stderr.write(`[AUDIT] ${entry}\n`);
-};
+const SINGLE_CHAR_QUERY_THRESHOLD = 3;
 
 const extractAllStringValues = (obj: unknown, results: string[] = []): string[] => {
   if (typeof obj === 'string') {
@@ -88,6 +84,15 @@ const detectShellInjection = (value: string): string | null => {
   return null;
 };
 
+const detectEpistemicContradiction = (value: string): string | null => {
+  for (const pattern of EPISTEMIC_CONTRADICTION_PATTERNS) {
+    if (pattern.test(value)) {
+      return pattern.source;
+    }
+  }
+  return null;
+};
+
 export const astEgressFilter = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const body = req.body as Record<string, unknown>;
@@ -100,64 +105,43 @@ export const astEgressFilter = (req: Request, res: Response, next: NextFunction)
 
     for (const value of allValues) {
       if (detectShadowLeak(value)) {
-        writeAuditLog('SHADOWLEAK_DETECTED', {
-          reason: 'Single-char query parameter exfiltration pattern detected',
-          suspiciousValue: value.slice(0, 200),
-          ip: req.ip,
-        });
-        res.status(403).json({
-          error: {
-            code: 'SHADOWLEAK_DETECTED',
-            message: 'Egress violation: character-by-character exfiltration pattern detected in URL parameters.',
-          },
-        });
-        return;
+        throw new EpistemicSecurityException(
+          'Egress violation: character-by-character exfiltration pattern detected in URL parameters.',
+          'SHADOWLEAK_DETECTED'
+        );
       }
 
       const sensitiveMatch = detectSensitivePath(value);
       if (sensitiveMatch !== null) {
-        writeAuditLog('SENSITIVE_PATH_BLOCKED', {
-          reason: 'Attempt to access sensitive system file',
-          matchedPattern: sensitiveMatch,
-          ip: req.ip,
-        });
-        res.status(403).json({
-          error: {
-            code: 'SENSITIVE_PATH_BLOCKED',
-            message: 'Egress violation: access to sensitive system paths is forbidden.',
-          },
-        });
-        return;
+        throw new EpistemicSecurityException(
+          `Egress violation: access to sensitive system paths is forbidden. Pattern matched: ${sensitiveMatch}`,
+          'SENSITIVE_PATH_BLOCKED'
+        );
       }
 
       const shellMatch = detectShellInjection(value);
       if (shellMatch !== null) {
-        writeAuditLog('SHELL_INJECTION_BLOCKED', {
-          reason: 'Shell metacharacters or command pattern detected',
-          matchedPattern: shellMatch,
-          ip: req.ip,
-        });
-        res.status(403).json({
-          error: {
-            code: 'SHELL_INJECTION_BLOCKED',
-            message: 'Egress violation: shell injection pattern detected in arguments.',
-          },
-        });
-        return;
+        throw new EpistemicSecurityException(
+          `Egress violation: shell injection pattern detected. Pattern matched: ${shellMatch}`,
+          'SHELL_INJECTION_BLOCKED'
+        );
+      }
+
+      const epistemicMatch = detectEpistemicContradiction(value);
+      if (epistemicMatch !== null) {
+        throw new EpistemicSecurityException(
+          `Epistemic Termination Trigger (ETT): agent semantics indicate uncertainty or hallucination. Pattern matched: ${epistemicMatch}`,
+          'EPISTEMIC_CONTRADICTION_DETECTED'
+        );
       }
     }
 
     next();
   } catch (error: unknown) {
-    writeAuditLog('EGRESS_FILTER_ERROR', {
-      reason: error instanceof Error ? error.message : 'Unknown egress filter error',
-      ip: req.ip,
-    });
-    res.status(403).json({
-      error: {
-        code: 'EGRESS_VIOLATION',
-        message: 'Egress filter encountered an error. Request denied (Fail-Closed).',
-      },
-    });
+    if (error instanceof EpistemicSecurityException) {
+      next(error); // Pass to error-handler.ts for Hard Halt
+      return;
+    }
+    next(new EpistemicSecurityException('Egress filter encountered an unexpected error. Request denied (Fail-Closed).', 'EGRESS_VIOLATION'));
   }
 };
