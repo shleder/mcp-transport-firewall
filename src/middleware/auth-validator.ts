@@ -1,126 +1,110 @@
-/**
- * Fail-Closed Authentication Token Validator.
- * 
- * Implements the Zero Trust paradigm from security-constitution.md:
- * - Missing token → Hard Halt (401)
- * - Invalid format → Hard Halt (401)
- * - Token Passthrough is PROHIBITED: we never forward unvalidated tokens.
- * 
- * The token is validated against PROXY_AUTH_TOKEN env variable.
- * If PROXY_AUTH_TOKEN is not set, ALL requests are rejected (Fail-Closed).
- */
-import type { Request, Response, NextFunction } from "express";
-import { appendAuditLog } from "../audit/logger.js";
-import { AuthenticationFailure } from "../errors.js";
-import { AuthTokenSchema } from "../transport/schemas.js";
-import { timingSafeEqual } from "node:crypto";
+import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 
-/**
- * Constant-time string comparison to prevent timing attacks.
- */
-function safeCompare(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  const bufA = Buffer.from(a, "utf-8");
-  const bufB = Buffer.from(b, "utf-8");
-  return timingSafeEqual(bufA, bufB);
-}
+const BearerTokenSchema = z.string()
+  .min(32, 'Token must be at least 32 characters (Fail-Closed)')
+  .regex(/^[a-zA-Z0-9]+$/, 'Token must be alphanumeric');
 
-export function authValidator(req: Request, res: Response, next: NextFunction): void {
-  try {
-    const expectedToken = process.env.PROXY_AUTH_TOKEN;
+const writeAuditLog = (event: string, details: Record<string, unknown>): void => {
+  const entry = JSON.stringify({
+    timestamp: new Date().toISOString(),
+    event,
+    ...details,
+  });
+  process.stderr.write(`[AUDIT] ${entry}\n`);
+};
 
-    // Fail-Closed: if no server-side token is configured, reject everything.
-    if (!expectedToken || expectedToken.length === 0) {
-      const err = new AuthenticationFailure("Server has no PROXY_AUTH_TOKEN configured. Fail-Closed enforced.");
-      appendAuditLog({
-        timestamp: new Date().toISOString(),
-        eventType: "AUTH_FAILURE",
-        severity: "CRITICAL",
-        clientId: req.ip || "unknown",
-        detail: err.message,
-      });
-      res.status(401).json({
-        jsonrpc: "2.0",
-        id: null,
-        error: { code: -32001, message: err.message },
-      });
-      return;
-    }
+export const authValidator = (req: Request, res: Response, next: NextFunction): void => {
+  const serverToken = process.env.PROXY_AUTH_TOKEN;
 
-    // Extract Bearer token from Authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      const err = new AuthenticationFailure("Missing or malformed Authorization header. Expected: Bearer <token>");
-      appendAuditLog({
-        timestamp: new Date().toISOString(),
-        eventType: "AUTH_FAILURE",
-        severity: "HIGH",
-        clientId: req.ip || "unknown",
-        detail: err.message,
-      });
-      res.status(401).json({
-        jsonrpc: "2.0",
-        id: null,
-        error: { code: -32001, message: err.message },
-      });
-      return;
-    }
-
-    const clientToken = authHeader.slice(7); // strip "Bearer "
-
-    // Validate token format with Zod (Fail-Closed on parse error)
-    const parseResult = AuthTokenSchema.safeParse(clientToken);
-    if (!parseResult.success) {
-      const detail = parseResult.error.issues.map(i => i.message).join("; ");
-      const err = new AuthenticationFailure(`Token format violation: ${detail}`);
-      appendAuditLog({
-        timestamp: new Date().toISOString(),
-        eventType: "AUTH_FAILURE",
-        severity: "HIGH",
-        clientId: req.ip || "unknown",
-        detail: err.message,
-      });
-      res.status(401).json({
-        jsonrpc: "2.0",
-        id: null,
-        error: { code: -32001, message: err.message },
-      });
-      return;
-    }
-
-    // Constant-time comparison against expected token
-    if (!safeCompare(clientToken, expectedToken)) {
-      const err = new AuthenticationFailure("Invalid token. Access denied.");
-      appendAuditLog({
-        timestamp: new Date().toISOString(),
-        eventType: "AUTH_FAILURE",
-        severity: "CRITICAL",
-        clientId: req.ip || "unknown",
-        detail: err.message,
-      });
-      res.status(401).json({
-        jsonrpc: "2.0",
-        id: null,
-        error: { code: -32001, message: err.message },
-      });
-      return;
-    }
-
-    // Token is valid — proceed. Token is NOT forwarded downstream (no passthrough).
-    next();
-  } catch (err) {
-    // Fail-Closed: any exception in auth = reject
-    appendAuditLog({
-      timestamp: new Date().toISOString(),
-      eventType: "AUTH_FAILURE",
-      severity: "CRITICAL",
-      clientId: req.ip || "unknown",
-      detail: `Auth validator internal error: ${String(err)}`,
+  if (!serverToken) {
+    writeAuditLog('AUTH_FAILURE', {
+      reason: 'Fail-Closed: PROXY_AUTH_TOKEN not configured on server',
+      ip: req.ip,
     });
-    res.status(500).json({
-      jsonrpc: "2.0",
-      id: null,
-      error: { code: -32603, message: "Internal Auth Error (Fail-Closed). Request terminated." },
+    res.status(401).json({
+      error: {
+        code: 'AUTH_FAILURE',
+        message: 'Fail-Closed: Server authentication token is not configured. All requests are denied.',
+      },
     });
+    return;
   }
-}
+
+  const serverTokenResult = BearerTokenSchema.safeParse(serverToken);
+  if (!serverTokenResult.success) {
+    writeAuditLog('AUTH_FAILURE', {
+      reason: 'Fail-Closed: Server PROXY_AUTH_TOKEN fails validation',
+      ip: req.ip,
+    });
+    res.status(401).json({
+      error: {
+        code: 'AUTH_FAILURE',
+        message: 'Fail-Closed: Server token configuration is invalid.',
+      },
+    });
+    return;
+  }
+
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || typeof authHeader !== 'string') {
+    writeAuditLog('AUTH_FAILURE', {
+      reason: 'Missing Authorization header',
+      ip: req.ip,
+    });
+    res.status(401).json({
+      error: {
+        code: 'AUTH_FAILURE',
+        message: 'Authorization header is required.',
+      },
+    });
+    return;
+  }
+
+  if (!authHeader.startsWith('Bearer ')) {
+    writeAuditLog('AUTH_FAILURE', {
+      reason: 'Invalid auth scheme (expected Bearer)',
+      ip: req.ip,
+    });
+    res.status(401).json({
+      error: {
+        code: 'AUTH_FAILURE',
+        message: 'Only Bearer authentication scheme is accepted.',
+      },
+    });
+    return;
+  }
+
+  const clientToken = authHeader.slice(7);
+
+  const clientTokenResult = BearerTokenSchema.safeParse(clientToken);
+  if (!clientTokenResult.success) {
+    writeAuditLog('AUTH_FAILURE', {
+      reason: 'Client token fails Zod schema validation',
+      ip: req.ip,
+    });
+    res.status(401).json({
+      error: {
+        code: 'AUTH_FAILURE',
+        message: 'Fail-Closed: Client token does not meet minimum requirements.',
+      },
+    });
+    return;
+  }
+
+  if (clientToken.length !== serverToken.length || clientToken !== serverToken) {
+    writeAuditLog('AUTH_FAILURE', {
+      reason: 'Token mismatch',
+      ip: req.ip,
+    });
+    res.status(401).json({
+      error: {
+        code: 'AUTH_FAILURE',
+        message: 'Invalid authentication token.',
+      },
+    });
+    return;
+  }
+
+  next();
+};

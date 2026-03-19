@@ -1,15 +1,6 @@
-/**
- * Cross-Tool Hijack Attack Simulation Tests.
- * 
- * These tests mathematically prove that the mcpColorBoundary middleware
- * enforces a Hard Halt (HTTP 403) whenever RED and BLUE tools are
- * requested simultaneously — the core defense against Cross-Tool Hijacking.
- */
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Request, Response, NextFunction } from "express";
-import { mcpColorBoundary } from "../../src/middleware/color-boundary";
+import { mcpColorBoundary } from "../src/middleware/color-boundary.js";
 
-// ── Test helpers ─────────────────────────────────────────────────────────
 function createMockReq(body: Record<string, unknown>, query: Record<string, string> = {}): Partial<Request> {
   return {
     body,
@@ -21,11 +12,11 @@ function createMockReq(body: Record<string, unknown>, query: Record<string, stri
 function createMockRes(): { res: Partial<Response>; statusCode: number; responseBody: unknown } {
   const state = { statusCode: 0, responseBody: null as unknown };
   const res: Partial<Response> = {
-    status: vi.fn((code: number) => {
+    status: jest.fn((code: number) => {
       state.statusCode = code;
       return res as Response;
     }),
-    json: vi.fn((body: unknown) => {
+    json: jest.fn((body: unknown) => {
       state.responseBody = body;
       return res as Response;
     }),
@@ -33,17 +24,18 @@ function createMockRes(): { res: Partial<Response>; statusCode: number; response
   return { res, ...state };
 }
 
-// ── Test Suite ───────────────────────────────────────────────────────────
-describe("mcpColorBoundary — Cross-Tool Hijack Detection", () => {
-
-  let stderrSpy: ReturnType<typeof vi.spyOn>;
+describe("mcpColorBoundary", () => {
+  let stderrSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    stderrSpy = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
   });
 
-  // ── CASE 1: RED + BLUE → Hard Halt (403) ──────────────────────────────
-  it("MUST return 403 when RED and BLUE tools are requested simultaneously", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("returns 403 when RED and BLUE tools are requested simultaneously", () => {
     const req = createMockReq({
       jsonrpc: "2.0",
       id: 1,
@@ -57,30 +49,24 @@ describe("mcpColorBoundary — Cross-Tool Hijack Detection", () => {
     });
 
     const { res } = createMockRes();
-    const next = vi.fn();
+    const next = jest.fn();
 
     mcpColorBoundary(req as Request, res as Response, next as NextFunction);
 
-    // PROOF: next() was never called → pipeline was halted
     expect(next).not.toHaveBeenCalled();
-
-    // PROOF: HTTP 403 was returned
     expect(res.status).toHaveBeenCalledWith(403);
 
-    // PROOF: error message contains CrossToolHijackAttempt
-    const body = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const body = (res.json as jest.Mock).mock.calls[0][0];
     expect(body.error.message).toContain("Cross-Tool Hijack Attempt detected");
     expect(body.error.message).toContain("read_email");
     expect(body.error.message).toContain("modify_database");
 
-    // PROOF: audit log was written
     expect(stderrSpy).toHaveBeenCalled();
     const auditOutput = (stderrSpy.mock.calls[0][0] as string);
     expect(auditOutput).toContain("CROSS_TOOL_HIJACK");
   });
 
-  // ── CASE 2: Multiple RED + Multiple BLUE → Hard Halt ──────────────────
-  it("MUST halt when multiple RED and multiple BLUE tools are mixed", () => {
+  it("halts when multiple RED and multiple BLUE tools are mixed", () => {
     const req = createMockReq({
       jsonrpc: "2.0",
       id: 2,
@@ -96,7 +82,7 @@ describe("mcpColorBoundary — Cross-Tool Hijack Detection", () => {
     });
 
     const { res } = createMockRes();
-    const next = vi.fn();
+    const next = jest.fn();
 
     mcpColorBoundary(req as Request, res as Response, next as NextFunction);
 
@@ -104,8 +90,7 @@ describe("mcpColorBoundary — Cross-Tool Hijack Detection", () => {
     expect(res.status).toHaveBeenCalledWith(403);
   });
 
-  // ── CASE 3: Only RED → PASS ───────────────────────────────────────────
-  it("MUST allow request with only RED tools (no BLUE conflict)", () => {
+  it("allows only RED tools", () => {
     const req = createMockReq({
       jsonrpc: "2.0",
       id: 3,
@@ -119,16 +104,15 @@ describe("mcpColorBoundary — Cross-Tool Hijack Detection", () => {
     });
 
     const { res } = createMockRes();
-    const next = vi.fn();
+    const next = jest.fn();
 
     mcpColorBoundary(req as Request, res as Response, next as NextFunction);
 
-    expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledTimes(1);
     expect(res.status).not.toHaveBeenCalled();
   });
 
-  // ── CASE 4: Only BLUE → PASS ──────────────────────────────────────────
-  it("MUST allow request with only BLUE tools (no RED conflict)", () => {
+  it("allows only BLUE tools", () => {
     const req = createMockReq({
       jsonrpc: "2.0",
       id: 4,
@@ -141,16 +125,15 @@ describe("mcpColorBoundary — Cross-Tool Hijack Detection", () => {
     });
 
     const { res } = createMockRes();
-    const next = vi.fn();
+    const next = jest.fn();
 
     mcpColorBoundary(req as Request, res as Response, next as NextFunction);
 
-    expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledTimes(1);
     expect(res.status).not.toHaveBeenCalled();
   });
 
-  // ── CASE 5: GREEN tools → always safe ─────────────────────────────────
-  it("MUST allow GREEN tools mixed with RED or BLUE without conflict", () => {
+  it("allows GREEN tools mixed with RED or BLUE", () => {
     const req = createMockReq({
       jsonrpc: "2.0",
       id: 5,
@@ -164,26 +147,24 @@ describe("mcpColorBoundary — Cross-Tool Hijack Detection", () => {
     });
 
     const { res } = createMockRes();
-    const next = vi.fn();
+    const next = jest.fn();
 
     mcpColorBoundary(req as Request, res as Response, next as NextFunction);
 
-    expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledTimes(1);
   });
 
-  // ── CASE 6: Empty body → PASS (no tools to check) ────────────────────
-  it("MUST pass through requests with no tool data", () => {
+  it("passes through requests with no tool data", () => {
     const req = createMockReq({});
     const { res } = createMockRes();
-    const next = vi.fn();
+    const next = jest.fn();
 
     mcpColorBoundary(req as Request, res as Response, next as NextFunction);
 
-    expect(next).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledTimes(1);
   });
 
-  // ── CASE 7: Single tool with color in params (flat format) ────────────
-  it("MUST detect RED+BLUE even in flat params format with top-level tools array", () => {
+  it("detects RED+BLUE in flat params format", () => {
     const req = createMockReq({
       jsonrpc: "2.0",
       id: 7,
@@ -195,7 +176,7 @@ describe("mcpColorBoundary — Cross-Tool Hijack Detection", () => {
     });
 
     const { res } = createMockRes();
-    const next = vi.fn();
+    const next = jest.fn();
 
     mcpColorBoundary(req as Request, res as Response, next as NextFunction);
 

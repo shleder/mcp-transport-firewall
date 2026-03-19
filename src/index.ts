@@ -1,55 +1,39 @@
-/**
- * MCP Proxy Server — Entry Point.
- * 
- * Assembles the Fail-Closed security pipeline:
- * 1. Auth Validator (Fail-Closed, no Token Passthrough)
- * 2. JSON Body Parser with 256KB limit
- * 3. mcpColorBoundary (Cross-Tool Hijack detection)
- * 4. HTTP/SSE Transport Handlers
- */
-import express from "express";
-import cors from "cors";
-import { authValidator } from "./middleware/auth-validator.js";
-import { mcpColorBoundary } from "./middleware/color-boundary.js";
-import { SSEHandler } from "./transport/sse-handler.js";
-import { MessageHandler } from "./transport/message-handler.js";
+import express from 'express';
+import { mcpColorBoundary } from './middleware/color-boundary.js';
+import { authValidator } from './middleware/auth-validator.js';
+import { astEgressFilter } from './middleware/ast-egress-filter.js';
+import { preflightValidator } from './middleware/preflight-validator.js';
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
 
-// ── Global middleware ────────────────────────────────────────────────────
-app.use(cors());
-app.use(express.json({ limit: "256kb" })); // Hard limit against oversized payloads
+app.use(express.json({
+  strict: true,
+  limit: '1mb'
+}));
 
-// ── Security Pipeline ────────────────────────────────────────────────────
-// SSE endpoint is exempt from auth (it establishes the connection)
-const sseHandler = new SSEHandler();
-const messageHandler = new MessageHandler(sseHandler);
-
-app.get("/sse", (req, res) => {
-  sseHandler.handleConnection(req, res);
+app.post('/mcp', authValidator, mcpColorBoundary, astEgressFilter, preflightValidator, (req, res) => {
+  res.status(200).json({ status: "success", data: "MCP Proxy Request Passed" });
 });
 
-// All POST /messages go through the full security pipeline:
-// Auth → Color Boundary → Message Handler
-app.post("/messages",
-  authValidator,
-  mcpColorBoundary,
-  (req, res) => {
-    messageHandler.handleClientMessage(req, res);
-  }
-);
+app.get('/sse', authValidator, (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.write(`data: ${JSON.stringify({ status: "connected" })}\n\n`);
+  
+  const intervalId = setInterval(() => {
+    res.write(':\n\n');
+  }, 15000);
 
-// Health check (unauthenticated)
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok", clients: sseHandler.getClientCount() });
+  req.on('close', () => {
+    clearInterval(intervalId);
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`🛡️  MCP Secure Proxy (Fail-Closed) running on http://localhost:${PORT}`);
-  console.log(`   SSE Endpoint: GET /sse`);
-  console.log(`   Message Endpoint: POST /messages`);
-  console.log(`   Health: GET /health`);
-});
+export default app;
 
-export { app };
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(3000, () => {
+    console.log('MCP Proxy Core listening on port 3000 (Protected Mode)');
+  });
+}
