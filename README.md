@@ -49,15 +49,13 @@ While strictly model-agnostic and Open Source, `mcp-proxy-firewall` provides mas
 
 ---
 
-## Quick Start
+## Быстрый старт (Запуск)
 
+Запуск проекта (Backend + UI) сводится строго к одной команде, никаких дополнительных действий не требуется:
 ```bash
-git clone https://github.com/maksboreichuk88-commits/MCP-server.git
-cd MCP-server
-npm install
-npm run build
-node dist/index.js npx -y @modelcontextprotocol/server-filesystem /your/path
+docker-compose up -d
 ```
+Сервер запустится на порту `9090`, а UI-дашборд на порту `4173`.
 
 ### Docker
 
