@@ -10,7 +10,7 @@ This repository implements a fail-closed MCP transport firewall. Security report
 - replay or preflight bypass
 - data exfiltration bypass
 - response sanitization bypass
-- failures that allow unsafe traffic to reach the stdio target or HTTP harness
+- failures that allow unsafe traffic to reach the stdio target or HTTP companion service
 
 ## Supported Versions
 
