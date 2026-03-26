@@ -68,8 +68,8 @@ describe('stdio firewall proxy', () => {
       targetArgs: [path.join(process.cwd(), 'tests', 'fixtures', 'stdio-target.js')],
       cacheDir,
       cacheTtlSeconds: 60,
-      alwaysCacheTools: ['search_files'],
-      neverCacheTools: [],
+      alwaysCacheTools: ['read_file', 'read', 'open_file', 'list_directory', 'list_files', 'search_files', 'search'],
+      neverCacheTools: ['write_file', 'write', 'create_file', 'execute_command', 'execute'],
       proxyAuthToken: proxyToken,
     });
 
@@ -107,6 +107,37 @@ describe('stdio firewall proxy', () => {
       callCount: 1,
       tool: 'search_files',
       arguments: { query: 'TODO' },
+    });
+    expect(secondResponse.result).toEqual(firstResponse.result);
+  });
+
+  it('accepts a common alias contract over stdio', async () => {
+    const request = {
+      jsonrpc: '2.0',
+      id: 5,
+      method: 'tools/call',
+      params: {
+        name: 'read',
+        arguments: {
+          path: '/tmp/readme.md',
+          encoding: 'utf8',
+        },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.read']),
+        },
+      },
+    };
+
+    clientInput.write(JSON.stringify(request) + '\n');
+    const firstResponse = await waitForJsonLine(clientOutput);
+
+    clientInput.write(JSON.stringify(request) + '\n');
+    const secondResponse = await waitForJsonLine(clientOutput);
+
+    expect(firstResponse.result).toEqual({
+      callCount: 1,
+      tool: 'read',
+      arguments: { path: '/tmp/readme.md', encoding: 'utf8' },
     });
     expect(secondResponse.result).toEqual(firstResponse.result);
   });
@@ -164,8 +195,8 @@ describe('stdio firewall proxy', () => {
       targetArgs: [path.join(process.cwd(), 'tests', 'fixtures', 'slow-stdio-target.js')],
       cacheDir,
       cacheTtlSeconds: 60,
-      alwaysCacheTools: ['search_files'],
-      neverCacheTools: [],
+      alwaysCacheTools: ['read_file', 'read', 'open_file', 'list_directory', 'list_files', 'search_files', 'search'],
+      neverCacheTools: ['write_file', 'write', 'create_file', 'execute_command', 'execute'],
       proxyAuthToken: proxyToken,
     });
 

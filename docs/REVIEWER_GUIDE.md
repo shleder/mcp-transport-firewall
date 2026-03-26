@@ -4,16 +4,18 @@ This repository is easiest to evaluate as a reproducible fail-closed control, no
 
 ## Primary Path
 
-1. Read [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md).
+1. Read [EVALUATOR_WALKTHROUGH.md](EVALUATOR_WALKTHROUGH.md).
 2. Run `npm run verify:all`.
 3. Run `npm run demo:stdio`.
-4. Inspect the allowed and denied cases in `scripts/stdio-demo.mjs` and `tests/cli.test.ts`.
+4. Run `npm run benchmark:stdio`.
+5. Inspect the allowed and denied cases in `scripts/stdio-demo.mjs`, `scripts/stdio-benchmark.mjs`, and `tests/cli.test.ts`.
 
 ## Evidence Flow
 
 | Topic | Code | Evidence |
 |---|---|---|
 | stdio interception path | `src/cli.ts`, `src/stdio/proxy.ts` | `tests/cli.test.ts`, `scripts/stdio-demo.mjs` |
+| repeatable evidence benchmark | `scripts/stdio-benchmark.mjs`, `examples/evidence-corpus.json` | `EVIDENCE_BENCHMARK.md` |
 | fail-closed auth | `src/middleware/nhi-auth-validator.ts` | `tests/nhi-auth.test.ts`, `tests/cli.test.ts` |
 | scope enforcement | `src/middleware/scope-validator.ts` | `tests/scope-validator.test.ts` |
 | cross-tool boundary control | `src/middleware/color-boundary.ts` | `tests/color-boundary.test.ts` |
@@ -37,6 +39,12 @@ Use the evaluator walkthrough when you want:
 - transport-boundary evidence for the stdio runtime
 - a local target process that can be inspected directly
 - an attack path that fails before the target executes
+
+Use the benchmark when you want:
+
+- a repeatable false-positive and false-negative measurement
+- a JSON packet you can compare across commits
+- a corpus that covers both allowlisted and blocked tool calls
 
 ## Claims This Repo Supports Today
 

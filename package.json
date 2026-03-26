@@ -4,8 +4,7 @@
   "description": "Fail-closed stdio firewall for Model Context Protocol tool traffic",
   "main": "dist/cli.js",
   "bin": {
-    "mcp-transport-firewall": "dist/cli.js",
-    "mcp-context-optimizer": "dist/cli.js"
+    "mcp-transport-firewall": "dist/cli.js"
   },
   "type": "module",
   "engines": {
@@ -18,6 +17,7 @@
     "dev": "tsx watch src/index.ts",
     "dev:cli": "tsx src/cli.ts",
     "demo:stdio": "node scripts/stdio-demo.mjs",
+    "benchmark:stdio": "npm run build && node scripts/stdio-benchmark.mjs",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "typecheck": "tsc --noEmit",
     "verify:all": "npm run typecheck && npm run build && npm test && npm run demo:stdio && npm --prefix ui run build && npm --prefix ui run lint"
