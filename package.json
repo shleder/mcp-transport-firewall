@@ -19,7 +19,7 @@
     "demo:stdio": "node scripts/stdio-demo.mjs",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "typecheck": "tsc --noEmit",
-    "verify:all": "npm run typecheck && npm run build && npm test && npm --prefix ui run build && npm --prefix ui run lint"
+    "verify:all": "npm run typecheck && npm run build && npm test && npm run demo:stdio && npm --prefix ui run build && npm --prefix ui run lint"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.1",
