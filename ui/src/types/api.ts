@@ -26,6 +26,27 @@ export interface RateLimitStats {
   tenants: Array<{ tenantId: string; windowMs: number; maxRequests: number }>;
 }
 
+export interface BlockedRequestReasonCount {
+  code: string;
+  count: number;
+}
+
+export interface BlockedRequestSample {
+  timestamp: string;
+  event: string;
+  code: string;
+  reason?: string;
+  ip?: string;
+  path?: string;
+}
+
+export interface BlockedRequestMetrics {
+  total: number;
+  lastBlockedAt: string | null;
+  byCode: BlockedRequestReasonCount[];
+  recent: BlockedRequestSample[];
+}
+
 export interface RouteConfig {
   name: string;
   url: string;
@@ -39,6 +60,7 @@ export interface ProxyStats {
   circuitBreakers: CircuitBreakerStats[];
   preflight: PreflightStats;
   rateLimit: RateLimitStats;
+  blockedRequests: BlockedRequestMetrics;
 }
 
 export interface AdminHealth {

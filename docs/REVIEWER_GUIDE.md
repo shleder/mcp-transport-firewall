@@ -2,35 +2,14 @@
 
 This repository is easiest to evaluate as a reproducible fail-closed control, not as a product demo.
 
-## Fast Path
+## Primary Path
 
-1. Install dependencies.
+1. Read [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md).
+2. Run `npm run verify:all`.
+3. Run `npm run demo:stdio`.
+4. Inspect the allowed and denied cases in `scripts/stdio-demo.mjs` and `tests/cli.test.ts`.
 
-```bash
-npm install
-npm --prefix ui install
-```
-
-2. Run the full verification set.
-
-```bash
-npm run verify:all
-```
-
-3. Run the stdio attack demo.
-
-```bash
-npm run demo:stdio
-```
-
-Expected results:
-
-- the first `search_files` request is allowed
-- the second identical request returns the cached result
-- the ShadowLeak-style request returns `SHADOWLEAK_DETECTED`
-- the unauthenticated request returns `AUTH_FAILURE`
-
-## What To Inspect
+## Evidence Flow
 
 | Topic | Code | Evidence |
 |---|---|---|
@@ -53,7 +32,7 @@ Use Docker when you want:
 - an HTTP `/mcp` harness on port `3000`
 - persistent cache storage through the compose volume
 
-Use `npm run demo:stdio` when you want:
+Use the evaluator walkthrough when you want:
 
 - transport-boundary evidence for the stdio runtime
 - a local target process that can be inspected directly
