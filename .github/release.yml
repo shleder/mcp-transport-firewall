@@ -12,7 +12,7 @@ changelog:
         - area:runtime
         - area:stdio
         - area:http
-    - title: Reviewer Packaging
+    - title: Documentation And Repo Packaging
       labels:
         - area:docs
         - area:github

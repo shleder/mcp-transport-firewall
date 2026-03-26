@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible defect in the stdio firewall, HTTP harness, admin plane, or dashboard.
+description: Report a reproducible defect in the stdio firewall, HTTP companion service, admin plane, or dashboard.
 title: "[bug] "
 labels:
   - bug
@@ -10,7 +10,7 @@ body:
       label: Affected surface
       options:
         - stdio firewall
-        - HTTP review harness
+        - HTTP companion service
         - admin API
         - dashboard
         - CI / release packaging

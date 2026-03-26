@@ -3,14 +3,14 @@
 ## Stdio Demo
 
 - `demo-target.js`: local JSON-RPC tool server used by the stdio firewall demo and tests
-- `evidence-corpus.json`: reviewer benchmark corpus for false-positive and blocked-case measurement
+- `evidence-corpus.json`: benchmark corpus for regression and false-positive measurement
 
 The delayed target used to reproduce the shutdown-race regression lives in `tests/fixtures/slow-stdio-target.js`, not in this directory.
 
-For the complete Windows and Linux evaluator path, see [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md).
-For the repeatable evidence packet, see [docs/EVIDENCE_BENCHMARK.md](../docs/EVIDENCE_BENCHMARK.md) and run `npm run benchmark:stdio`.
+For the complete Windows and Linux walkthrough, see [docs/EVALUATOR_WALKTHROUGH.md](../docs/EVALUATOR_WALKTHROUGH.md).
+For the repeatable benchmark output, see [docs/EVIDENCE_BENCHMARK.md](../docs/EVIDENCE_BENCHMARK.md) and run `npm run benchmark:stdio`.
 
-Canonical reviewer path:
+Quick demo path:
 
 ```bash
 npm run build
@@ -25,7 +25,7 @@ npm run start:cli -- -- node examples/demo-target.js
 
 Then write JSON-RPC lines to stdin. If `PROXY_AUTH_TOKEN` is configured, include `_meta.authorization` inside the request body.
 
-## HTTP Review Harness
+## HTTP Companion Service
 
 - `register-route.json`: admin payload for registering a downstream HTTP tool route
 - `tool-call.json`: MCP `tools/call` payload for the HTTP `/mcp` harness

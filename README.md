@@ -2,22 +2,16 @@
 
 Fail-closed stdio firewall for Model Context Protocol tool traffic.
 
-This repository packages two runnable surfaces:
+Use it when you want a local control point between an MCP client and local tools, with default-deny behavior for auth, scope, trust-boundary, schema, and egress violations.
+
+This repository ships two runnable surfaces:
 
 - a primary stdio firewall that sits between an agent client and a local MCP tool server
-- an HTTP review harness that reuses the same trust gates for downstream HTTP tool routes
+- an HTTP companion service that reuses the same trust gates for downstream HTTP tool routes
 
-The stdio runtime is the product boundary that matters most. The HTTP `/mcp` server exists for compatibility testing, route registration, cache inspection, and dashboard review.
+The stdio runtime is the main product path. The HTTP `/mcp` service exists for compatibility testing, route registration, cache inspection, and dashboard use.
 
-## What To Read
-
-- evaluator walkthroughs: [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md)
-- evidence benchmark: [docs/EVIDENCE_BENCHMARK.md](docs/EVIDENCE_BENCHMARK.md)
-- threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
-- reviewer guide: [docs/REVIEWER_GUIDE.md](docs/REVIEWER_GUIDE.md)
-- example payloads: [examples/README.md](examples/README.md)
-
-## Security Properties
+## What It Does
 
 - fail-closed authorization with a shared-secret NHI-style envelope
 - per-tool scope checks before tool execution
@@ -27,23 +21,6 @@ The stdio runtime is the product boundary that matters most. The HTTP `/mcp` ser
 - structured egress inspection for ShadowLeak-style exfiltration, sensitive path access, and shell-injection markers
 - response sanitization plus L1/L2 caching for allowlisted read-style tools
 - admin API and React dashboard for route, cache, rate-limit, circuit-breaker, preflight, and SIEM inspection
-
-## Repository Map
-
-```text
-src/cli.ts                stdio entrypoint
-src/stdio/proxy.ts        stdio firewall runtime
-src/index.ts              HTTP review harness
-src/admin/                admin API and built UI hosting
-src/middleware/           trust gates and fail-closed validators
-src/cache/                L1 memory cache and L2 file cache
-src/proxy/                HTTP routing, circuit breaker, response sanitizing
-ui/                       React dashboard
-scripts/                  reproducible reviewer demos
-examples/                 demo target and payload samples
-docs/                     threat model and evaluator guidance
-tests/                    Jest suites for gates, HTTP, admin, and stdio paths
-```
 
 ## Quick Start
 
@@ -60,19 +37,19 @@ npm --prefix ui install
 Copy-Item .env.example .env
 ```
 
-3. Run the full verification set.
-
-```bash
-npm run verify:all
-```
-
-4. Run the reproducible stdio demo.
+3. Run the stdio demo.
 
 ```bash
 npm run demo:stdio
 ```
 
-5. Run the repeatable benchmark and capture the reviewer packet.
+4. Optional: run the full verification set.
+
+```bash
+npm run verify:all
+```
+
+5. Optional: run the repeatable benchmark.
 
 ```bash
 npm run benchmark:stdio
@@ -94,18 +71,22 @@ Expected benchmark outcomes:
 - zero cache consistency failures across repeated allow cases
 - blocked cases report the expected denial codes
 
-## Primary Runtime
+## Run Modes
 
-For the stdio firewall, see [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md).
+For the stdio firewall:
 
-For the HTTP review harness, run:
+```bash
+npm run start:cli -- -- node examples/demo-target.js
+```
+
+For the HTTP companion service:
 
 ```bash
 npm run dev
 npm --prefix ui run dev
 ```
 
-The HTTP path is secondary and exists for compatibility testing, route registration, cache inspection, and dashboard review.
+The HTTP path is secondary and exists for compatibility testing, route registration, cache inspection, and dashboard use.
 
 ## Docker
 
@@ -113,13 +94,38 @@ The HTTP path is secondary and exists for compatibility testing, route registrat
 docker compose up --build
 ```
 
-The Docker packaging brings up the HTTP review harness and the admin dashboard in one container:
+Docker brings up the HTTP companion service and the admin dashboard in one container:
 
 - [http://localhost:3000/health](http://localhost:3000/health)
 - [http://localhost:9090/health](http://localhost:9090/health)
 - [http://localhost:9090](http://localhost:9090)
 
-Use `npm run demo:stdio` for transport-boundary validation. The Docker deployment is primarily a packaged review surface for the dashboard and HTTP compatibility harness.
+Use `npm run demo:stdio` when you want to validate the transport boundary directly. The Docker path is mostly for the dashboard and HTTP companion service.
+
+## Documentation
+
+- threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
+- stdio walkthrough: [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md)
+- benchmark methodology: [docs/EVIDENCE_BENCHMARK.md](docs/EVIDENCE_BENCHMARK.md)
+- audit and review notes: [docs/REVIEWER_GUIDE.md](docs/REVIEWER_GUIDE.md)
+- examples and payloads: [examples/README.md](examples/README.md)
+
+## Repository Map
+
+```text
+src/cli.ts                stdio entrypoint
+src/stdio/proxy.ts        stdio firewall runtime
+src/index.ts              HTTP companion service
+src/admin/                admin API and built UI hosting
+src/middleware/           trust gates and fail-closed validators
+src/cache/                L1 memory cache and L2 file cache
+src/proxy/                HTTP routing, circuit breaker, response sanitizing
+ui/                       React dashboard
+scripts/                  demos and repeatable benchmarks
+examples/                 demo target and payload samples
+docs/                     threat model, benchmark, and operator notes
+tests/                    Jest suites for gates, HTTP, admin, and stdio paths
+```
 
 ## Trust Gates
 
@@ -142,7 +148,7 @@ Use `npm run demo:stdio` for transport-boundary validation. The Docker deploymen
 | `MCP_ADMIN_ENABLED` | stdio + HTTP | enable admin API and dashboard | `false` |
 | `MCP_ADMIN_PORT` | stdio + HTTP | admin port | `9090` |
 | `ADMIN_TOKEN` | admin | bearer token for protected admin endpoints | none |
-| `MCP_PORT` | HTTP | HTTP review harness port | `3000` |
+| `MCP_PORT` | HTTP | HTTP companion service port | `3000` |
 | `MCP_SERVER_ID` | HTTP | cache namespace key prefix | `default` |
 | `MCP_ADMIN_CORS_ORIGIN` | admin | allowed admin origin | `*` |
 
