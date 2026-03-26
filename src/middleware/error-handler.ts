@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { EpistemicSecurityException } from '../errors.js';
+import { EpistemicSecurityException, TrustGateError } from '../errors.js';
 import { auditLogWithSIEM } from '../utils/auditLogger.js';
 
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction): void => {
@@ -15,6 +15,24 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
       error: {
         code: err.code,
         message: `Hard Halt Triggered: ${err.message}`,
+      },
+    });
+    return;
+  }
+
+  if (err instanceof TrustGateError) {
+    auditLogWithSIEM('TRUST_GATE_BLOCK', {
+      reason: err.message,
+      code: err.code,
+      ip: req.ip,
+      path: req.path,
+      details: err.details,
+    });
+
+    res.status(err.status).json({
+      error: {
+        code: err.code,
+        message: err.message,
       },
     });
     return;

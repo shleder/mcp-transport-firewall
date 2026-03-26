@@ -103,6 +103,28 @@ describe("preflightValidator", () => {
     expect(res.status).not.toHaveBeenCalled();
   });
 
+  it("allows single Blue tool invocation with valid registered preflightId", () => {
+    const validId = "550e8400-e29b-41d4-a716-446655440001";
+    registerPreflight(validId);
+
+    const req = createMockReq({
+      method: "tools/call",
+      params: {
+        name: "modify_database",
+        _meta: { color: "blue" },
+        preflightId: validId,
+      },
+    });
+
+    const res = createMockRes();
+    const next = jest.fn();
+
+    preflightValidator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
   it("blocks replay attack: reusing consumed preflightId", () => {
     const validId = "550e8400-e29b-41d4-a716-446655440000";
     registerPreflight(validId);

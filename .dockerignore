@@ -1,0 +1,11 @@
+node_modules
+ui/node_modules
+dist
+ui/dist
+.git
+.github
+.mcp-cache
+examples/.mcp-cache
+examples/__pycache__
+coverage
+npm-debug.log

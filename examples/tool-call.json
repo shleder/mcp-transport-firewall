@@ -1,0 +1,9 @@
+{
+  "method": "tools/call",
+  "params": {
+    "name": "search_files",
+    "arguments": {
+      "query": "TODO"
+    }
+  }
+}

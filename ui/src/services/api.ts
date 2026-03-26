@@ -7,7 +7,7 @@ import type {
   AdminSIEMConfig,
 } from '../types/api';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:9090';
+const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:9090' : '');
 
 const getAuthHeaders = (): HeadersInit => {
   const token = localStorage.getItem('admin_token');

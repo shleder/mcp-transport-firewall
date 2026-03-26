@@ -135,6 +135,26 @@ describe("mcpColorBoundary", () => {
     expect(res.status).not.toHaveBeenCalled();
   });
 
+  it("supports single tool invocation format in params.name", () => {
+    const req = createMockReq({
+      jsonrpc: "2.0",
+      id: 6,
+      method: "tools/call",
+      params: {
+        name: "modify_database",
+        _meta: { color: "blue" },
+      },
+    });
+
+    const { res } = createMockRes();
+    const next = jest.fn();
+
+    mcpColorBoundary(req as Request, res as Response, next as NextFunction);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
   it("allows GREEN tools mixed with RED or BLUE", () => {
     const req = createMockReq({
       jsonrpc: "2.0",

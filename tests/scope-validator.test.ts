@@ -87,6 +87,19 @@ describe("scopeValidator", () => {
     expect(next).toHaveBeenCalledTimes(1);
   });
 
+  it("checks single tool invocation format in params.name", () => {
+    const req = createMockReq(
+      { method: "tools/call", params: { name: "nested_tool" } },
+      ["tools.nested_tool"]
+    );
+    const res = createMockRes();
+    const next = jest.fn();
+
+    scopeValidator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
   it("allows empty tools array", () => {
     const req = createMockReq({ tools: [] }, []);
     const res = createMockRes();
