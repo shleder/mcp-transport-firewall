@@ -9,6 +9,13 @@ This repository packages two runnable surfaces:
 
 The stdio runtime is the product boundary that matters most. The HTTP `/mcp` server exists for compatibility testing, route registration, cache inspection, and dashboard review.
 
+## What To Read
+
+- evaluator walkthroughs: [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md)
+- threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
+- reviewer guide: [docs/REVIEWER_GUIDE.md](docs/REVIEWER_GUIDE.md)
+- example payloads: [examples/README.md](examples/README.md)
+
 ## Security Properties
 
 - fail-closed authorization with a shared-secret NHI-style envelope
@@ -32,9 +39,9 @@ src/cache/                L1 memory cache and L2 file cache
 src/proxy/                HTTP routing, circuit breaker, response sanitizing
 ui/                       React dashboard
 scripts/                  reproducible reviewer demos
-examples/                 demo target and HTTP payloads
-docs/                     threat model and reviewer guide
-tests/                    Jest suites for gates, HTTP, and stdio paths
+examples/                 demo target and payload samples
+docs/                     threat model and evaluator guidance
+tests/                    Jest suites for gates, HTTP, admin, and stdio paths
 ```
 
 ## Quick Start
@@ -71,79 +78,18 @@ Expected demo outcomes:
 - a ShadowLeak-style `fetch_url` request is blocked with `SHADOWLEAK_DETECTED`
 - a request without `_meta.authorization` is blocked with `AUTH_FAILURE`
 
-## Primary Runtime: Stdio Firewall
+## Primary Runtime
 
-Build once, then run the firewall in front of a local tool server:
+For the stdio firewall, see [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md).
 
-```bash
-npm run build
-npm run start:cli -- -- node examples/demo-target.js
-```
-
-The stdio runtime expects JSON-RPC messages on stdin and emits JSON-RPC responses on stdout.
-
-If `PROXY_AUTH_TOKEN` is set, the client must embed an authorization envelope inside the MCP request:
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "search_files",
-    "arguments": {
-      "query": "TODO"
-    },
-    "_meta": {
-      "authorization": "Bearer <base64-json>"
-    }
-  }
-}
-```
-
-The decoded JSON payload is:
-
-```json
-{
-  "token": "12345678901234567890123456789012",
-  "scopes": ["tools.search_files"]
-}
-```
-
-## Secondary Runtime: HTTP Review Harness
-
-The HTTP server reuses the trust gates and adds route registration for downstream HTTP tools.
+For the HTTP review harness, run:
 
 ```bash
 npm run dev
 npm --prefix ui run dev
 ```
 
-Default ports:
-
-- `3000`: HTTP `/mcp` review harness
-- `9090`: admin API and built dashboard
-- `5173`: Vite dashboard in development
-
-Register a downstream route:
-
-```powershell
-curl.exe -X POST http://localhost:9090/routes `
-  -H "Authorization: Bearer $env:ADMIN_TOKEN" `
-  -H "Content-Type: application/json" `
-  --data @examples/register-route.json
-```
-
-Send a tool call through the HTTP harness:
-
-```powershell
-curl.exe -X POST http://localhost:3000/mcp `
-  -H "Authorization: Bearer $nhiHeader" `
-  -H "Content-Type: application/json" `
-  --data @examples/tool-call.json
-```
-
-`$nhiHeader` is the same base64 JSON envelope used by the stdio runtime.
+The HTTP path is secondary and exists for compatibility testing, route registration, cache inspection, and dashboard review.
 
 ## Docker
 
@@ -170,21 +116,6 @@ Use `npm run demo:stdio` for transport-boundary validation. The Docker deploymen
 | `schema-validator` | strict tool-argument validation for registered schemas | `src/middleware/schema-validator.ts` |
 | `ast-egress-filter` | fail-closed string inspection for exfiltration and injection markers | `src/middleware/ast-egress-filter.ts` |
 
-## Threat Model And Evidence
-
-- threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
-- reviewer quick path: [docs/REVIEWER_GUIDE.md](docs/REVIEWER_GUIDE.md)
-- stdio demo target and HTTP payloads: [examples/README.md](examples/README.md)
-- agent instructions: [AGENTS.md](AGENTS.md)
-- security policy: [SECURITY.md](SECURITY.md)
-- support guide: [SUPPORT.md](SUPPORT.md)
-- code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- changelog: [CHANGELOG.md](CHANGELOG.md)
-- security policy: [SECURITY.md](SECURITY.md)
-- support policy: [SUPPORT.md](SUPPORT.md)
-- code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- coding-agent instructions: [AGENTS.md](AGENTS.md)
-
 ## Environment Variables
 
 | Variable | Mode | Purpose | Default |
@@ -198,6 +129,14 @@ Use `npm run demo:stdio` for transport-boundary validation. The Docker deploymen
 | `MCP_PORT` | HTTP | HTTP review harness port | `3000` |
 | `MCP_SERVER_ID` | HTTP | cache namespace key prefix | `default` |
 | `MCP_ADMIN_CORS_ORIGIN` | admin | allowed admin origin | `*` |
+
+## Project Files
+
+- agent instructions: [AGENTS.md](AGENTS.md)
+- changelog: [CHANGELOG.md](CHANGELOG.md)
+- security policy: [SECURITY.md](SECURITY.md)
+- support guide: [SUPPORT.md](SUPPORT.md)
+- code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## Current Limits
 

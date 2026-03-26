@@ -5,6 +5,7 @@ import type {
   CacheStats,
   CircuitBreakerStats,
   AdminSIEMConfig,
+  BlockedRequestMetrics,
 } from '../types/api';
 
 const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:9090' : '');
@@ -82,6 +83,12 @@ export const api = {
   async getRateLimitStats(): Promise<{ rateLimit: { global: { entries: number }; tenants: unknown[] } }> {
     const res = await fetch(`${API_BASE}/rate-limit/stats`);
     if (!res.ok) throw new Error('Failed to fetch rate limit stats');
+    return res.json();
+  },
+
+  async getBlockedRequestStats(): Promise<{ blockedRequests: BlockedRequestMetrics }> {
+    const res = await fetch(`${API_BASE}/blocked-requests/stats`);
+    if (!res.ok) throw new Error('Failed to fetch blocked request stats');
     return res.json();
   },
 

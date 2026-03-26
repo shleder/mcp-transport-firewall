@@ -99,6 +99,9 @@ export default function Dashboard() {
     }
   };
 
+  const blockedRequests = stats?.blockedRequests;
+  const recentBlockedRequests = blockedRequests?.recent ?? [];
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -279,6 +282,85 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="bg-gray-900 border-gray-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <XCircle className="w-5 h-5 text-red-500" />
+              Blocked Requests
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {blockedRequests ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="text-center p-4 rounded-lg bg-gray-800/50">
+                    <p className="text-2xl font-bold text-red-400">{blockedRequests.total}</p>
+                    <p className="text-xs text-gray-500">Total blocked requests</p>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-gray-800/50">
+                    <p className="text-sm font-medium text-white break-words">
+                      {blockedRequests.lastBlockedAt ? new Date(blockedRequests.lastBlockedAt).toLocaleString() : 'N/A'}
+                    </p>
+                    <p className="text-xs text-gray-500">Last blocked at</p>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-gray-800/50">
+                    <p className="text-2xl font-bold text-amber-400">{blockedRequests.byCode.length}</p>
+                    <p className="text-xs text-gray-500">Distinct blocked codes</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-300">Blocked codes</p>
+                  {blockedRequests.byCode.length ? (
+                    <div className="flex flex-wrap gap-2">
+                      {blockedRequests.byCode.slice(0, 8).map((item) => (
+                        <span
+                          key={item.code}
+                          className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-300 border border-red-500/20"
+                        >
+                          {item.code} {item.count}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No blocked request codes recorded</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-300">Recent blocked requests</p>
+                  {recentBlockedRequests.length ? (
+                    <div className="space-y-2">
+                      {recentBlockedRequests.slice(0, 5).map((entry) => (
+                        <div
+                          key={`${entry.timestamp}-${entry.code}-${entry.event}`}
+                          className="flex flex-col gap-1 rounded-lg bg-gray-800/50 p-3"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="font-medium text-white">{entry.code}</span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(entry.timestamp).toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-400">{entry.reason ?? entry.event}</p>
+                          <div className="flex flex-wrap gap-2 text-[11px] text-gray-500">
+                            {entry.ip && <span>ip: {entry.ip}</span>}
+                            {entry.path && <span>path: {entry.path}</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No blocked requests recorded</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">Blocked request metrics not initialized</p>
+            )}
+          </CardContent>
+        </Card>
 
         <Card className="bg-gray-900 border-gray-800">
           <CardHeader>

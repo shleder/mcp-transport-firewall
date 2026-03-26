@@ -10,7 +10,7 @@ import { clearPreflightRegistries, getPreflightStats, registerPreflight } from '
 import { configureTenantRateLimit, getRateLimitStats, removeTenantRateLimit } from '../middleware/rate-limiter.js';
 import { getAllCircuitBreakerStats, getOrCreateCircuitBreaker } from '../proxy/circuit-breaker.js';
 import { clearRoutes, getRegisteredRoutes, registerRoute, removeRoute } from '../proxy/router.js';
-import { auditLog, configureSIEM, getSIEMConfig } from '../utils/auditLogger.js';
+import { auditLog, configureSIEM, getBlockedRequestMetrics, getSIEMConfig } from '../utils/auditLogger.js';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -70,12 +70,22 @@ const adminAuthMiddleware = (req: Request, res: Response, next: NextFunction): v
   const adminToken = process.env.ADMIN_TOKEN;
 
   if (!adminToken) {
+    auditLog('ADMIN_NOT_CONFIGURED', {
+      reason: 'Admin API not configured. Set ADMIN_TOKEN.',
+      path: req.originalUrl,
+      ip: req.ip,
+    });
     res.status(503).json({ error: { code: 'ADMIN_NOT_CONFIGURED', message: 'Admin API not configured. Set ADMIN_TOKEN.' } });
     return;
   }
 
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
+    auditLog('UNAUTHORIZED', {
+      reason: 'Bearer token required.',
+      path: req.originalUrl,
+      ip: req.ip,
+    });
     res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Bearer token required.' } });
     return;
   }
@@ -85,12 +95,22 @@ const adminAuthMiddleware = (req: Request, res: Response, next: NextFunction): v
   try {
     const parsed = AdminAuthSchema.parse({ token });
     if (parsed.token !== adminToken) {
+      auditLog('UNAUTHORIZED', {
+        reason: 'Invalid admin token.',
+        path: req.originalUrl,
+        ip: req.ip,
+      });
       res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Invalid admin token.' } });
       return;
     }
 
     next();
   } catch {
+    auditLog('UNAUTHORIZED', {
+      reason: 'Invalid admin token format.',
+      path: req.originalUrl,
+      ip: req.ip,
+    });
     res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Invalid admin token format.' } });
   }
 };
@@ -262,7 +282,12 @@ const createAdminRouter = (): express.Router => {
       circuitBreakers: getAllCircuitBreakerStats(),
       preflight: getPreflightStats(),
       rateLimit: getRateLimitStats(),
+      blockedRequests: getBlockedRequestMetrics(),
     });
+  });
+
+  router.get('/blocked-requests/stats', (_req: Request, res: Response) => {
+    res.json({ blockedRequests: getBlockedRequestMetrics() });
   });
 
   return router;

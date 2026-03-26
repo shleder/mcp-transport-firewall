@@ -3,6 +3,9 @@
 ## Stdio Demo
 
 - `demo-target.js`: local JSON-RPC tool server used by the stdio firewall demo and tests
+- `slow-stdio-target.js`: delayed target used to reproduce the shutdown race regression
+
+For the complete Windows and Linux evaluator path, see [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md).
 
 Canonical reviewer path:
 
