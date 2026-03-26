@@ -23,7 +23,7 @@
     "verify:all": "npm run typecheck && npm run build && npm test && npm run demo:stdio && npm --prefix ui run build && npm --prefix ui run lint"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.1",
+    "@modelcontextprotocol/sdk": "^1.28.0",
     "dotenv": "^17.3.1",
     "express": "^4.21.1",
     "lru-cache": "^11.0.2",
