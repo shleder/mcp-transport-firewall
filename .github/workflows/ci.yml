@@ -25,20 +25,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npm run typecheck
+      - name: Install UI dependencies
+        run: npm --prefix ui ci
 
-      - name: Run tests
-        run: npm test
+      - name: Run verification suite
+        run: npm run verify:all
 
-      - name: Build
-        run: npm run build
-
-      - name: Build UI
-        working-directory: ui
-        run: |
-          npm ci
-          npm run build
+      - name: Run stdio demo
+        run: npm run demo:stdio
 
   docker:
     name: Build & Push Docker Image

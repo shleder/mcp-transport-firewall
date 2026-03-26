@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import { TrustGateError } from '../errors.js';
 import { auditLogWithSIEM } from '../utils/auditLogger.js';
+import { extractToolInvocations } from '../utils/mcp-request.js';
 
 const PreflightIdSchema = z.string().uuid();
 
@@ -23,7 +25,8 @@ const cleanupExpired = (): void => {
   }
 };
 
-setInterval(cleanupExpired, CLEANUP_INTERVAL_MS);
+const cleanupTimer = setInterval(cleanupExpired, CLEANUP_INTERVAL_MS);
+cleanupTimer.unref?.();
 
 export const registerPreflight = (id: string, ttlMs = CONSUMED_TTL_MS): void => {
   const parsed = PreflightIdSchema.parse(id);
@@ -43,102 +46,80 @@ export const getPreflightStats = (): { pending: number; consumed: number } => {
   };
 };
 
-interface ToolMeta {
-  color?: string;
-}
+export const validatePreflight = (body: Record<string, unknown>, ip = 'unknown'): void => {
+  const tools = extractToolInvocations(body);
 
-interface ToolEntry {
-  name?: string;
-  _meta?: ToolMeta;
-  preflightId?: string;
-}
+  for (const tool of tools) {
+    const color = tool._meta?.color;
 
-const extractToolsFromBody = (body: Record<string, unknown>): ToolEntry[] => {
-  if (Array.isArray(body.tools)) {
-    return body.tools as ToolEntry[];
-  }
-  if (body.params && typeof body.params === 'object' && !Array.isArray(body.params)) {
-    const params = body.params as Record<string, unknown>;
-    if (Array.isArray(params.tools)) {
-      return params.tools as ToolEntry[];
+    if (color !== 'blue') {
+      continue;
     }
+
+    const preflightId = tool.preflightId;
+
+    if (!preflightId || typeof preflightId !== 'string') {
+      auditLogWithSIEM('PREFLIGHT_REQUIRED', {
+        reason: 'Blue tool invoked without preflightId',
+        toolName: tool.name ?? 'unknown',
+        ip,
+      });
+      throw new TrustGateError(
+        `Fail-Closed: Blue tool "${tool.name ?? 'unknown'}" requires a valid preflightId.`,
+        'PREFLIGHT_REQUIRED',
+        403
+      );
+    }
+
+    if (consumedRegistry.has(preflightId)) {
+      auditLogWithSIEM('PREFLIGHT_REPLAY_BLOCKED', {
+        reason: 'Replay attack: preflightId has already been consumed',
+        preflightId,
+        toolName: tool.name ?? 'unknown',
+        ip,
+      });
+      throw new TrustGateError(
+        'Fail-Closed: this preflightId has already been used. Replay attacks are blocked.',
+        'PREFLIGHT_ALREADY_USED',
+        403
+      );
+    }
+
+    const expiry = preflightRegistry.get(preflightId);
+    if (!expiry || Date.now() > expiry) {
+      auditLogWithSIEM('PREFLIGHT_NOT_FOUND', {
+        reason: 'preflightId not found or expired',
+        preflightId,
+        toolName: tool.name ?? 'unknown',
+        ip,
+      });
+      throw new TrustGateError(
+        'Fail-Closed: preflightId is not registered or has expired. Request denied.',
+        'PREFLIGHT_NOT_FOUND',
+        403
+      );
+    }
+
+    preflightRegistry.delete(preflightId);
+    consumedRegistry.set(preflightId, Date.now() + CONSUMED_TTL_MS);
   }
-  return [];
 };
 
 export const preflightValidator = (req: Request, res: Response, next: NextFunction): void => {
   try {
-    const body = req.body as Record<string, unknown>;
-    const tools = extractToolsFromBody(body);
-
-    if (tools.length === 0) {
-      next();
+    validatePreflight(req.body as Record<string, unknown>, req.ip);
+    next();
+  } catch (error: unknown) {
+    if (error instanceof TrustGateError) {
+      res.status(error.status).json({
+        error: {
+          code: error.code,
+          message: error.message,
+        },
+      });
       return;
     }
 
-    for (const tool of tools) {
-      const color = tool._meta?.color;
-
-      if (color !== 'blue') {
-        continue;
-      }
-
-      const preflightId = tool.preflightId;
-
-      if (!preflightId || typeof preflightId !== 'string') {
-        auditLogWithSIEM('PREFLIGHT_REQUIRED', {
-          reason: 'Blue tool invoked without preflightId',
-          toolName: tool.name ?? 'unknown',
-          ip: req.ip,
-        });
-        res.status(403).json({
-          error: {
-            code: 'PREFLIGHT_REQUIRED',
-            message: `Fail-Closed: Blue tool "${tool.name ?? 'unknown'}" requires a valid preflightId.`,
-          },
-        });
-        return;
-      }
-
-      if (consumedRegistry.has(preflightId)) {
-        auditLogWithSIEM('PREFLIGHT_REPLAY_BLOCKED', {
-          reason: 'Replay attack: preflightId has already been consumed',
-          preflightId,
-          toolName: tool.name ?? 'unknown',
-          ip: req.ip,
-        });
-        res.status(403).json({
-          error: {
-            code: 'PREFLIGHT_ALREADY_USED',
-            message: 'Fail-Closed: this preflightId has already been used. Replay attacks are blocked.',
-          },
-        });
-        return;
-      }
-
-      const expiry = preflightRegistry.get(preflightId);
-      if (!expiry || Date.now() > expiry) {
-        auditLogWithSIEM('PREFLIGHT_NOT_FOUND', {
-          reason: 'preflightId not found or expired',
-          preflightId,
-          toolName: tool.name ?? 'unknown',
-          ip: req.ip,
-        });
-        res.status(403).json({
-          error: {
-            code: 'PREFLIGHT_NOT_FOUND',
-            message: 'Fail-Closed: preflightId is not registered or has expired. Request denied.',
-          },
-        });
-        return;
-      }
-
-      preflightRegistry.delete(preflightId);
-      consumedRegistry.set(preflightId, Date.now() + CONSUMED_TTL_MS);
-    }
-
-    next();
-  } catch (error: unknown) {
     auditLogWithSIEM('PREFLIGHT_VALIDATION_ERROR', {
       reason: error instanceof Error ? error.message : 'Unknown preflight error',
       ip: req.ip,

@@ -1,0 +1,5 @@
+{
+  "toolName": "search_files",
+  "url": "http://localhost:4000/tools/search_files",
+  "timeoutMs": 5000
+}

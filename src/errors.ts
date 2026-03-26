@@ -7,3 +7,17 @@ export class EpistemicSecurityException extends Error {
     this.code = code;
   }
 }
+
+export class TrustGateError extends Error {
+  public code: string;
+  public status: number;
+  public details?: Record<string, unknown>;
+
+  constructor(message: string, code: string, status = 403, details?: Record<string, unknown>) {
+    super(message);
+    this.name = 'TrustGateError';
+    this.code = code;
+    this.status = status;
+    this.details = details;
+  }
+}

@@ -1,52 +1,43 @@
-# MCP Context Optimizer — Integration Examples
+# Examples
 
-## Claude Desktop
+## Stdio Demo
 
-Add to your `claude_desktop_config.json`:
+- `demo-target.js`: local JSON-RPC tool server used by the stdio firewall demo and tests
 
-```json
-{
-  "mcpServers": {
-    "your-server-name": {
-      "command": "node",
-      "args": ["/path/to/mcp-optimizer/dist/index.js", "original-server-command"],
-      "env": {
-        "ADMIN_TOKEN": "your-secret-token"
-      }
-    }
-  }
-}
-```
-
-The proxy sits between Claude Desktop and your MCP server transparently.
-
-## Docker (one command)
+Canonical reviewer path:
 
 ```bash
-docker run -it --rm \
-  -e MCP_TARGET_COMMAND="npx" \
-  -e MCP_TARGET_ARGS="-y @modelcontextprotocol/server-filesystem /data" \
-  -e ADMIN_ENABLED=true \
-  -e ADMIN_PORT=9090 \
-  -p 9090:9090 \
-  ghcr.io/maksboreichuk88-commits/mcp-server:latest \
-  node dist/index.js npx -y @modelcontextprotocol/server-filesystem /data
+npm run build
+npm run demo:stdio
 ```
 
-Then open **http://localhost:9090** for the live dashboard.
+Manual interactive path:
 
-## LangChain / Python (see `langchain_integration.py`)
+```bash
+npm run start:cli -- -- node examples/demo-target.js
+```
 
-The proxy exposes a standard stdio MCP interface, so any MCP-compatible client works without modification.
+Then write JSON-RPC lines to stdin. If `PROXY_AUTH_TOKEN` is configured, include `_meta.authorization` inside the request body.
 
-## Cache Configuration
+## HTTP Review Harness
 
-```json
-{
-  "cache": {
-    "ttlSeconds": 600,
-    "alwaysCacheTools": ["read_file", "list_directory", "search_files", "get_schema"],
-    "neverCacheTools": ["write_file", "create_file", "delete_file", "execute_command", "insert_row"]
-  }
-}
+- `register-route.json`: admin payload for registering a downstream HTTP tool route
+- `tool-call.json`: MCP `tools/call` payload for the HTTP `/mcp` harness
+
+Register a route:
+
+```powershell
+curl.exe -X POST http://localhost:9090/routes `
+  -H "Authorization: Bearer $env:ADMIN_TOKEN" `
+  -H "Content-Type: application/json" `
+  --data @examples/register-route.json
+```
+
+Send a tool call:
+
+```powershell
+curl.exe -X POST http://localhost:3000/mcp `
+  -H "Authorization: Bearer $nhiHeader" `
+  -H "Content-Type: application/json" `
+  --data @examples/tool-call.json
 ```

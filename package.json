@@ -1,8 +1,11 @@
 {
   "name": "mcp-context-optimizer",
   "version": "2.0.0",
-  "description": "Caching proxy server for Model Context Protocol (MCP)",
-  "main": "dist/index.js",
+  "description": "Fail-Closed MCP transport firewall for stdio interception and defensive tool isolation",
+  "main": "dist/cli.js",
+  "bin": {
+    "mcp-context-optimizer": "dist/cli.js"
+  },
   "type": "module",
   "engines": {
     "node": ">=20.0.0"
@@ -10,18 +13,22 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
+    "start:cli": "node dist/cli.js",
     "dev": "tsx watch src/index.ts",
+    "dev:cli": "tsx src/cli.ts",
+    "demo:stdio": "node scripts/stdio-demo.mjs",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:all": "npm run typecheck && npm run build && npm test && npm --prefix ui run build && npm --prefix ui run lint"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.1",
+    "dotenv": "^17.3.1",
     "express": "^4.21.1",
     "lru-cache": "^11.0.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.11",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.8.2",

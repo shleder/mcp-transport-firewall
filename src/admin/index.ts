@@ -1,12 +1,20 @@
-import express, { Request, Response, NextFunction } from 'express';
-import type { Server } from 'http';
+import express, { NextFunction, Request, Response } from 'express';
+import fs from 'node:fs';
+import type { Server } from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { getCache, initializeCache } from '../cache/index.js';
+import { clearColorSessions } from '../middleware/color-boundary.js';
+import { clearPreflightRegistries, getPreflightStats, registerPreflight } from '../middleware/preflight-validator.js';
+import { configureTenantRateLimit, getRateLimitStats, removeTenantRateLimit } from '../middleware/rate-limiter.js';
 import { getAllCircuitBreakerStats, getOrCreateCircuitBreaker } from '../proxy/circuit-breaker.js';
-import { getRegisteredRoutes, registerRoute, removeRoute, clearRoutes } from '../proxy/router.js';
-import { getPreflightStats, registerPreflight, clearPreflightRegistries } from '../middleware/preflight-validator.js';
-import { configureTenantRateLimit, removeTenantRateLimit, getRateLimitStats } from '../middleware/rate-limiter.js';
-import { configureSIEM, auditLog } from '../utils/auditLogger.js';
+import { clearRoutes, getRegisteredRoutes, registerRoute, removeRoute } from '../proxy/router.js';
+import { auditLog, configureSIEM, getSIEMConfig } from '../utils/auditLogger.js';
+
+const currentFilePath = fileURLToPath(import.meta.url);
+const currentDirPath = path.dirname(currentFilePath);
+const adminUiPath = path.resolve(currentDirPath, '../../ui/dist');
 
 const AdminAuthSchema = z.object({
   token: z.string().min(32),
@@ -66,9 +74,8 @@ const adminAuthMiddleware = (req: Request, res: Response, next: NextFunction): v
     return;
   }
 
-  const authHeader = req.headers['authorization'];
-
-  if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
     res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Bearer token required.' } });
     return;
   }
@@ -81,14 +88,27 @@ const adminAuthMiddleware = (req: Request, res: Response, next: NextFunction): v
       res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Invalid admin token.' } });
       return;
     }
+
     next();
   } catch {
     res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Invalid admin token format.' } });
   }
 };
 
+const adminCorsMiddleware = (_req: Request, res: Response, next: NextFunction): void => {
+  const allowedOrigin = process.env.MCP_ADMIN_CORS_ORIGIN ?? '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  next();
+};
+
 const createAdminRouter = (): express.Router => {
   const router = express.Router();
+
+  router.options('*', (_req: Request, res: Response) => {
+    res.status(204).end();
+  });
 
   router.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'healthy', timestamp: new Date().toISOString() });
@@ -126,6 +146,7 @@ const createAdminRouter = (): express.Router => {
 
   router.delete('/routes', adminAuthMiddleware, (_req: Request, res: Response) => {
     clearRoutes();
+    clearColorSessions();
     auditLog('ADMIN_ROUTES_CLEARED', {});
     res.json({ success: true });
   });
@@ -136,6 +157,7 @@ const createAdminRouter = (): express.Router => {
       res.json({ cache: null, message: 'Cache not initialized' });
       return;
     }
+
     res.json({ cache: cache.getStats() });
   });
 
@@ -152,9 +174,7 @@ const createAdminRouter = (): express.Router => {
 
   router.delete('/cache', adminAuthMiddleware, (_req: Request, res: Response) => {
     const cache = getCache();
-    if (cache) {
-      cache.clear();
-    }
+    cache?.clear();
     auditLog('ADMIN_CACHE_CLEARED', {});
     res.json({ success: true });
   });
@@ -220,7 +240,7 @@ const createAdminRouter = (): express.Router => {
   });
 
   router.get('/siem/config', adminAuthMiddleware, (_req: Request, res: Response) => {
-    res.json({ siem: { message: 'SIEM config endpoint' } });
+    res.json(getSIEMConfig());
   });
 
   router.post('/siem/config', adminAuthMiddleware, (req: Request, res: Response) => {
@@ -256,8 +276,16 @@ export const startAdminServer = (port: number = 9090): Server => {
   }
 
   const app = express();
+  app.use(adminCorsMiddleware);
   app.use(express.json());
   app.use(createAdminRouter());
+
+  if (fs.existsSync(adminUiPath)) {
+    app.use(express.static(adminUiPath));
+    app.get('*', (_req: Request, res: Response) => {
+      res.sendFile(path.join(adminUiPath, 'index.html'));
+    });
+  }
 
   adminServer = app.listen(port, () => {
     auditLog('ADMIN_SERVER_STARTED', { port });

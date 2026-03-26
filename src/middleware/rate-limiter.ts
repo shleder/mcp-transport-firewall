@@ -34,7 +34,8 @@ export const createRateLimiter = (config: RateLimitConfig) => {
     }
   };
 
-  setInterval(cleanup, windowMs);
+  const cleanupTimer = setInterval(cleanup, windowMs);
+  cleanupTimer.unref();
 
   return (req: Request, res: Response, next: NextFunction): void => {
     const key = keyGenerator(req);

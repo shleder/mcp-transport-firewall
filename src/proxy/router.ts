@@ -1,4 +1,5 @@
-import { TargetServerConfig, TargetServerConfigSchema, RouteResult } from './types.js';
+import { CircuitOpenError, getOrCreateCircuitBreaker } from './circuit-breaker.js';
+import { RouteResult, TargetServerConfig, TargetServerConfigSchema } from './types.js';
 
 const routeRegistry = new Map<string, TargetServerConfig>();
 
@@ -53,34 +54,72 @@ export const routeRequest = async (
   }
 
   const startTime = Date.now();
+  const circuitBreaker = getOrCreateCircuitBreaker({
+    name: `route:${toolName}`,
+    failureThreshold: 5,
+    resetTimeoutMs: 30000,
+    halfOpenMaxCalls: 1,
+  });
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), target.timeoutMs);
+    const result = await circuitBreaker.execute(async () => {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), target.timeoutMs);
+      timeoutId.unref?.();
 
-    const response = await fetch(target.url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(target.headers ?? {}),
-      },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
+      const response = await fetch(target.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(target.headers ?? {}),
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      const rawBody = await response.text();
+      let body: unknown = rawBody;
+
+      if (rawBody.length > 0) {
+        try {
+          body = JSON.parse(rawBody);
+        } catch {
+          body = rawBody;
+        }
+      }
+
+      return { response, body };
     });
 
-    clearTimeout(timeoutId);
-
-    const latencyMs = Date.now() - startTime;
-    const body: unknown = await response.json();
-
     return {
-      status: response.status,
-      body,
+      status: result.response.status,
+      body: result.body,
       targetUrl: target.url,
-      latencyMs,
+      latencyMs: Date.now() - startTime,
     };
   } catch (error: unknown) {
     const latencyMs = Date.now() - startTime;
+
+    if (error instanceof CircuitOpenError) {
+      writeAuditLog('CIRCUIT_OPEN', {
+        reason: error.message,
+        toolName,
+        targetUrl: target.url,
+      });
+
+      return {
+        status: 503,
+        body: {
+          error: {
+            code: 'CIRCUIT_OPEN',
+            message: error.message,
+          },
+        },
+        targetUrl: target.url,
+        latencyMs,
+      };
+    }
 
     writeAuditLog('TARGET_UNREACHABLE', {
       reason: error instanceof Error ? error.message : 'Unknown routing error',
@@ -99,5 +138,9 @@ export const routeRequest = async (
       targetUrl: target.url,
       latencyMs,
     };
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 };
