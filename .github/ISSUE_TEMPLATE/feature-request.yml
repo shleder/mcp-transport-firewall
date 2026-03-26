@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a concrete improvement to the firewall, docs, demos, or reviewer experience.
+description: Propose a concrete improvement to the firewall, docs, demos, or developer experience.
 title: "[feature] "
 labels:
   - enhancement
@@ -22,6 +22,6 @@ body:
     id: evidence
     attributes:
       label: Why this matters
-      description: Reviewer, maintainer, or user impact.
+      description: User, operator, maintainer, or developer impact.
     validations:
       required: true

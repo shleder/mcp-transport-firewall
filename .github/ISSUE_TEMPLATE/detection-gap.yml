@@ -3,8 +3,7 @@ description: Report a missed unsafe flow or an over-blocking trust-gate decision
 title: "[detection] "
 labels:
   - detection-gap
-  - detection-gap
-  - detection-gap
+  - security
 body:
   - type: dropdown
     id: class

@@ -12,7 +12,7 @@
 - operating system
 - Node.js version
 - exact command used
-- whether you used the stdio runtime, HTTP harness, or Docker path
+- whether you used the stdio runtime, HTTP companion service, or Docker path
 - expected behavior
 - actual behavior
 - logs or screenshots with sensitive data removed
