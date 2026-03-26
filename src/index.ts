@@ -14,7 +14,7 @@ import { scopeValidator } from './middleware/scope-validator.js';
 import { routeRequest } from './proxy/router.js';
 import { sanitizeResponse } from './proxy/shadow-leak-sanitizer.js';
 import { auditLog } from './utils/auditLogger.js';
-import { extractToolInvocations } from './utils/mcp-request.js';
+import { getPrimaryToolInvocation } from './utils/mcp-request.js';
 
 const DEFAULT_PORT = parseInt(process.env.PORT ?? process.env.MCP_PORT ?? '3000', 10);
 const DEFAULT_ADMIN_PORT = parseInt(process.env.MCP_ADMIN_PORT ?? '9090', 10);
@@ -57,7 +57,7 @@ app.post(
   async (req, res, next) => {
     try {
       const body = req.body as Record<string, unknown>;
-      const tool = extractToolInvocations(body)[0];
+      const tool = getPrimaryToolInvocation(body);
 
       if (!tool?.name) {
         res.status(400).json({
@@ -128,8 +128,8 @@ if (process.env.NODE_ENV !== 'test') {
       dbPath: DEFAULT_CACHE_DIR,
       ttlMs: DEFAULT_CACHE_TTL,
     },
-    alwaysCacheTools: ['read_file', 'list_directory', 'search_files'],
-    neverCacheTools: ['write_file', 'create_file', 'execute_command'],
+    alwaysCacheTools: ['read_file', 'read', 'open_file', 'list_directory', 'list_files', 'search_files', 'search'],
+    neverCacheTools: ['write_file', 'write', 'create_file', 'execute_command', 'execute'],
   });
 
   const adminPort = process.env.MCP_ADMIN_ENABLED === 'true' ? DEFAULT_ADMIN_PORT : 0;

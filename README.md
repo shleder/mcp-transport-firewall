@@ -12,6 +12,7 @@ The stdio runtime is the product boundary that matters most. The HTTP `/mcp` ser
 ## What To Read
 
 - evaluator walkthroughs: [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md)
+- evidence benchmark: [docs/EVIDENCE_BENCHMARK.md](docs/EVIDENCE_BENCHMARK.md)
 - threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
 - reviewer guide: [docs/REVIEWER_GUIDE.md](docs/REVIEWER_GUIDE.md)
 - example payloads: [examples/README.md](examples/README.md)
@@ -22,7 +23,7 @@ The stdio runtime is the product boundary that matters most. The HTTP `/mcp` ser
 - per-tool scope checks before tool execution
 - color-boundary enforcement to block mixed trust domains and session color flips
 - preflight gates for high-trust (`blue`) actions
-- strict schema validation for registered tool contracts
+- strict schema validation for common file, directory, search, execute, and fetch contracts, including supported aliases
 - structured egress inspection for ShadowLeak-style exfiltration, sensitive path access, and shell-injection markers
 - response sanitization plus L1/L2 caching for allowlisted read-style tools
 - admin API and React dashboard for route, cache, rate-limit, circuit-breaker, preflight, and SIEM inspection
@@ -71,12 +72,27 @@ npm run verify:all
 npm run demo:stdio
 ```
 
+5. Run the repeatable benchmark and capture the reviewer packet.
+
+```bash
+npm run benchmark:stdio
+npm run benchmark:stdio -- --json > evidence.json
+```
+
 Expected demo outcomes:
 
 - an allowed `search_files` call reaches the target
 - the second identical `search_files` call is served from cache
 - a ShadowLeak-style `fetch_url` request is blocked with `SHADOWLEAK_DETECTED`
 - a request without `_meta.authorization` is blocked with `AUTH_FAILURE`
+
+Expected benchmark outcomes:
+
+- zero false positives across the allow corpus
+- zero false negatives across the blocked corpus
+- repeat invocations of cacheable allow cases return identical results
+- zero cache consistency failures across repeated allow cases
+- blocked cases report the expected denial codes
 
 ## Primary Runtime
 

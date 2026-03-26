@@ -3,9 +3,12 @@
 ## Stdio Demo
 
 - `demo-target.js`: local JSON-RPC tool server used by the stdio firewall demo and tests
-- `slow-stdio-target.js`: delayed target used to reproduce the shutdown race regression
+- `evidence-corpus.json`: reviewer benchmark corpus for false-positive and blocked-case measurement
+
+The delayed target used to reproduce the shutdown-race regression lives in `tests/fixtures/slow-stdio-target.js`, not in this directory.
 
 For the complete Windows and Linux evaluator path, see [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md).
+For the repeatable evidence packet, see [docs/EVIDENCE_BENCHMARK.md](../docs/EVIDENCE_BENCHMARK.md) and run `npm run benchmark:stdio`.
 
 Canonical reviewer path:
 
