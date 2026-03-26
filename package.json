@@ -1,6 +1,6 @@
 {
   "name": "mcp-transport-firewall",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Fail-closed stdio firewall for Model Context Protocol tool traffic",
   "main": "dist/cli.js",
   "bin": {

@@ -316,7 +316,7 @@ export default function Dashboard() {
         </Card>
 
         <footer className="text-center text-gray-600 text-sm pt-4 border-t border-gray-800">
-          <p>MCP Transport Firewall v2.1.0</p>
+          <p>MCP Transport Firewall v2.1.1</p>
           <p className="text-xs mt-1">Fail-closed stdio firewall with an HTTP review harness</p>
         </footer>
       </div>
