@@ -1,8 +1,24 @@
-# Contributing to MCP Context Optimizer
+# Contributing
 
-Рады видеть вас! Данный проект придерживается строгих стандартов:
+## Expectations
 
-1. **Strict TypeScript:** Код должен собираться без ошибок при `tsc --noEmit`. No `any` (используйте `unknown`).
-2. **Tests:** Напишите unit-тесты (в папке `tests/unit/`) для добавленной функциональности. Используйте встроенный `node:test`.
-3. **Функциональный подход:** Избегайте лишних классов там, где можно обойтись функциями (модуль `utils` — яркий пример). Однако для стейтфул сущностей (Circuit Breaker, Proxy Engine) мы используем классы.
-4. **Стиль:** Мы используем Prettier / ESLint. Перед пулл-реквестом убедитесь, что `npm run lint` и `npm run build` проходят.
+1. Keep the stdio firewall runnable. `src/cli.ts` and `src/stdio/proxy.ts` are the primary product path.
+2. Keep the HTTP review harness runnable. `src/index.ts` must continue to reuse the same trust gates.
+3. Keep TypeScript strict and avoid `any` unless the boundary is truly untyped input.
+4. Add or update tests when changing trust gates, routing, cache behavior, or admin APIs.
+5. If a README or docs claim changes, add evidence in tests or in `scripts/stdio-demo.mjs`.
+
+## Verification
+
+Run this before opening a PR:
+
+```bash
+npm run verify:all
+npm run demo:stdio
+```
+
+## Notes
+
+- The stdio runtime is the primary firewall surface.
+- The HTTP `/mcp` endpoint is a review harness and compatibility layer, not the primary transport boundary.
+- The admin server is the control plane for routes, cache, preflight state, rate limits, circuit breakers, and dashboard hosting.

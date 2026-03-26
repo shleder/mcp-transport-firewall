@@ -1,32 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
+import { TrustGateError } from '../errors.js';
 import { auditLogWithSIEM } from '../utils/auditLogger.js';
+import { extractToolInvocations } from '../utils/mcp-request.js';
 
-interface ToolEntry {
-  name?: string;
-}
-
-const extractToolsFromBody = (body: Record<string, unknown>): ToolEntry[] => {
-  if (Array.isArray(body.tools)) {
-    return body.tools as ToolEntry[];
-  }
-  if (body.params && typeof body.params === 'object' && !Array.isArray(body.params)) {
-    const params = body.params as Record<string, unknown>;
-    if (Array.isArray(params.tools)) {
-      return params.tools as ToolEntry[];
-    }
-  }
-  return [];
-};
-
-export const scopeValidator = (req: Request, res: Response, next: NextFunction): void => {
-  const availableScopes = req.nhiScopes ?? [];
-  const body = req.body as Record<string, unknown>;
-  const tools = extractToolsFromBody(body);
-
-  if (tools.length === 0) {
-    next();
-    return;
-  }
+export const validateScopes = (
+  body: Record<string, unknown>,
+  availableScopes: string[],
+  ip = 'unknown'
+): void => {
+  const tools = extractToolInvocations(body);
 
   for (const tool of tools) {
     const toolName = tool.name;
@@ -40,18 +22,39 @@ export const scopeValidator = (req: Request, res: Response, next: NextFunction):
         toolName,
         requiredScope,
         availableScopes,
-        ip: req.ip,
+        ip,
       });
 
-      res.status(403).json({
+      throw new TrustGateError(
+        `Fail-Closed: NHI token lacks the required scope '${requiredScope}' for tool '${toolName}'.`,
+        'MISSING_SCOPE',
+        403,
+        { toolName, requiredScope }
+      );
+    }
+  }
+};
+
+export const scopeValidator = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    validateScopes(req.body as Record<string, unknown>, req.nhiScopes ?? [], req.ip);
+    next();
+  } catch (error: unknown) {
+    if (error instanceof TrustGateError) {
+      res.status(error.status).json({
         error: {
-          code: 'MISSING_SCOPE',
-          message: `Fail-Closed: NHI token lacks the required scope '${requiredScope}' for tool '${toolName}'.`,
+          code: error.code,
+          message: error.message,
         },
       });
       return;
     }
-  }
 
-  next();
+    res.status(403).json({
+      error: {
+        code: 'MISSING_SCOPE',
+        message: 'Fail-Closed: scope validation failed.',
+      },
+    });
+  }
 };

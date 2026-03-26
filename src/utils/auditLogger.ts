@@ -1,4 +1,5 @@
 import fs from 'fs';
+import dgram from 'node:dgram';
 import path from 'path';
 
 const logFilePath = path.join(process.cwd(), 'audit.log');
@@ -48,6 +49,10 @@ let siemConfig: SIEMConfig = {
   port: 514,
 };
 
+export const getSIEMConfig = (): SIEMConfig => {
+  return { ...siemConfig };
+};
+
 export const configureSIEM = (config: Partial<SIEMConfig>): void => {
   siemConfig = { ...siemConfig, ...config };
 };
@@ -85,7 +90,6 @@ export const exportToSIEM = (event: AuditEvent): void => {
     : formatSYSLOG(event);
 
   if (process.env.NODE_ENV === 'production') {
-    const dgram = require('dgram');
     const client = dgram.createSocket('udp4');
     
     client.send(formatted, siemConfig.port, siemConfig.host, (err: Error | null) => {

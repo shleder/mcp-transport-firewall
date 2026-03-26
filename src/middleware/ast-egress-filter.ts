@@ -102,78 +102,84 @@ const detectEpistemicContradiction = (value: string): string | null => {
   return null;
 };
 
+export const validateAstEgress = async (
+  body: Record<string, unknown>,
+  ip = 'unknown',
+  requestPath = '/mcp'
+): Promise<void> => {
+  await ettCircuitBreaker.execute(async () => {
+    const allValues = extractAllStringValues(body);
+
+    if (allValues.length === 0) {
+      return;
+    }
+
+    for (const value of allValues) {
+      if (detectShadowLeak(value)) {
+        const ex = new EpistemicSecurityException(
+          'Egress violation: character-by-character exfiltration pattern detected in URL parameters.',
+          'SHADOWLEAK_DETECTED'
+        );
+        auditLogWithSIEM('FIREWALL_BLOCK', {
+          reason: ex.message,
+          code: ex.code,
+          ip,
+          path: requestPath,
+        });
+        throw ex;
+      }
+
+      const sensitiveMatch = detectSensitivePath(value);
+      if (sensitiveMatch !== null) {
+        const ex = new EpistemicSecurityException(
+          `Egress violation: access to sensitive system paths is forbidden. Pattern matched: ${sensitiveMatch}`,
+          'SENSITIVE_PATH_BLOCKED'
+        );
+        auditLogWithSIEM('FIREWALL_BLOCK', {
+          reason: ex.message,
+          code: ex.code,
+          ip,
+          path: requestPath,
+        });
+        throw ex;
+      }
+
+      const shellMatch = detectShellInjection(value);
+      if (shellMatch !== null) {
+        const ex = new EpistemicSecurityException(
+          `Egress violation: shell injection pattern detected. Pattern matched: ${shellMatch}`,
+          'SHELL_INJECTION_BLOCKED'
+        );
+        auditLogWithSIEM('FIREWALL_BLOCK', {
+          reason: ex.message,
+          code: ex.code,
+          ip,
+          path: requestPath,
+        });
+        throw ex;
+      }
+
+      const epistemicMatch = detectEpistemicContradiction(value);
+      if (epistemicMatch !== null) {
+        const ex = new EpistemicSecurityException(
+          `Epistemic Termination Trigger (ETT): agent semantics indicate uncertainty or hallucination. Pattern matched: ${epistemicMatch}`,
+          'EPISTEMIC_CONTRADICTION_DETECTED'
+        );
+        auditLogWithSIEM('ETT_TRIGGER', {
+          reason: ex.message,
+          code: ex.code,
+          ip,
+          path: requestPath,
+        });
+        throw ex;
+      }
+    }
+  });
+};
+
 export const astEgressFilter = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    await ettCircuitBreaker.execute(async () => {
-      const body = req.body as Record<string, unknown>;
-      const allValues = extractAllStringValues(body);
-
-      if (allValues.length === 0) {
-        return;
-      }
-
-      for (const value of allValues) {
-        if (detectShadowLeak(value)) {
-          const ex = new EpistemicSecurityException(
-            'Egress violation: character-by-character exfiltration pattern detected in URL parameters.',
-            'SHADOWLEAK_DETECTED'
-          );
-          auditLogWithSIEM('FIREWALL_BLOCK', {
-            reason: ex.message,
-            code: ex.code,
-            ip: req.ip,
-            path: req.path,
-          });
-          throw ex;
-        }
-
-        const sensitiveMatch = detectSensitivePath(value);
-        if (sensitiveMatch !== null) {
-          const ex = new EpistemicSecurityException(
-            `Egress violation: access to sensitive system paths is forbidden. Pattern matched: ${sensitiveMatch}`,
-            'SENSITIVE_PATH_BLOCKED'
-          );
-          auditLogWithSIEM('FIREWALL_BLOCK', {
-            reason: ex.message,
-            code: ex.code,
-            ip: req.ip,
-            path: req.path,
-          });
-          throw ex;
-        }
-
-        const shellMatch = detectShellInjection(value);
-        if (shellMatch !== null) {
-          const ex = new EpistemicSecurityException(
-            `Egress violation: shell injection pattern detected. Pattern matched: ${shellMatch}`,
-            'SHELL_INJECTION_BLOCKED'
-          );
-          auditLogWithSIEM('FIREWALL_BLOCK', {
-            reason: ex.message,
-            code: ex.code,
-            ip: req.ip,
-            path: req.path,
-          });
-          throw ex;
-        }
-
-        const epistemicMatch = detectEpistemicContradiction(value);
-        if (epistemicMatch !== null) {
-          const ex = new EpistemicSecurityException(
-            `Epistemic Termination Trigger (ETT): agent semantics indicate uncertainty or hallucination. Pattern matched: ${epistemicMatch}`,
-            'EPISTEMIC_CONTRADICTION_DETECTED'
-          );
-          auditLogWithSIEM('ETT_TRIGGER', {
-            reason: ex.message,
-            code: ex.code,
-            ip: req.ip,
-            path: req.path,
-          });
-          throw ex;
-        }
-      }
-    });
-
+    await validateAstEgress(req.body as Record<string, unknown>, req.ip, req.path);
     next();
   } catch (error: unknown) {
     if (error instanceof CircuitOpenError) {
@@ -193,7 +199,10 @@ export const astEgressFilter = async (req: Request, res: Response, next: NextFun
       next(error);
       return;
     }
-    const ex = new EpistemicSecurityException('Egress filter encountered an unexpected error. Request denied (Fail-Closed).', 'EGRESS_VIOLATION');
+    const ex = new EpistemicSecurityException(
+      'Egress filter encountered an unexpected error. Request denied (Fail-Closed).',
+      'EGRESS_VIOLATION'
+    );
     auditLogWithSIEM('EGRESS_FILTER_ERROR', {
       reason: ex.message,
       code: ex.code,

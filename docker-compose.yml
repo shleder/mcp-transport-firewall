@@ -1,25 +1,30 @@
-version: '3.8'
-
 services:
-  api:
+  firewall:
     build:
       context: .
-    container_name: mcp-api
-    ports:
-      - "9090:9090"
+    container_name: mcp-firewall
+    command: ["node", "dist/index.js"]
     environment:
-      - NODE_ENV=production
+      NODE_ENV: production
+      MCP_PORT: 3000
+      MCP_ADMIN_ENABLED: "true"
+      MCP_ADMIN_PORT: 9090
+      MCP_CACHE_TTL_SECONDS: 300
+      MCP_CACHE_DIR: /app/.mcp-cache
+      PROXY_AUTH_TOKEN: ${PROXY_AUTH_TOKEN:-12345678901234567890123456789012}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-abcdefghijklmnopqrstuvwxyz123456}
+    ports:
+      - "3000:3000"
+      - "9090:9090"
+    volumes:
+      - mcp-cache:/app/.mcp-cache
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
 
-  ui:
-    image: node:20-alpine
-    container_name: mcp-ui
-    working_dir: /app
-    volumes:
-      - ./ui:/app
-    command: sh -c "npm install && npm run build && npm run preview -- --host 0.0.0.0 --port 4173"
-    ports:
-      - "4173:4173"
-    restart: unless-stopped
-    depends_on:
-      - api
+volumes:
+  mcp-cache:
