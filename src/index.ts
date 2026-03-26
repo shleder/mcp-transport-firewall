@@ -144,7 +144,7 @@ if (process.env.NODE_ENV !== 'test') {
       cacheEnabled: true,
       cacheDir: DEFAULT_CACHE_DIR,
     });
-    console.log(`MCP Proxy Core listening on port ${DEFAULT_PORT} (Protected Mode with NHI & ETT)`);
+    console.log(`MCP Transport Firewall HTTP review harness listening on port ${DEFAULT_PORT}`);
     if (adminPort > 0) {
       console.log(`Admin API listening on port ${adminPort}`);
     }

@@ -51,7 +51,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <Cpu className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Connecting to MCP Proxy...</p>
+          <p className="text-gray-400">Connecting to transport firewall...</p>
         </div>
       </div>
     );
@@ -106,8 +106,8 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <Shield className="w-8 h-8 text-blue-500" />
             <div>
-              <h1 className="text-2xl font-bold">MCP Proxy Firewall</h1>
-              <p className="text-sm text-gray-400">Fail-Closed Security Gateway</p>
+              <h1 className="text-2xl font-bold">MCP Transport Firewall</h1>
+              <p className="text-sm text-gray-400">Fail-Closed Stdio Boundary Enforcement</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -136,12 +136,12 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-400">Registered Routes</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-400">HTTP Review Routes</CardTitle>
               <Server className="w-4 h-4 text-gray-500" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-white">{stats?.routes ?? 0}</div>
-              <p className="text-xs text-gray-500 mt-1">Active tool routes</p>
+              <p className="text-xs text-gray-500 mt-1">Registered downstream HTTP routes</p>
             </CardContent>
           </Card>
 
@@ -316,8 +316,8 @@ export default function Dashboard() {
         </Card>
 
         <footer className="text-center text-gray-600 text-sm pt-4 border-t border-gray-800">
-          <p>MCP Context Optimizer v2.0.0</p>
-          <p className="text-xs mt-1">Fail-Closed Security Gateway for Model Context Protocol</p>
+          <p>MCP Transport Firewall v2.1.0</p>
+          <p className="text-xs mt-1">Fail-closed stdio firewall with an HTTP review harness</p>
         </footer>
       </div>
     </div>

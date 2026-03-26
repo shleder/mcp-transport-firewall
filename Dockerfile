@@ -39,7 +39,7 @@ EXPOSE 9090
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/index.js"]
 
-LABEL org.opencontainers.image.title="MCP Context Optimizer" \
-      org.opencontainers.image.description="Fail-closed MCP transport firewall and HTTP review harness" \
+LABEL org.opencontainers.image.title="MCP Transport Firewall" \
+      org.opencontainers.image.description="Fail-closed stdio firewall for MCP tool traffic with an HTTP review harness" \
       org.opencontainers.image.source="https://github.com/maksboreichuk88-commits/MCP-server" \
       org.opencontainers.image.licenses="MIT"

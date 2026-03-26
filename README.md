@@ -1,6 +1,6 @@
-# MCP Context Optimizer
+# MCP Transport Firewall
 
-Fail-Closed MCP transport firewall for stdio interception and defensive tool isolation.
+Fail-closed stdio firewall for Model Context Protocol tool traffic.
 
 This repository packages two runnable surfaces:
 
@@ -175,6 +175,15 @@ Use `npm run demo:stdio` for transport-boundary validation. The Docker deploymen
 - threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
 - reviewer quick path: [docs/REVIEWER_GUIDE.md](docs/REVIEWER_GUIDE.md)
 - stdio demo target and HTTP payloads: [examples/README.md](examples/README.md)
+- agent instructions: [AGENTS.md](AGENTS.md)
+- security policy: [SECURITY.md](SECURITY.md)
+- support guide: [SUPPORT.md](SUPPORT.md)
+- code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- changelog: [CHANGELOG.md](CHANGELOG.md)
+- security policy: [SECURITY.md](SECURITY.md)
+- support policy: [SUPPORT.md](SUPPORT.md)
+- code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- coding-agent instructions: [AGENTS.md](AGENTS.md)
 
 ## Environment Variables
 

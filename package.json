@@ -1,9 +1,10 @@
 {
-  "name": "mcp-context-optimizer",
-  "version": "2.0.0",
-  "description": "Fail-Closed MCP transport firewall for stdio interception and defensive tool isolation",
+  "name": "mcp-transport-firewall",
+  "version": "2.1.0",
+  "description": "Fail-closed stdio firewall for Model Context Protocol tool traffic",
   "main": "dist/cli.js",
   "bin": {
+    "mcp-transport-firewall": "dist/cli.js",
     "mcp-context-optimizer": "dist/cli.js"
   },
   "type": "module",

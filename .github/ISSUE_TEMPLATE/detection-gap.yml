@@ -2,7 +2,7 @@ name: Detection gap or false positive
 description: Report a missed unsafe flow or an over-blocking trust-gate decision.
 title: "[detection] "
 labels:
-  - enhancement
+  - detection-gap
   - detection-gap
   - detection-gap
 body:

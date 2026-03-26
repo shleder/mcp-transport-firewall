@@ -65,11 +65,11 @@ const parseCliArgs = (args: string[]): CliOptions => {
 };
 
 const printHelp = (): void => {
-  process.stdout.write(`MCP Context Optimizer
+  process.stdout.write(`MCP Transport Firewall
 
 Usage:
-  mcp-context-optimizer --target "node target.js"
-  mcp-context-optimizer -- node target.js
+  mcp-transport-firewall --target "node target.js"
+  mcp-transport-firewall -- node target.js
 
 Environment:
   PROXY_AUTH_TOKEN        Optional NHI secret for fail-closed auth

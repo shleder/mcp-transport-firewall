@@ -1,0 +1,26 @@
+changelog:
+  exclude:
+    labels:
+      - duplicate
+      - invalid
+      - question
+      - wontfix
+  categories:
+    - title: Security Runtime
+      labels:
+        - security
+        - area:runtime
+        - area:stdio
+        - area:http
+    - title: Reviewer Packaging
+      labels:
+        - area:docs
+        - area:github
+        - release
+    - title: UI And Admin Plane
+      labels:
+        - area:admin
+        - area:ui
+    - title: Maintenance
+      labels:
+        - maintenance

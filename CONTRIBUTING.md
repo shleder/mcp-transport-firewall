@@ -22,3 +22,5 @@ npm run demo:stdio
 - The stdio runtime is the primary firewall surface.
 - The HTTP `/mcp` endpoint is a review harness and compatibility layer, not the primary transport boundary.
 - The admin server is the control plane for routes, cache, preflight state, rate limits, circuit breakers, and dashboard hosting.
+- Security-sensitive reports should follow `SECURITY.md`.
+- Reviewer-facing repo changes should keep `CHANGELOG.md`, issue templates, and release surfaces current.
