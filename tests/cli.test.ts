@@ -152,4 +152,47 @@ describe('stdio firewall proxy', () => {
 
     expect((response.error as { data?: { code?: string } }).data?.code).toBe('AUTH_FAILURE');
   });
+
+  it('drains an in-flight response before stopping when client stdin closes', async () => {
+    await proxy.stop();
+
+    proxy = new StdioFirewallProxy({
+      input: clientInput,
+      output: clientOutput,
+      errorOutput: clientError,
+      targetCommand: process.execPath,
+      targetArgs: [path.join(process.cwd(), 'tests', 'fixtures', 'slow-stdio-target.js')],
+      cacheDir,
+      cacheTtlSeconds: 60,
+      alwaysCacheTools: ['search_files'],
+      neverCacheTools: [],
+      proxyAuthToken: proxyToken,
+    });
+
+    await proxy.start();
+
+    const request = {
+      jsonrpc: '2.0',
+      id: 4,
+      method: 'tools/call',
+      params: {
+        name: 'search_files',
+        arguments: {
+          query: 'slow-close',
+        },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.search_files']),
+        },
+      },
+    };
+
+    clientInput.end(JSON.stringify(request) + '\n');
+    const response = await waitForJsonLine(clientOutput);
+
+    expect(response.result).toEqual({
+      callCount: 1,
+      tool: 'search_files',
+      arguments: { query: 'slow-close' },
+    });
+  });
 });

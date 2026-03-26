@@ -117,6 +117,7 @@ export class StdioFirewallProxy {
   private clientInterface: readline.Interface | null = null;
   private targetInterface: readline.Interface | null = null;
   private targetProcess: ChildProcessWithoutNullStreams | null = null;
+  private clientInputClosed = false;
   private stopped = false;
 
   constructor(options: StdioFirewallOptions) {
@@ -158,7 +159,15 @@ export class StdioFirewallProxy {
     });
 
     this.clientInterface.on('close', () => {
-      void this.stop();
+      this.clientInputClosed = true;
+
+      if (this.targetProcess?.stdin.writable) {
+        this.targetProcess.stdin.end();
+      }
+
+      if (this.pendingRequests.size === 0) {
+        void this.stop();
+      }
     });
   }
 
@@ -212,6 +221,10 @@ export class StdioFirewallProxy {
       }
       this.pendingRequests.clear();
       this.targetProcess = null;
+
+      if (this.clientInputClosed) {
+        void this.stop();
+      }
     });
   }
 
@@ -327,6 +340,11 @@ export class StdioFirewallProxy {
         id: message.id,
         result: sanitizedResult,
       });
+
+      if (this.clientInputClosed && this.pendingRequests.size === 0) {
+        void this.stop();
+      }
+
       return;
     }
 
@@ -336,6 +354,10 @@ export class StdioFirewallProxy {
       id: message.id,
       error: sanitizedError as JsonRpcResponse['error'],
     });
+
+    if (this.clientInputClosed && this.pendingRequests.size === 0) {
+      void this.stop();
+    }
   }
 
   private writeRpc(message: JsonRpcResponse): void {
