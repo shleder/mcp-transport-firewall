@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning.
 
+## [2.1.1] - 2026-03-26
+
+### Fixed
+
+- drain in-flight stdio responses before shutting the proxy down when client stdin closes
+- keep piped and here-string CLI usage aligned with the documented reviewer demo path
+
 ## [2.1.0] - 2026-03-26
 
 ### Added
