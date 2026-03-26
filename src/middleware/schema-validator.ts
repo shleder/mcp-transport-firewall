@@ -29,24 +29,33 @@ export const validateSchema = (
 
       const schema = registry[toolName];
       if (schema) {
-        schema.parse(toolArgs);
+        try {
+          schema.parse(toolArgs);
+        } catch (error: unknown) {
+          if (error instanceof z.ZodError) {
+            const message = `Progressive Disclosure Violation: Tool "${toolName}" arguments failed strict schema validation. ${error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')}`;
+
+            auditLogWithSIEM('SCHEMA_VALIDATION_FAILED', {
+              reason: message,
+              toolName,
+              ip,
+              path: requestPath,
+            });
+
+            throw new TrustGateError(
+              'Fail-Closed: Payload arguments rejected due to strict schema mismatch or prompt injection. Access Denied.',
+              'SCHEMA_VALIDATION_FAILED',
+              403
+            );
+          }
+
+          throw error;
+        }
       }
     }
   } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      const message = `Progressive Disclosure Violation: Tool arguments failed strict schema validation. ${error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')}`;
-
-      auditLogWithSIEM('SCHEMA_VALIDATION_FAILED', {
-        reason: message,
-        ip,
-        path: requestPath,
-      });
-
-      throw new TrustGateError(
-        'Fail-Closed: Payload arguments rejected due to strict schema mismatch or prompt injection. Access Denied.',
-        'SCHEMA_VALIDATION_FAILED',
-        403
-      );
+    if (error instanceof TrustGateError) {
+      throw error;
     }
 
     auditLogWithSIEM('INTERNAL_SERVER_ERROR', {

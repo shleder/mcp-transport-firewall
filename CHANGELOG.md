@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning.
 
+## [Unreleased]
+
+### Added
+
+- repeatable stdio evidence benchmark with a reviewer corpus and JSON output packet
+
+### Changed
+
+- expanded the strict schema registry across common read, write, list, search, execute, and fetch tool contracts
+- aligned HTTP and stdio paths around the same primary tool-invocation helper and alias-aware cache defaults
+- documented the benchmark methodology and supported schema families for external reviewers
+
 ## [2.1.1] - 2026-03-26
 
 ### Fixed

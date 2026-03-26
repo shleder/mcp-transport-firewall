@@ -165,4 +165,43 @@ describe('app /mcp integration', () => {
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe('UNKNOWN_ROUTE');
   });
+
+  it('routes a common alias contract through the HTTP review harness', async () => {
+    registerRoute('list_files', {
+      url: `${targetBaseUrl}/tools/list_files`,
+      timeoutMs: 1000,
+    });
+
+    const payload = {
+      method: 'tools/call',
+      params: {
+        name: 'list_files',
+        arguments: { path: '/tmp', recursive: true },
+      },
+    };
+
+    const authHeader = createAuthHeader(['tools.list_files']);
+
+    const firstResponse = await request(app)
+      .post('/mcp')
+      .set('Authorization', authHeader)
+      .send(payload);
+
+    const secondResponse = await request(app)
+      .post('/mcp')
+      .set('Authorization', authHeader)
+      .send(payload);
+
+    expect(firstResponse.status).toBe(200);
+    expect(firstResponse.headers['x-proxy-cache']).toBe('MISS');
+    expect(secondResponse.status).toBe(200);
+    expect(secondResponse.headers['x-proxy-cache']).toBe('HIT');
+    expect(secondResponse.body).toEqual(firstResponse.body);
+    expect(firstResponse.body).toEqual({
+      ok: true,
+      tool: 'list_files',
+      arguments: { path: '/tmp', recursive: true },
+    });
+    expect(requestCount).toBe(1);
+  });
 });

@@ -15,7 +15,7 @@ import { validateSchema } from '../middleware/schema-validator.js';
 import { validateScopes } from '../middleware/scope-validator.js';
 import { mcpToolSchemas } from '../mcp-tool-schemas.js';
 import { auditLog } from '../utils/auditLogger.js';
-import { extractToolInvocations, isRecord } from '../utils/mcp-request.js';
+import { getPrimaryToolInvocation, isRecord } from '../utils/mcp-request.js';
 
 type JsonRpcId = string | number | null;
 
@@ -137,8 +137,8 @@ export class StdioFirewallProxy {
         dbPath: options.cacheDir ?? path.join(process.cwd(), '.mcp-cache'),
         ttlMs: (options.cacheTtlSeconds ?? 300) * 1000,
       },
-      alwaysCacheTools: options.alwaysCacheTools ?? ['read_file', 'list_directory', 'search_files'],
-      neverCacheTools: options.neverCacheTools ?? ['write_file', 'create_file', 'execute_command'],
+      alwaysCacheTools: options.alwaysCacheTools ?? ['read_file', 'read', 'open_file', 'list_directory', 'list_files', 'search_files', 'search'],
+      neverCacheTools: options.neverCacheTools ?? ['write_file', 'write', 'create_file', 'execute_command', 'execute'],
     });
   }
 
@@ -257,7 +257,7 @@ export class StdioFirewallProxy {
     try {
       await this.inspectRequest(message);
 
-      const tool = extractToolInvocations(message as unknown as Record<string, unknown>)[0];
+      const tool = getPrimaryToolInvocation(message as unknown as Record<string, unknown>);
       if (message.method === 'tools/call' && tool?.name && requestId !== null) {
         const cached = this.cacheManager.get(tool.name, tool.arguments ?? {});
         if (cached !== undefined) {
@@ -271,7 +271,6 @@ export class StdioFirewallProxy {
       }
 
       if (requestId !== null) {
-        const tool = extractToolInvocations(message as unknown as Record<string, unknown>)[0];
         this.pendingRequests.set(String(requestId), {
           toolName: tool?.name,
           cacheParams: tool?.arguments ?? message.params,

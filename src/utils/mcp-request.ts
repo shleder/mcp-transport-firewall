@@ -59,6 +59,11 @@ export const extractToolInvocations = (body: Record<string, unknown>): McpToolIn
   return [];
 };
 
+export const getPrimaryToolInvocation = (body: Record<string, unknown>): McpToolInvocation | null => {
+  const invocations = extractToolInvocations(body);
+  return invocations[0] ?? null;
+};
+
 export const extractAuthorizationFromBody = (body: Record<string, unknown>): string | undefined => {
   for (const tool of extractToolInvocations(body)) {
     const authorization = tool._meta?.authorization;

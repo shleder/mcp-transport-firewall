@@ -51,6 +51,19 @@ All gates fail closed. If a gate cannot validate the request, the request is rej
 | ShadowLeak-style exfil via URL parameters | `ast-egress-filter` | `tests/ast-egress-filter.test.ts`, `tests/cli.test.ts` |
 | sensitive path access or shell-injection markers in arguments | `ast-egress-filter` | `tests/ast-egress-filter.test.ts` |
 
+## Supported Schema Registry
+
+The strict registry currently covers these contract families and aliases:
+
+- file reads: `read_file`, `read`, `open_file`
+- file writes and creation: `write_file`, `write`, `create_file`
+- directory enumeration: `list_directory`, `list_files`
+- content search: `search_files`, `search`
+- command execution: `execute_command`, `execute`
+- network fetch: `fetch_url`
+
+These names are not claimed as a universal MCP standard. They are the common tool contracts this repository enforces today.
+
 ## Operational Properties
 
 - blocked requests do not reach the downstream stdio target in the demo path
