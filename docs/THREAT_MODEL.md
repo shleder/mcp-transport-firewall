@@ -1,57 +1,64 @@
-# Threat Model
 
-## Protected Boundary
 
-The primary protected boundary is stdio between:
+This repository implements a fail-closed transport control for **MCP JSON-RPC tool traffic**. The goal is to reduce risk in the AI agent tool supply chain by intercepting unsafe traffic before tool execution and by sanitizing tool output before it re-enters the agent context.
 
-- an MCP client emitting MCP JSON-RPC messages
-- a local tool server process receiving those messages
+The design is intentionally narrow:
 
-The repository also ships an HTTP compatibility harness that reuses the same trust gates, but the transport-boundary firewall is the stdio runtime.
+- inspect requests at the stdio transport boundary
+- enforce Trust Gates before execution
+- sanitize returned tool output
+- produce reproducible evidence of allow and deny behavior
 
-## Validation Flow
 
-Validate the control in this order:
+The primary protected boundary is **stdio** between:
 
-1. read the stdio-first walkthrough in [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)
-2. run `npm run verify:all`
-3. run `npm run demo:stdio`
-4. inspect the denied and allowed cases in `tests/cli.test.ts` and `scripts/stdio-demo.mjs`
-5. use the HTTP harness only as a secondary compatibility surface
+- an MCP client or agent runtime emitting JSON-RPC messages
+- a local MCP tool server receiving those messages
 
-## Assets
+The repository also ships an HTTP companion harness that reuses the same trust gates, but the stdio runtime is the main product path.
 
-- secrets embedded in tool arguments or tool output
-- local filesystem paths and credentials
-- high-trust tool capabilities such as write, mutation, or execution
+
+- local filesystem contents reachable through tool arguments
+- secrets embedded in tool parameters or tool output
+- high-trust mutation and execution capabilities
 - the integrity of multi-tool execution plans
+- the safety of responses that flow back into an agent context
 
-## Trust Gates
+
+The control set is aimed at transport-layer abuse patterns common to agentic toolchains:
+
+- an attacker or untrusted content source attempts to coerce an agent into invoking a tool with unsafe arguments
+- an unsafe request is relayed through MCP without a dedicated transport control
+- a tool response contains sensitive data or hidden payload strings that could re-enter the agent loop
+- trust is escalated implicitly across tool boundaries, such as mixed red/blue execution or replayed approvals
+
+This includes indirect prompt-injection style traffic only to the extent that it appears as inspectable request or response material at the transport boundary.
+
 
 | Gate | Decision | Failure Mode |
 |---|---|---|
-| `nhi-auth-validator` | is the caller carrying the expected shared secret and declared scopes? | deny request |
-| `scope-validator` | is the requested tool within the declared scopes? | deny request |
-| `color-boundary` | does the request mix incompatible trust domains? | deny request |
-| `preflight-validator` | does a high-trust action carry a valid one-time preflight ID? | deny request |
-| `schema-validator` | do registered tool arguments match the strict contract? | deny request |
-| `ast-egress-filter` | do request strings match exfiltration or injection markers? | deny request |
+| `nhi-auth-validator` | Is the caller carrying the expected shared secret and declared scopes? | deny request |
+| `scope-validator` | Is the requested tool inside the declared scope set? | deny request |
+| `color-boundary` | Does the request mix incompatible trust domains or flip an established session color? | deny request |
+| `preflight-validator` | Does a high-trust (`blue`) action carry a valid one-time preflight ID? | deny request |
+| `schema-validator` | Do registered tool arguments match a strict contract? | deny request |
+| `ast-egress-filter` | Do request strings match exfiltration, sensitive-path, shell-injection, or epistemic-risk markers? | deny request |
 
-All gates fail closed. If a gate cannot validate the request, the request is rejected instead of passed through.
+All gates fail closed. If validation cannot be completed, the request is rejected instead of forwarded.
 
-## Covered Attack Classes
 
 | Attack class | Current control | Evidence |
 |---|---|---|
 | missing or invalid auth | `nhi-auth-validator` | `tests/nhi-auth.test.ts`, `tests/cli.test.ts` |
 | scope escalation | `scope-validator` | `tests/scope-validator.test.ts` |
-| cross-tool hijack / mixed trust domains | `color-boundary` | `tests/color-boundary.test.ts` |
-| replay or missing approval for blue actions | `preflight-validator` | `tests/preflight-validator.test.ts` |
-| undeclared tool arguments / indirect prompt smuggling through known schemas | `schema-validator` | `tests/schema-validator.test.ts` |
-| ShadowLeak-style exfil via URL parameters | `ast-egress-filter` | `tests/ast-egress-filter.test.ts`, `tests/cli.test.ts` |
-| sensitive path access or shell-injection markers in arguments | `ast-egress-filter` | `tests/ast-egress-filter.test.ts` |
+| mixed trust domains / cross-tool hijack | `color-boundary` | `tests/color-boundary.test.ts` |
+| missing or replayed approval for high-trust actions | `preflight-validator` | `tests/preflight-validator.test.ts` |
+| undeclared or schema-smuggled arguments | `schema-validator` | `tests/schema-validator.test.ts` |
+| ShadowLeak-style URL exfiltration | `ast-egress-filter` | `tests/ast-egress-filter.test.ts`, `tests/cli.test.ts` |
+| sensitive-path access markers | `ast-egress-filter` | `tests/ast-egress-filter.test.ts`, `examples/evidence-corpus.json` |
+| shell-injection markers in tool arguments | `ast-egress-filter` | `tests/ast-egress-filter.test.ts`, `examples/evidence-corpus.json` |
+| unsafe response material flowing back to the caller | response sanitization | `src/proxy/shadow-leak-sanitizer.ts`, `tests/app.test.ts` |
 
-## Supported Schema Registry
 
 The strict registry currently covers these contract families and aliases:
 
@@ -62,19 +69,19 @@ The strict registry currently covers these contract families and aliases:
 - command execution: `execute_command`, `execute`
 - network fetch: `fetch_url`
 
-These names are not claimed as a universal MCP standard. They are the common tool contracts this repository enforces today.
+These names are the contracts enforced by this repository. They are not presented as a universal MCP standard.
 
-## Operational Properties
 
-- blocked requests do not reach the downstream stdio target in the demo path
+- blocked requests do not reach the downstream stdio target in the reproducible demo path
 - allowed read-style tool calls can be served from cache
-- downstream responses are sanitized before returning to the client
-- the admin API exposes route, cache, preflight, rate-limit, circuit-breaker, and SIEM state
+- downstream responses are sanitized before returning to the caller
+- the control plane exposes route, cache, preflight, circuit-breaker, blocked-request, and Prometheus-formatted metrics
 
-## Current Limits
 
-- The auth envelope is a shared secret carried in a Bearer wrapper. It is not signed identity proof.
-- Schema enforcement is strict only for tools present in the registry.
-- The `ast-egress-filter` performs structured recursive string inspection. It is not a full AST or semantic parser.
-- The firewall decides before tool execution. It does not contain side effects after a tool has started.
-- The project does not claim to stop every indirect prompt-injection technique. It implements a fail-closed control set for specific transport-boundary risks.
+- cryptographic identity attestation
+- kernel, VM, or container sandboxing
+- complete semantic detection of every prompt-injection variant
+- post-execution containment after a tool has already started
+- a claim that every MCP deployment is safe once this control is inserted
+
+The project provides a fail-closed transport control, not a complete execution-security stack.

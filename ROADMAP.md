@@ -1,19 +1,19 @@
-# Roadmap
 
-This project is usable today as a fail-closed stdio firewall for MCP traffic. The items below track the next cleanup and hardening passes.
+This project is usable today as a fail-closed MCP transport firewall. The roadmap is organized around strengthening its value as an open defensive baseline for agent toolchains.
 
-## Now
 
-- restore GitHub-hosted CI so `main` and future pull requests show the same verification status as local runs
-- reduce remaining dev-only `npm audit` noise in the Jest and tooling chain without destabilizing the runtime path
+- expand the benchmark corpus for more MCP contract families
+- add more denial-code regression cases for indirect prompt-injection style traffic
+- restore GitHub-hosted Actions execution so public CI can publish benchmark artifacts and gate npm releases
+- publish the first semver-tagged npm release for the `mcp-transport-firewall` package name once hosted CI is restored
 
-## Next
 
-- broaden the schema registry and denial corpus for more common MCP tool contracts
-- add more cross-platform operator notes for Windows and Linux client setups
-- improve admin/dashboard visibility for blocked requests, cache behavior, and gate decisions
+- broaden the schema registry for additional widely used MCP tool contracts
+- improve dashboard visibility for gate decisions, blocked-request trends, and metrics scrape status
+- add more cross-platform operator notes for Windows and Linux client configurations
+- add release checklists and signed provenance review notes for public npm tags
 
-## Later
 
-- publish a registry package when the install surface is stable enough to support a longer-lived package name
-- expand reproducible benchmark coverage with larger corpora and versioned result snapshots
+- publish versioned benchmark snapshots for longitudinal comparison across releases
+- add optional integrations for external metrics collectors and log pipelines without changing the fail-closed core
+- document reference deployment patterns for open-source agent frameworks and local tool servers

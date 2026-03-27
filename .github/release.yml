@@ -9,18 +9,25 @@ changelog:
     - title: Security Runtime
       labels:
         - security
+        - detection-gap
         - area:runtime
         - area:stdio
         - area:http
-    - title: Documentation And Repo Packaging
+    - title: Documentation And Evidence
       labels:
+        - documentation
+        - evidence
         - area:docs
+    - title: Distribution And GitHub Operations
+      labels:
+        - ci
         - area:github
-        - release
+        - grant-blocker
+        - maintenance
     - title: UI And Admin Plane
       labels:
         - area:admin
         - area:ui
-    - title: Maintenance
+    - title: Maintenance And Enhancements
       labels:
-        - maintenance
+        - enhancement

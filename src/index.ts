@@ -7,6 +7,7 @@ import { astEgressFilter } from './middleware/ast-egress-filter.js';
 import { mcpColorBoundary } from './middleware/color-boundary.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { nhiAuthValidator } from './middleware/nhi-auth-validator.js';
+import { recordHttpMcpRequest } from './metrics/prometheus.js';
 import { preflightValidator } from './middleware/preflight-validator.js';
 import { createRateLimiter } from './middleware/rate-limiter.js';
 import { createSchemaValidator } from './middleware/schema-validator.js';
@@ -31,6 +32,13 @@ app.use(express.json({
 const rateLimiter = createRateLimiter({
   windowMs: 60000,
   maxRequests: 100,
+});
+
+app.use('/mcp', (req, _res, next) => {
+  if (req.method === 'POST') {
+    recordHttpMcpRequest();
+  }
+  next();
 });
 
 app.use('/mcp', rateLimiter);

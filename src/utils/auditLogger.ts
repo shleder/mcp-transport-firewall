@@ -55,6 +55,11 @@ const blockedRequestCodes = new Set([
   'UNAUTHORIZED',
 ]);
 
+const blockedRequestWrapperEvents = new Set([
+  'HARD_HALT',
+  'TRUST_GATE_BLOCK',
+]);
+
 const blockedMetricsState = {
   total: 0,
   lastBlockedAt: null as string | null,
@@ -72,6 +77,10 @@ const createEntry = (timestamp: string, event: string, details: Record<string, u
 };
 
 const getBlockedRequestCode = (event: string, details: Record<string, unknown>): string | null => {
+  if (blockedRequestWrapperEvents.has(event)) {
+    return null;
+  }
+
   if (typeof details.code === 'string' && details.code.length > 0) {
     return details.code;
   }

@@ -1,22 +1,18 @@
-name: CI/CD
+name: Release npm Package
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+    tags:
+      - 'v*.*.*'
 
 jobs:
-  quality:
-    name: Type Check, Test, Build & Evidence
+  release:
+    name: Verify, Benchmark, And Publish
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +21,19 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Verify tag matches package version
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const tag = process.env.GITHUB_REF_NAME;
+          const expectedTag = `v${pkg.version}`;
+          if (tag !== expectedTag) {
+            throw new Error(`Release tag ${tag} does not match package.json version ${pkg.version}. Expected ${expectedTag}.`);
+          }
+          NODE
 
       - name: Install dependencies
         run: npm ci
@@ -68,45 +77,18 @@ jobs:
           name: stdio-evidence-benchmark
           path: evidence.json
 
-  docker:
-    name: Build & Push Docker Image
-    needs: quality
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          files: evidence.json
+          body: |
+            Release evidence:
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and Push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            - full verification suite passed
+            - stdio benchmark attached as `evidence.json`
+            - npm tarball smoke checks passed before publication

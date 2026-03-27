@@ -1,6 +1,4 @@
-# Examples
 
-## Stdio Demo
 
 - `demo-target.js`: local JSON-RPC tool server used by the stdio firewall demo and tests
 - `evidence-corpus.json`: benchmark corpus for regression and false-positive measurement
@@ -23,14 +21,14 @@ Manual interactive path:
 npm run start:cli -- -- node examples/demo-target.js
 ```
 
-MCP client configuration path:
+Published-package MCP client configuration path after the first npm release:
 
 ```json
 {
   "mcpServers": {
     "protected-demo-target": {
       "command": "npx",
-      "args": ["-y", "github:maksboreichuk88-commits/mcp-transport-firewall"],
+      "args": ["-y", "mcp-transport-firewall"],
       "env": {
         "PROXY_AUTH_TOKEN": "replace-with-32-byte-secret",
         "MCP_TARGET_COMMAND": "node",
@@ -43,7 +41,12 @@ MCP client configuration path:
 
 Then write JSON-RPC lines to stdin. If `PROXY_AUTH_TOKEN` is configured, include `_meta.authorization` inside the request body.
 
-## HTTP Companion Service
+Source-install fallback before the first npm release:
+
+```bash
+npx -y github:maksboreichuk88-commits/mcp-transport-firewall --help
+```
+
 
 - `register-route.json`: admin payload for registering a downstream HTTP tool route
 - `tool-call.json`: MCP `tools/call` payload for the HTTP `/mcp` harness

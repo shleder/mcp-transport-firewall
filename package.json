@@ -1,10 +1,13 @@
 {
   "name": "mcp-transport-firewall",
   "version": "2.1.1",
-  "description": "CLI firewall for fail-closed MCP stdio traffic",
+  "description": "Fail-closed stdio transport firewall for MCP JSON-RPC traffic and agent tool supply chains",
   "main": "dist/cli.js",
   "files": [
     "dist",
+    "docs",
+    ".env.example",
+    "LICENSE",
     "README.md",
     "CHANGELOG.md",
     "SECURITY.md",
@@ -21,14 +24,23 @@
     "url": "https://github.com/maksboreichuk88-commits/mcp-transport-firewall/issues"
   },
   "homepage": "https://github.com/maksboreichuk88-commits/mcp-transport-firewall#readme",
+  "license": "MIT",
   "keywords": [
     "mcp",
     "model-context-protocol",
     "security",
     "firewall",
-    "stdio"
+    "stdio",
+    "json-rpc",
+    "shadowleak",
+    "trust-gates",
+    "supply-chain-security",
+    "defensive-security"
   ],
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20.0.0"
   },
@@ -40,6 +52,9 @@
     "dev:cli": "tsx src/cli.ts",
     "demo:stdio": "node scripts/stdio-demo.mjs",
     "benchmark:stdio": "npm run build && node scripts/stdio-benchmark.mjs",
+    "pack:dry-run": "npm pack --dry-run",
+    "pack:smoke": "node scripts/pack-smoke.mjs",
+    "prepublishOnly": "npm run verify:all && npm run pack:dry-run && npm run pack:smoke",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "typecheck": "tsc --noEmit",
     "verify:all": "npm run typecheck && npm run build && npm test && npm run demo:stdio && npm --prefix ui run build && npm --prefix ui run lint"

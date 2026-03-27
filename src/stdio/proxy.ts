@@ -9,6 +9,7 @@ import { sanitizeResponse } from '../proxy/shadow-leak-sanitizer.js';
 import { EpistemicSecurityException, TrustGateError } from '../errors.js';
 import { validateAstEgress } from '../middleware/ast-egress-filter.js';
 import { validateColorBoundary } from '../middleware/color-boundary.js';
+import { recordStdioMcpRequest } from '../metrics/prometheus.js';
 import { extractNhiAuthorization, parseNhiAuthorizationHeader } from '../middleware/nhi-auth-validator.js';
 import { validatePreflight } from '../middleware/preflight-validator.js';
 import { validateSchema } from '../middleware/schema-validator.js';
@@ -198,6 +199,8 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
       writeRpc(buildRpcErrorResponse(null, -32600, 'Invalid Request'));
       return;
     }
+
+    recordStdioMcpRequest();
 
     const requestId = message.id ?? null;
 

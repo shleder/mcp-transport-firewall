@@ -278,6 +278,15 @@ export default function Dashboard() {
                     </span>
                   </div>
                 </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50">
+                  <div className="flex items-center gap-3">
+                    <Activity className="w-5 h-5 text-gray-400" />
+                    <span>Prometheus Exporter</span>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400">
+                    /metrics Ready
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
