@@ -22,7 +22,7 @@ changelog:
       labels:
         - ci
         - area:github
-        - grant-blocker
+        - external-blocker
         - maintenance
     - title: UI And Admin Plane
       labels:
