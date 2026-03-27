@@ -71,12 +71,53 @@ Expected benchmark outcomes:
 - zero cache consistency failures across repeated allow cases
 - blocked cases report the expected denial codes
 
+## One-Line Client Launch
+
+If you want to run the firewall from an MCP client without cloning this repository, launch it through `npx` and provide the protected target through environment variables.
+
+Example command:
+
+```bash
+npx -y github:maksboreichuk88-commits/MCP-server
+```
+
+Example MCP client configuration:
+
+```json
+{
+  "mcpServers": {
+    "protected-local-tooling": {
+      "command": "npx",
+      "args": ["-y", "github:maksboreichuk88-commits/MCP-server"],
+      "env": {
+        "PROXY_AUTH_TOKEN": "replace-with-32-byte-secret",
+        "MCP_TARGET_COMMAND": "node",
+        "MCP_TARGET_ARGS_JSON": "[\"C:/tools/my-mcp-server.js\"]"
+      }
+    }
+  }
+}
+```
+
+If your client cannot pass JSON arrays easily, the CLI also accepts:
+
+- `MCP_TARGET_ARGS` for a space-delimited argument string
+- `MCP_TARGET` for a full target command string
+
 ## Run Modes
 
 For the stdio firewall:
 
 ```bash
 npm run start:cli -- -- node examples/demo-target.js
+```
+
+For a local env-based launch path:
+
+```powershell
+$env:MCP_TARGET_COMMAND = "node"
+$env:MCP_TARGET_ARGS_JSON = "[\"examples/demo-target.js\"]"
+npm run start:cli
 ```
 
 For the HTTP companion service:
@@ -143,6 +184,10 @@ tests/                    Jest suites for gates, HTTP, admin, and stdio paths
 | Variable | Mode | Purpose | Default |
 |---|---|---|---|
 | `PROXY_AUTH_TOKEN` | stdio + HTTP | shared secret for fail-closed auth | none |
+| `MCP_TARGET_COMMAND` | stdio | protected target command for client configs | none |
+| `MCP_TARGET_ARGS_JSON` | stdio | JSON array of args for `MCP_TARGET_COMMAND` | none |
+| `MCP_TARGET_ARGS` | stdio | space-delimited fallback args for `MCP_TARGET_COMMAND` | none |
+| `MCP_TARGET` | stdio | full target command string fallback | none |
 | `MCP_CACHE_DIR` | stdio + HTTP | persistent L2 cache directory | `.mcp-cache` |
 | `MCP_CACHE_TTL_SECONDS` | stdio + HTTP | cache TTL in seconds | `300` |
 | `MCP_ADMIN_ENABLED` | stdio + HTTP | enable admin API and dashboard | `false` |

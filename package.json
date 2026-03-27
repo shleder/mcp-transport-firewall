@@ -3,9 +3,31 @@
   "version": "2.1.1",
   "description": "CLI firewall for fail-closed MCP stdio traffic",
   "main": "dist/cli.js",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "SUPPORT.md"
+  ],
   "bin": {
     "mcp-transport-firewall": "dist/cli.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maksboreichuk88-commits/MCP-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/maksboreichuk88-commits/MCP-server/issues"
+  },
+  "homepage": "https://github.com/maksboreichuk88-commits/MCP-server#readme",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "security",
+    "firewall",
+    "stdio"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20.0.0"
@@ -24,12 +46,14 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.1",
+    "better-sqlite3": "^12.8.0",
     "dotenv": "^17.3.1",
     "express": "^4.21.1",
     "lru-cache": "^11.0.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.8.2",

@@ -4,7 +4,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import request from 'supertest';
-import { initializeCache } from '../src/cache/index.js';
+import { initializeCache, getCache } from '../src/cache/index.js';
 import { clearColorSessions } from '../src/middleware/color-boundary.js';
 import { clearPreflightRegistries } from '../src/middleware/preflight-validator.js';
 import { clearRoutes, registerRoute } from '../src/proxy/router.js';
@@ -80,6 +80,7 @@ describe('app /mcp integration', () => {
     });
 
     if (cacheDir) {
+      getCache()?.close();
       fs.rmSync(cacheDir, { recursive: true, force: true });
     }
   });
