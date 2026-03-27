@@ -23,6 +23,24 @@ Manual interactive path:
 npm run start:cli -- -- node examples/demo-target.js
 ```
 
+MCP client configuration path:
+
+```json
+{
+  "mcpServers": {
+    "protected-demo-target": {
+      "command": "npx",
+      "args": ["-y", "github:maksboreichuk88-commits/MCP-server"],
+      "env": {
+        "PROXY_AUTH_TOKEN": "replace-with-32-byte-secret",
+        "MCP_TARGET_COMMAND": "node",
+        "MCP_TARGET_ARGS_JSON": "[\"C:/absolute/path/to/your-mcp-server.js\"]"
+      }
+    }
+  }
+}
+```
+
 Then write JSON-RPC lines to stdin. If `PROXY_AUTH_TOKEN` is configured, include `_meta.authorization` inside the request body.
 
 ## HTTP Companion Service

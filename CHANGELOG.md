@@ -9,12 +9,16 @@ The format is based on Keep a Changelog and the project follows semantic version
 ### Added
 
 - repeatable stdio evidence benchmark with a reviewer corpus and JSON output packet
+- environment-based stdio target resolution for shorter MCP client configurations
+- regression coverage that verifies the proxy kills the target after draining the last piped stdio response
 
 ### Changed
 
 - expanded the strict schema registry across common read, write, list, search, execute, and fetch tool contracts
 - aligned HTTP and stdio paths around the same primary tool-invocation helper and alias-aware cache defaults
 - documented the benchmark methodology and supported schema families for external reviewers
+- switched the persistent L2 cache to SQLite-backed storage and updated Windows test teardown to close the cache explicitly
+- limited npm package contents to the runtime entrypoints and user-facing docs required for one-line installs
 
 ## [2.1.1] - 2026-03-26
 
