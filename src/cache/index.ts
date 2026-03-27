@@ -24,113 +24,125 @@ export interface CacheStats {
   hitRatio: number;
 }
 
-export class CacheManager<T = unknown> {
-  private l1: L1Cache<T>;
-  private l2: L2Cache;
-  private serverId: string;
-  private alwaysCacheTools: Set<string>;
-  private neverCacheTools: Set<string>;
-  private stats = {
-    l1Hits: 0,
-    l2Hits: 0,
-    misses: 0,
+export interface CacheManager<T = unknown> {
+  generateKey: (method: string, params: unknown) => string;
+  shouldCache: (method: string) => boolean;
+  get: (method: string, params: unknown) => T | undefined;
+  set: (method: string, params: unknown, value: T, ttlMs?: number) => void;
+  invalidate: (method: string, params: unknown) => boolean;
+  clear: () => void;
+  getStats: () => CacheStats;
+  close: () => void;
+}
+
+export const createCacheManager = <T = unknown>(config: CacheConfig): CacheManager<T> => {
+  const serverId = config.serverId;
+  const l1 = createL1Cache<T>(config.l1);
+  const l2 = createL2Cache(config.l2);
+  const alwaysCacheTools = new Set(config.alwaysCacheTools ?? []);
+  const neverCacheTools = new Set(config.neverCacheTools ?? []);
+
+  let l1Hits = 0;
+  let l2Hits = 0;
+  let misses = 0;
+
+  const shouldCache = (method: string): boolean => {
+    if (neverCacheTools.has(method)) return false;
+    if (alwaysCacheTools.has(method)) return true;
+    return method.startsWith('read_') || method.startsWith('list_') || method.startsWith('search_');
   };
 
-  constructor(config: CacheConfig) {
-    this.serverId = config.serverId;
-    this.l1 = createL1Cache<T>(config.l1);
-    this.l2 = createL2Cache(config.l2);
-    this.alwaysCacheTools = new Set(config.alwaysCacheTools ?? []);
-    this.neverCacheTools = new Set(config.neverCacheTools ?? []);
-  }
+  const generateKey = (method: string, params: unknown): string => {
+    return l1.generateKey(serverId, method, params);
+  };
 
-  generateKey(method: string, params: unknown): string {
-    return this.l1.generateKey(this.serverId, method, params);
-  }
+  return {
+    generateKey,
+    shouldCache,
 
-  shouldCache(method: string): boolean {
-    if (this.neverCacheTools.has(method)) {
-      return false;
-    }
-    if (this.alwaysCacheTools.has(method)) {
-      return true;
-    }
-    return method.startsWith('read_') || method.startsWith('list_') || method.startsWith('search_');
-  }
+    get: (method: string, params: unknown): T | undefined => {
+      if (!shouldCache(method)) return undefined;
 
-  get(method: string, params: unknown): T | undefined {
-    if (!this.shouldCache(method)) {
+      const startTime = performance.now();
+      const key = generateKey(method, params);
+
+      const l1Result = l1.get(key);
+      if (l1Result !== undefined) {
+        l1Hits++;
+        auditLog('CACHE_HIT', { level: 'L1', method, key, serverId });
+
+        const latency = (performance.now() - startTime).toFixed(2);
+        const tokens = Math.round(JSON.stringify(l1Result).length / 4);
+        console.error(`Cache Hit! Estimated Tokens Saved: ~${tokens} и ⏱ Latency: ${latency} ms.`);
+
+        return l1Result;
+      }
+
+      const l2Result = l2.get(key);
+      if (l2Result !== undefined) {
+        l2Hits++;
+        l1.set(key, l2Result as T);
+        auditLog('CACHE_HIT', { level: 'L2', method, key, serverId });
+
+        const latency = (performance.now() - startTime).toFixed(2);
+        const tokens = Math.round(JSON.stringify(l2Result).length / 4);
+        console.error(`Cache Hit! Estimated Tokens Saved: ~${tokens} и ⏱ Latency: ${latency} ms.`);
+
+        return l2Result as T;
+      }
+
+      misses++;
+      auditLog('CACHE_MISS', { method, key, serverId });
       return undefined;
-    }
+    },
 
-    const key = this.generateKey(method, params);
+    set: (method: string, params: unknown, value: T, ttlMs?: number): void => {
+      if (!shouldCache(method)) return;
 
-    const l1Result = this.l1.get(key);
-    if (l1Result !== undefined) {
-      this.stats.l1Hits++;
-      auditLog('CACHE_HIT', { level: 'L1', method, key, serverId: this.serverId });
-      return l1Result;
-    }
+      const key = generateKey(method, params);
+      l1.set(key, value, ttlMs);
+      l2.set(key, value, ttlMs);
+      auditLog('CACHE_SET', { method, key, serverId, ttlMs });
+    },
 
-    const l2Result = this.l2.get(key);
-    if (l2Result !== undefined) {
-      this.stats.l2Hits++;
-      this.l1.set(key, l2Result as T);
-      auditLog('CACHE_HIT', { level: 'L2', method, key, serverId: this.serverId });
-      return l2Result as T;
-    }
+    invalidate: (method: string, params: unknown): boolean => {
+      const key = generateKey(method, params);
+      l1.delete(key);
+      const l2Deleted = l2.delete(key);
+      auditLog('CACHE_INVALIDATE', { method, key, serverId });
+      return l2Deleted;
+    },
 
-    this.stats.misses++;
-    auditLog('CACHE_MISS', { method, key, serverId: this.serverId });
-    return undefined;
-  }
+    clear: (): void => {
+      l1.clear();
+      l2.clear();
+      l1Hits = 0;
+      l2Hits = 0;
+      misses = 0;
+      auditLog('CACHE_CLEAR', { serverId });
+    },
 
-  set(method: string, params: unknown, value: T, ttlMs?: number): void {
-    if (!this.shouldCache(method)) {
-      return;
-    }
+    getStats: (): CacheStats => {
+      const totalHits = l1Hits + l2Hits;
+      const total = totalHits + misses;
+      return {
+        l1: l1.stats(),
+        l2: l2.stats(),
+        hits: {
+          l1: l1Hits,
+          l2: l2Hits,
+          total: totalHits,
+        },
+        misses,
+        hitRatio: total > 0 ? totalHits / total : 0,
+      };
+    },
 
-    const key = this.generateKey(method, params);
-    this.l1.set(key, value, ttlMs);
-    this.l2.set(key, value, ttlMs);
-    auditLog('CACHE_SET', { method, key, serverId: this.serverId, ttlMs });
-  }
-
-  invalidate(method: string, params: unknown): boolean {
-    const key = this.generateKey(method, params);
-    this.l1.delete(key);
-    const l2Deleted = this.l2.delete(key);
-    auditLog('CACHE_INVALIDATE', { method, key, serverId: this.serverId });
-    return l2Deleted;
-  }
-
-  clear(): void {
-    this.l1.clear();
-    this.l2.clear();
-    this.stats = { l1Hits: 0, l2Hits: 0, misses: 0 };
-    auditLog('CACHE_CLEAR', { serverId: this.serverId });
-  }
-
-  getStats(): CacheStats {
-    const totalHits = this.stats.l1Hits + this.stats.l2Hits;
-    const total = totalHits + this.stats.misses;
-    return {
-      l1: this.l1.stats(),
-      l2: this.l2.stats(),
-      hits: {
-        l1: this.stats.l1Hits,
-        l2: this.stats.l2Hits,
-        total: totalHits,
-      },
-      misses: this.stats.misses,
-      hitRatio: total > 0 ? totalHits / total : 0,
-    };
-  }
-
-  close(): void {
-    this.l2.close();
-  }
-}
+    close: (): void => {
+      l2.close();
+    },
+  };
+};
 
 let globalCacheManager: CacheManager | undefined;
 
@@ -138,7 +150,7 @@ export const initializeCache = (config: CacheConfig): CacheManager => {
   if (globalCacheManager) {
     globalCacheManager.close();
   }
-  globalCacheManager = new CacheManager(config);
+  globalCacheManager = createCacheManager(config);
   return globalCacheManager;
 };
 

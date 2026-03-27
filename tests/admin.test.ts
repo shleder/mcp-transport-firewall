@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
-import { initializeCache } from '../src/cache/index.js';
+import { initializeCache, getCache } from '../src/cache/index.js';
 import { createAdminRouter } from '../src/admin/index.js';
 import { clearColorSessions } from '../src/middleware/color-boundary.js';
 import { clearPreflightRegistries } from '../src/middleware/preflight-validator.js';
@@ -93,6 +93,7 @@ describe('admin blocked-request metrics', () => {
     });
 
     if (cacheDir) {
+      getCache()?.close();
       fs.rmSync(cacheDir, { recursive: true, force: true });
     }
   });

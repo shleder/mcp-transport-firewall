@@ -1,68 +1,8 @@
 #!/usr/bin/env node
 
 import 'dotenv/config';
-import { StdioFirewallProxy } from './stdio/proxy.js';
-
-interface CliOptions {
-  targetCommand?: string;
-  targetArgs: string[];
-  verbose: boolean;
-  help: boolean;
-}
-
-const splitCommandString = (value: string): string[] => {
-  const matches = value.match(/(?:[^\s"]+|"[^"]*")+/g) ?? [];
-  return matches.map((part) => part.replace(/^"|"$/g, ''));
-};
-
-const parseCliArgs = (args: string[]): CliOptions => {
-  const options: CliOptions = {
-    targetArgs: [],
-    verbose: false,
-    help: false,
-  };
-
-  for (let i = 0; i < args.length; i += 1) {
-    const arg = args[i];
-
-    if (arg === '--help' || arg === '-h') {
-      options.help = true;
-      break;
-    }
-
-    if (arg === '--verbose') {
-      options.verbose = true;
-      continue;
-    }
-
-    if (arg === '--target' || arg === '-t') {
-      const next = args[i + 1];
-      if (!next) {
-        throw new Error('Missing value for --target');
-      }
-      const parsed = splitCommandString(next);
-      options.targetCommand = parsed[0];
-      options.targetArgs = parsed.slice(1);
-      i += 1;
-      continue;
-    }
-
-    if (arg === '--') {
-      const rest = args.slice(i + 1);
-      options.targetCommand = rest[0];
-      options.targetArgs = rest.slice(1);
-      break;
-    }
-
-    if (!options.targetCommand) {
-      options.targetCommand = arg;
-    } else {
-      options.targetArgs.push(arg);
-    }
-  }
-
-  return options;
-};
+import { parseCliArgs, resolveTarget } from './cli-options.js';
+import { createStdioFirewallProxy } from './stdio/proxy.js';
 
 const printHelp = (): void => {
   process.stdout.write(`MCP Transport Firewall
@@ -70,9 +10,14 @@ const printHelp = (): void => {
 Usage:
   mcp-transport-firewall --target "node target.js"
   mcp-transport-firewall -- node target.js
+  MCP_TARGET_COMMAND=node MCP_TARGET_ARGS_JSON='["server.js"]' mcp-transport-firewall
 
 Environment:
   PROXY_AUTH_TOKEN        Optional NHI secret for fail-closed auth
+  MCP_TARGET_COMMAND      Protected target command for MCP client configs
+  MCP_TARGET_ARGS_JSON    JSON array of target args for MCP_TARGET_COMMAND
+  MCP_TARGET_ARGS         Space-delimited fallback for target args
+  MCP_TARGET              Full target command string fallback
   MCP_ADMIN_ENABLED       Start admin API/dashboard when set to true
   MCP_ADMIN_PORT          Admin API port, default 9090
   MCP_CACHE_DIR           Persistent cache directory
@@ -82,21 +27,22 @@ Environment:
 
 const main = async (): Promise<void> => {
   const cli = parseCliArgs(process.argv.slice(2));
+  const target = resolveTarget(cli);
 
   if (cli.help) {
     printHelp();
     return;
   }
 
-  if (!cli.targetCommand) {
+  if (!target) {
     printHelp();
     process.exitCode = 1;
     return;
   }
 
-  const proxy = new StdioFirewallProxy({
-    targetCommand: cli.targetCommand,
-    targetArgs: cli.targetArgs,
+  const proxy = createStdioFirewallProxy({
+    targetCommand: target.targetCommand,
+    targetArgs: target.targetArgs,
     adminEnabled: process.env.MCP_ADMIN_ENABLED === 'true' || process.env.ADMIN_ENABLED === 'true',
     adminPort: parseInt(process.env.MCP_ADMIN_PORT ?? process.env.ADMIN_PORT ?? '9090', 10),
     cacheDir: process.env.MCP_CACHE_DIR ?? process.env.CACHE_DIR,

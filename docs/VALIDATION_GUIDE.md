@@ -1,10 +1,10 @@
-# Reviewer Guide
+# Validation Guide
 
-This repository is easiest to evaluate as a reproducible fail-closed control, not as a product demo.
+This repository is easiest to validate as a reproducible fail-closed control, not as a product demo.
 
 ## Primary Path
 
-1. Read [EVALUATOR_WALKTHROUGH.md](EVALUATOR_WALKTHROUGH.md).
+1. Read [WALKTHROUGH.md](WALKTHROUGH.md).
 2. Run `npm run verify:all`.
 3. Run `npm run demo:stdio`.
 4. Run `npm run benchmark:stdio`.
@@ -34,7 +34,7 @@ Use Docker when you want:
 - an HTTP `/mcp` harness on port `3000`
 - persistent cache storage through the compose volume
 
-Use the evaluator walkthrough when you want:
+Use the walkthrough when you want:
 
 - transport-boundary evidence for the stdio runtime
 - a local target process that can be inspected directly

@@ -41,5 +41,5 @@ CMD ["node", "dist/index.js"]
 
 LABEL org.opencontainers.image.title="MCP Transport Firewall" \
       org.opencontainers.image.description="Fail-closed stdio firewall for MCP tool traffic with an HTTP review harness" \
-      org.opencontainers.image.source="https://github.com/maksboreichuk88-commits/MCP-server" \
+      org.opencontainers.image.source="https://github.com/maksboreichuk88-commits/mcp-transport-firewall" \
       org.opencontainers.image.licenses="MIT"

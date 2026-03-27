@@ -11,24 +11,25 @@ export interface L1CacheConfig {
   ttlMs: number;
 }
 
-export class L1Cache<T> {
-  private cache: LRUCache<string, CacheEntry<T>>;
+export interface L1Cache<T> {
+  generateKey: (serverId: string, method: string, params: unknown) => string;
+  get: (key: string) => T | undefined;
+  set: (key: string, value: T, ttlMs?: number) => void;
+  has: (key: string) => boolean;
+  delete: (key: string) => boolean;
+  clear: () => void;
+  size: () => number;
+  stats: () => { size: number; maxSize: number };
+}
 
-  constructor(config: L1CacheConfig) {
-    this.cache = new LRUCache<string, CacheEntry<T>>({
-      max: config.maxSize,
-      ttl: config.ttlMs,
-      updateAgeOnGet: false,
-    });
-  }
+export const createL1Cache = <T>(config: Partial<L1CacheConfig> = {}): L1Cache<T> => {
+  const cache = new LRUCache<string, CacheEntry<T>>({
+    max: config.maxSize ?? 1000,
+    ttl: config.ttlMs ?? 300000,
+    updateAgeOnGet: false,
+  });
 
-  generateKey(serverId: string, method: string, params: unknown): string {
-    const normalizedParams = JSON.stringify(params, Object.keys(params as object).sort());
-    const payload = `${serverId}:${method}:${normalizedParams}`;
-    return this.hashString(payload);
-  }
-
-  private hashString(str: string): string {
+  const hashString = (str: string): string => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
@@ -36,63 +37,66 @@ export class L1Cache<T> {
       hash = hash & hash;
     }
     return Math.abs(hash).toString(16);
-  }
+  };
 
-  get(key: string): T | undefined {
-    const entry = this.cache.get(key);
-    if (!entry) return undefined;
+  return {
+    generateKey: (serverId: string, method: string, params: unknown): string => {
+      const normalizedParams = typeof params === 'object' && params !== null
+        ? JSON.stringify(params, Object.keys(params as Record<string, unknown>).sort())
+        : JSON.stringify(params);
+      const payload = `${serverId}:${method}:${normalizedParams}`;
+      return hashString(payload);
+    },
 
-    if (Date.now() > entry.createdAt + entry.ttl) {
-      this.cache.delete(key);
-      return undefined;
-    }
+    get: (key: string): T | undefined => {
+      const entry = cache.get(key);
+      if (!entry) return undefined;
 
-    return entry.value;
-  }
+      if (Date.now() > entry.createdAt + entry.ttl) {
+        cache.delete(key);
+        return undefined;
+      }
 
-  set(key: string, value: T, ttlMs?: number): void {
-    this.cache.set(key, {
-      value,
-      createdAt: Date.now(),
-      ttl: ttlMs ?? this.cache.ttl ?? 300000,
-    });
-  }
+      return entry.value;
+    },
 
-  has(key: string): boolean {
-    const entry = this.cache.get(key);
-    if (!entry) return false;
+    set: (key: string, value: T, ttlMs?: number): void => {
+      cache.set(key, {
+        value,
+        createdAt: Date.now(),
+        ttl: ttlMs ?? config.ttlMs ?? 300000,
+      });
+    },
 
-    if (Date.now() > entry.createdAt + entry.ttl) {
-      this.cache.delete(key);
-      return false;
-    }
+    has: (key: string): boolean => {
+      const entry = cache.get(key);
+      if (!entry) return false;
 
-    return true;
-  }
+      if (Date.now() > entry.createdAt + entry.ttl) {
+        cache.delete(key);
+        return false;
+      }
 
-  delete(key: string): boolean {
-    return this.cache.delete(key);
-  }
+      return true;
+    },
 
-  clear(): void {
-    this.cache.clear();
-  }
+    delete: (key: string): boolean => {
+      return cache.delete(key);
+    },
 
-  size(): number {
-    return this.cache.size;
-  }
+    clear: (): void => {
+      cache.clear();
+    },
 
-  stats(): { size: number; maxSize: number } {
-    return {
-      size: this.cache.size,
-      maxSize: this.cache.max ?? 0,
-    };
-  }
-}
+    size: (): number => {
+      return cache.size;
+    },
 
-export const createL1Cache = <T>(config: Partial<L1CacheConfig> = {}): L1Cache<T> => {
-  return new L1Cache<T>({
-    maxSize: config.maxSize ?? 1000,
-    ttlMs: config.ttlMs ?? 300000,
-  });
+    stats: (): { size: number; maxSize: number } => {
+      return {
+        size: cache.size,
+        maxSize: config.maxSize ?? 1000,
+      };
+    },
+  };
 };

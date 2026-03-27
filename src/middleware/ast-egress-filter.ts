@@ -162,7 +162,7 @@ export const validateAstEgress = async (
       const epistemicMatch = detectEpistemicContradiction(value);
       if (epistemicMatch !== null) {
         const ex = new EpistemicSecurityException(
-          `Epistemic Termination Trigger (ETT): agent semantics indicate uncertainty or hallucination. Pattern matched: ${epistemicMatch}`,
+          `Epistemic Termination Trigger (ETT): request semantics indicate uncertainty or hallucination. Pattern matched: ${epistemicMatch}`,
           'EPISTEMIC_CONTRADICTION_DETECTED'
         );
         auditLogWithSIEM('ETT_TRIGGER', {

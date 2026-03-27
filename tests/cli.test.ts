@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
-import { StdioFirewallProxy } from '../src/stdio/proxy.js';
+import { createStdioFirewallProxy, StdioFirewallProxy } from '../src/stdio/proxy.js';
 
 const proxyToken = '12345678901234567890123456789012';
 
@@ -47,6 +47,42 @@ const waitForJsonLine = async (stream: PassThrough): Promise<Record<string, unkn
   });
 };
 
+const waitForNoJsonLine = async (stream: PassThrough, timeoutMs: number): Promise<void> => {
+  await new Promise<void>((resolve, reject) => {
+    let buffer = '';
+    let timer: NodeJS.Timeout | null = null;
+
+    const cleanup = (): void => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+      stream.off('data', onData);
+      stream.off('error', onError);
+    };
+
+    const onError = (error: Error): void => {
+      cleanup();
+      reject(error);
+    };
+
+    const onData = (chunk: Buffer | string): void => {
+      buffer += chunk.toString();
+      if (buffer.includes('\n')) {
+        cleanup();
+        reject(new Error(`Expected no JSON line, received: ${buffer.trim()}`));
+      }
+    };
+
+    timer = setTimeout(() => {
+      cleanup();
+      resolve();
+    }, timeoutMs);
+
+    stream.on('data', onData);
+    stream.on('error', onError);
+  });
+};
+
 describe('stdio firewall proxy', () => {
   let cacheDir: string;
   let clientInput: PassThrough;
@@ -60,7 +96,7 @@ describe('stdio firewall proxy', () => {
     clientOutput = new PassThrough();
     clientError = new PassThrough();
 
-    proxy = new StdioFirewallProxy({
+    proxy = createStdioFirewallProxy({
       input: clientInput,
       output: clientOutput,
       errorOutput: clientError,
@@ -187,7 +223,7 @@ describe('stdio firewall proxy', () => {
   it('drains an in-flight response before stopping when client stdin closes', async () => {
     await proxy.stop();
 
-    proxy = new StdioFirewallProxy({
+    proxy = createStdioFirewallProxy({
       input: clientInput,
       output: clientOutput,
       errorOutput: clientError,
@@ -225,5 +261,50 @@ describe('stdio firewall proxy', () => {
       tool: 'search_files',
       arguments: { query: 'slow-close' },
     });
+  });
+
+  it('stops after draining the final response so the target cannot keep emitting lines', async () => {
+    await proxy.stop();
+
+    proxy = createStdioFirewallProxy({
+      input: clientInput,
+      output: clientOutput,
+      errorOutput: clientError,
+      targetCommand: process.execPath,
+      targetArgs: [path.join(process.cwd(), 'tests', 'fixtures', 'heartbeat-stdio-target.js')],
+      cacheDir,
+      cacheTtlSeconds: 60,
+      alwaysCacheTools: ['read_file', 'read', 'open_file', 'list_directory', 'list_files', 'search_files', 'search'],
+      neverCacheTools: ['write_file', 'write', 'create_file', 'execute_command', 'execute'],
+      proxyAuthToken: proxyToken,
+    });
+
+    await proxy.start();
+
+    const request = {
+      jsonrpc: '2.0',
+      id: 6,
+      method: 'tools/call',
+      params: {
+        name: 'search_files',
+        arguments: {
+          query: 'heartbeat-close',
+        },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.search_files']),
+        },
+      },
+    };
+
+    clientInput.end(JSON.stringify(request) + '\n');
+    const response = await waitForJsonLine(clientOutput);
+
+    expect(response.result).toEqual({
+      callCount: 1,
+      tool: 'search_files',
+      arguments: { query: 'heartbeat-close' },
+    });
+
+    await waitForNoJsonLine(clientOutput, 300);
   });
 });

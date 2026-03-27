@@ -7,7 +7,7 @@
 
 The delayed target used to reproduce the shutdown-race regression lives in `tests/fixtures/slow-stdio-target.js`, not in this directory.
 
-For the complete Windows and Linux walkthrough, see [docs/EVALUATOR_WALKTHROUGH.md](../docs/EVALUATOR_WALKTHROUGH.md).
+For the complete Windows and Linux walkthrough, see [docs/WALKTHROUGH.md](../docs/WALKTHROUGH.md).
 For the repeatable benchmark output, see [docs/EVIDENCE_BENCHMARK.md](../docs/EVIDENCE_BENCHMARK.md) and run `npm run benchmark:stdio`.
 
 Quick demo path:
@@ -21,6 +21,24 @@ Manual interactive path:
 
 ```bash
 npm run start:cli -- -- node examples/demo-target.js
+```
+
+MCP client configuration path:
+
+```json
+{
+  "mcpServers": {
+    "protected-demo-target": {
+      "command": "npx",
+      "args": ["-y", "github:maksboreichuk88-commits/mcp-transport-firewall"],
+      "env": {
+        "PROXY_AUTH_TOKEN": "replace-with-32-byte-secret",
+        "MCP_TARGET_COMMAND": "node",
+        "MCP_TARGET_ARGS_JSON": "[\"C:/absolute/path/to/your-mcp-server.js\"]"
+      }
+    }
+  }
+}
 ```
 
 Then write JSON-RPC lines to stdin. If `PROXY_AUTH_TOKEN` is configured, include `_meta.authorization` inside the request body.

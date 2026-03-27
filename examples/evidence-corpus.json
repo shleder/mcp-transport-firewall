@@ -1,6 +1,6 @@
 {
   "name": "stdio-evidence-benchmark",
-  "description": "Repeatable reviewer corpus for fail-closed stdio evidence and false-positive measurement.",
+  "description": "Repeatable validation corpus for fail-closed stdio evidence and false-positive measurement.",
   "cases": [
     {
       "id": "allow-search-files-cache",
