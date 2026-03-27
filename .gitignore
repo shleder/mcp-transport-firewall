@@ -21,8 +21,8 @@ ui/node_modules/
 .agent/
 .agents/
 
-# Grant drafts (internal only)
-.grants/
+# Private drafts (internal only)
+.private-notes/
 
 # Local build / test artifacts
 compile.log
