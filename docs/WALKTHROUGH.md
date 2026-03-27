@@ -1,4 +1,4 @@
-# Evaluator Walkthrough
+# Stdio Walkthrough
 
 Use this page when you want a complete, reproducible stdio-first evaluation path. The HTTP harness and dashboard are secondary and are not required for the main claim.
 
@@ -58,10 +58,10 @@ npm --prefix ui run dev
 
 ## Evidence Checklist
 
-Capture these artifacts for a reviewer packet:
+Capture these artifacts for a validation packet:
 
 - the `npm run verify:all` result
 - the `npm run demo:stdio` result
 - the target process log from `examples/demo-target.js`
 - the trust-gate behavior for `AUTH_FAILURE` and `SHADOWLEAK_DETECTED`
-- the admin dashboard or HTTP harness only if you need the secondary review surface
+- the admin dashboard or HTTP harness only if you need the secondary compatibility surface

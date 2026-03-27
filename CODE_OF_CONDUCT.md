@@ -2,7 +2,7 @@
 
 ## Our Standard
 
-This project exists to improve the safety of open agent infrastructure. We expect discussions, review, and collaboration to stay technical, respectful, and evidence-driven.
+This project exists to improve the safety of open MCP infrastructure. We expect discussions, review, and collaboration to stay technical, respectful, and evidence-driven.
 
 Participants are expected to:
 

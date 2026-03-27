@@ -8,20 +8,24 @@ The format is based on Keep a Changelog and the project follows semantic version
 
 ### Added
 
-- repeatable stdio evidence benchmark with a reviewer corpus and JSON output packet
+- repeatable stdio evidence benchmark with a validation corpus and JSON output packet
+- environment-based stdio target resolution for shorter MCP client configurations
+- regression coverage that verifies the proxy kills the target after draining the last piped stdio response
 
 ### Changed
 
 - expanded the strict schema registry across common read, write, list, search, execute, and fetch tool contracts
 - aligned HTTP and stdio paths around the same primary tool-invocation helper and alias-aware cache defaults
-- documented the benchmark methodology and supported schema families for external reviewers
+- documented the benchmark methodology and supported schema families for operators and maintainers
+- switched the persistent L2 cache to SQLite-backed storage and updated Windows test teardown to close the cache explicitly
+- limited npm package contents to the runtime entrypoints and user-facing docs required for one-line installs
 
 ## [2.1.1] - 2026-03-26
 
 ### Fixed
 
 - drain in-flight stdio responses before shutting the proxy down when client stdin closes
-- keep piped and here-string CLI usage aligned with the documented reviewer demo path
+- keep piped and here-string CLI usage aligned with the documented demo path
 
 ## [2.1.0] - 2026-03-26
 
@@ -30,7 +34,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - real stdio firewall runtime and CLI entrypoint for fail-closed MCP interception
 - reusable trust-gate helpers shared across stdio and HTTP paths
 - reproducible stdio demo script and local demo target
-- reviewer-facing docs for threat model, verification, and agent instructions
+- user-facing docs for threat model, verification, and local operation
 - community and governance files for security reporting, support, and contribution flow
 
 ### Changed

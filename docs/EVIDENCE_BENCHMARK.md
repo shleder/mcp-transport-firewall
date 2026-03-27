@@ -1,6 +1,6 @@
 # Evidence Benchmark
 
-This repository includes a repeatable stdio benchmark for external reviewers. The goal is not to prove perfect detection. The goal is to produce a reproducible packet with measurable `false positives`, `false negatives`, and cache behavior at the transport boundary.
+This repository includes a repeatable stdio benchmark for operators and maintainers. The goal is not to prove perfect detection. The goal is to produce a reproducible packet with measurable `false positives`, `false negatives`, and cache behavior at the transport boundary.
 
 ## What It Measures
 
@@ -41,7 +41,7 @@ The benchmark corpus currently covers:
 - `false positive` means an `allow` case returned an error instead of reaching the target.
 - `cache consistency failure` means a repeated allow case returned a different result than the first response for the same payload.
 - `block` cases represent traffic that should fail closed before downstream execution. A `false negative` means the case either returned a result or returned the wrong denial code.
-- The corpus is intentionally small and reviewer-oriented. It is meant to be diffable across commits, not presented as exhaustive coverage of every MCP deployment.
+- The corpus is intentionally small and validation-oriented. It is meant to be diffable across commits, not presented as exhaustive coverage of every MCP deployment.
 
 ## Pass Criteria
 
@@ -54,6 +54,6 @@ The benchmark passes when all of the following are true:
 - `false positives` is `0`
 - `false negatives` is `0`
 
-## Reviewer Use
+## Operational Use
 
-Use the benchmark output as an evidence packet. The JSON summary includes the corpus source, timestamps, verdict, per-case results, and blocked-code counts. That gives reviewers a stable artifact they can diff without reading the implementation first.
+Use the benchmark output as an evidence packet. The JSON summary includes the corpus source, timestamps, verdict, per-case results, and blocked-code counts. That gives maintainers a stable artifact they can diff without reading the implementation first.

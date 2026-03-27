@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security reporting policy
-    url: https://github.com/maksboreichuk88-commits/MCP-server/blob/main/SECURITY.md
+    url: https://github.com/maksboreichuk88-commits/mcp-transport-firewall/blob/main/SECURITY.md
     about: Follow the security policy for sensitive findings instead of posting exploit details publicly.

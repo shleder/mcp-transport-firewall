@@ -4,16 +4,16 @@
 
 The primary protected boundary is stdio between:
 
-- an agent client emitting MCP JSON-RPC messages
+- an MCP client emitting MCP JSON-RPC messages
 - a local tool server process receiving those messages
 
 The repository also ships an HTTP compatibility harness that reuses the same trust gates, but the transport-boundary firewall is the stdio runtime.
 
-## Evaluation Flow
+## Validation Flow
 
-External reviewers should validate the control in this order:
+Validate the control in this order:
 
-1. read the stdio-first walkthrough in [docs/EVALUATOR_WALKTHROUGH.md](docs/EVALUATOR_WALKTHROUGH.md)
+1. read the stdio-first walkthrough in [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)
 2. run `npm run verify:all`
 3. run `npm run demo:stdio`
 4. inspect the denied and allowed cases in `tests/cli.test.ts` and `scripts/stdio-demo.mjs`
