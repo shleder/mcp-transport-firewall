@@ -1,48 +1,71 @@
+<p align="center">
+  <img src="docs/assets/readme-hero.svg" alt="MCP Transport Firewall" width="960" />
+</p>
 
-Fail-closed transport firewall for **Model Context Protocol (MCP)** tool traffic.
+<p align="center">
+  <strong>Fail-closed stdio transport firewall for MCP JSON-RPC tool traffic.</strong>
+</p>
 
-This repository implements a model-agnostic interception layer that sits between an MCP client and local or downstream tool servers. The primary security boundary is **stdio**. The firewall inspects MCP-shaped JSON-RPC messages before tool execution and denies unsafe traffic by default.
+<p align="center">
+  <a href="https://www.npmjs.com/package/mcp-transport-firewall"><img alt="npm version" src="https://img.shields.io/npm/v/mcp-transport-firewall?style=for-the-badge&label=npm" /></a>
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-0f172a?style=for-the-badge" /></a>
+  <img alt="primary boundary" src="https://img.shields.io/badge/boundary-stdio-c2410c?style=for-the-badge" />
+  <img alt="default mode" src="https://img.shields.io/badge/default-fail--closed-991b1b?style=for-the-badge" />
+  <img alt="benchmark" src="https://img.shields.io/badge/benchmark-17_cases_|_0_fp_|_0_fn-14532d?style=for-the-badge" />
+</p>
 
-The repository provides a narrow transport-layer control that can be independently inspected, reproduced, and deployed without changing the agent model itself.
+<p align="center">
+  <a href="docs/CLIENT_CONFIGS.md">Client Configs</a>
+  ·
+  <a href="docs/INTEGRATION_CONTRACT.md">Integration Contract</a>
+  ·
+  <a href="docs/THREAT_MODEL.md">Threat Model</a>
+  ·
+  <a href="docs/VALIDATION_GUIDE.md">Validation Guide</a>
+  ·
+  <a href="docs/ARTIFACT_PACK.md">Artifact Pack</a>
+  ·
+  <a href="docs/ARCHITECTURE.md">Architecture</a>
+  ·
+  <a href="docs/RELEASE_CHECKLIST.md">Release Checklist</a>
+</p>
 
+`mcp-transport-firewall` is a model-agnostic interception layer that sits between an MCP client and local or downstream tool servers. The primary security boundary is `stdio`. The runtime inspects MCP-shaped JSON-RPC messages before tool execution, denies unsafe traffic by default, sanitizes downstream output, and emits reproducible evidence through tests, demos, metrics, and a public npm package.
 
-The MCP ecosystem currently relies on tool descriptions, client behavior, and downstream tool implementations for most safety properties. This repository adds an explicit transport control with fail-closed behavior for high-risk request classes, including:
+<table>
+  <tr>
+    <td width="33%">
+      <strong>Primary surface</strong><br />
+      stdio firewall between an MCP client and a local or downstream MCP tool server
+    </td>
+    <td width="33%">
+      <strong>Secondary surface</strong><br />
+      HTTP companion harness for route registration and compatibility testing
+    </td>
+    <td width="33%">
+      <strong>Control plane</strong><br />
+      admin API, React dashboard, and Prometheus-formatted metrics exporter
+    </td>
+  </tr>
+</table>
 
-- missing or invalid authorization envelopes
-- scope escalation across tool boundaries
-- mixed-trust or cross-tool hijack attempts
-- high-trust actions without one-time preflight approval
-- schema-smuggled arguments on registered tool contracts
-- ShadowLeak-style exfiltration patterns in outbound request strings
-- sensitive path and shell-injection markers in tool arguments
+<h2>Package Contract</h2>
 
-The control point is deliberately small: inspect, allow, deny, sanitize, and emit evidence.
+```bash
+npx mcp-transport-firewall
+npx mcp-transport-firewall --help
+npm install -g mcp-transport-firewall
+```
 
+Canonical package integration paths:
 
-- **Primary surface:** stdio firewall between an MCP client and a local MCP tool server
-- **Secondary surface:** HTTP companion service for compatibility testing and route registration
-- **Control plane:** admin API, React dashboard, and Prometheus-formatted metrics exporter
+- standalone bundled MCP server
+- protected downstream MCP server
+- protected read-only file and search workflow
 
-The stdio runtime is the main product path. The HTTP `/mcp` service exists to reuse the same trust gates in a compatibility harness.
+See [docs/CLIENT_CONFIGS.md](docs/CLIENT_CONFIGS.md) for tested client configuration examples and [docs/INTEGRATION_CONTRACT.md](docs/INTEGRATION_CONTRACT.md) for the stable runtime contract.
 
-
-| Gate | Enforcement | Code |
-|---|---|---|
-| `nhi-auth-validator` | fail-closed shared-secret authorization envelope and scope extraction | `src/middleware/nhi-auth-validator.ts` |
-| `scope-validator` | reject tool calls outside declared scopes | `src/middleware/scope-validator.ts` |
-| `color-boundary` | block mixed trust domains and session color flips | `src/middleware/color-boundary.ts` |
-| `preflight-validator` | require one-time preflight IDs for high-trust (`blue`) actions | `src/middleware/preflight-validator.ts` |
-| `schema-validator` | enforce strict contracts for registered MCP tool schemas | `src/middleware/schema-validator.ts` |
-| `ast-egress-filter` | deny exfiltration, sensitive-path, shell-injection, and epistemic-risk markers | `src/middleware/ast-egress-filter.ts` |
-
-
-- strict interception of MCP-shaped JSON-RPC `tools/call` traffic
-- fail-closed denial when a trust gate cannot validate the request
-- response sanitization before tool output re-enters the agent context
-- L1/L2 caching for allowlisted read-style tool calls
-- route-level circuit breaking for downstream HTTP targets
-- blocked-request metrics, cache metrics, route counts, and preflight stats through `/metrics`
-
+<h2>Quickstart</h2>
 
 1. Install dependencies.
 
@@ -64,14 +87,7 @@ npm run verify:all
 npm run benchmark:stdio
 ```
 
-Expected benchmark outcomes:
-
-- zero false positives across the allow corpus
-- zero false negatives across the blocked corpus
-- zero cache consistency failures across repeated allow cases
-- explicit denial codes for blocked cases
-
-4. Run the stdio demo when you want a short manual proof.
+4. Run the short stdio proof.
 
 ```bash
 npm run demo:stdio
@@ -90,22 +106,66 @@ Control-plane endpoints:
 - [http://localhost:9090/metrics](http://localhost:9090/metrics)
 - [http://localhost:9090](http://localhost:9090)
 
+<h2>What The Firewall Enforces</h2>
 
-The published package contract is:
+The MCP ecosystem typically relies on client behavior, tool descriptions, and downstream tool implementations for most safety properties. This repository inserts an explicit transport control for high-risk request classes, including:
 
-```bash
-npx mcp-transport-firewall
-npx mcp-transport-firewall --help
-npm install -g mcp-transport-firewall
-```
+- missing or invalid authorization envelopes
+- scope escalation across tool boundaries
+- mixed-trust or cross-tool hijack attempts
+- high-trust actions without one-time preflight approval
+- schema-smuggled arguments on registered tool contracts
+- ShadowLeak-style exfiltration patterns in outbound request strings
+- sensitive path and shell-injection markers in tool arguments
 
-Canonical package integration paths:
+The control point is deliberately small: inspect, allow, deny, sanitize, and emit evidence.
 
-- standalone bundled MCP server
-- protected downstream MCP server
-- protected read-only file and search workflow
+<table>
+  <tr>
+    <td width="33%">
+      <strong>Inspect</strong><br />
+      MCP-shaped JSON-RPC <code>tools/call</code> traffic is evaluated before downstream execution.
+    </td>
+    <td width="33%">
+      <strong>Deny</strong><br />
+      Trust-gate failures return explicit denial codes instead of pass-through behavior.
+    </td>
+    <td width="33%">
+      <strong>Sanitize</strong><br />
+      Downstream responses are cleaned before they re-enter the caller context.
+    </td>
+  </tr>
+</table>
 
-See [docs/CLIENT_CONFIGS.md](docs/CLIENT_CONFIGS.md) for tested client configuration examples and [docs/INTEGRATION_CONTRACT.md](docs/INTEGRATION_CONTRACT.md) for the stable runtime contract.
+<h2>Trust Gates</h2>
+
+| Gate | Enforcement | Code |
+|---|---|---|
+| `nhi-auth-validator` | fail-closed shared-secret authorization envelope and scope extraction | `src/middleware/nhi-auth-validator.ts` |
+| `scope-validator` | reject tool calls outside declared scopes | `src/middleware/scope-validator.ts` |
+| `color-boundary` | block mixed trust domains and session color flips | `src/middleware/color-boundary.ts` |
+| `preflight-validator` | require one-time preflight IDs for high-trust (`blue`) actions | `src/middleware/preflight-validator.ts` |
+| `schema-validator` | enforce strict contracts for registered tool schemas | `src/middleware/schema-validator.ts` |
+| `ast-egress-filter` | deny exfiltration, sensitive-path, shell-injection, and epistemic-risk markers | `src/middleware/ast-egress-filter.ts` |
+
+<h2>Published Package Paths</h2>
+
+<table>
+  <tr>
+    <td width="33%">
+      <strong>Standalone bundled MCP server</strong><br />
+      No downstream target required. Exposes <code>firewall_status</code> and <code>firewall_usage</code>.
+    </td>
+    <td width="33%">
+      <strong>Protected downstream proxy</strong><br />
+      Wrap an existing MCP server behind the stdio firewall using env-based target resolution.
+    </td>
+    <td width="33%">
+      <strong>Protected read-only workflow</strong><br />
+      Reproducible file and search flow backed by the demo target and benchmark corpus.
+    </td>
+  </tr>
+</table>
 
 Standalone published-package MCP client configuration:
 
@@ -119,8 +179,6 @@ Standalone published-package MCP client configuration:
   }
 }
 ```
-
-In standalone mode the package exposes bundled MCP tools for status and launch guidance, so it can be attached as a self-contained MCP server with no additional repo checkout or downstream server install.
 
 Protected downstream proxy mode:
 
@@ -145,6 +203,28 @@ Alternative target configuration inputs for downstream proxy mode:
 - `MCP_TARGET_ARGS` for a space-delimited argument string
 - `MCP_TARGET` for a full target command string
 
+<h2>Evidence Snapshot</h2>
+
+Expected benchmark outcomes:
+
+- zero false positives across the allow corpus
+- zero false negatives across the blocked corpus
+- zero cache consistency failures across repeated allow cases
+- explicit denial codes for blocked cases
+
+Current public benchmark snapshot in [docs/STDIO_BENCHMARK_SNAPSHOT.json](docs/STDIO_BENCHMARK_SNAPSHOT.json):
+
+| Metric | Value |
+|---|---|
+| benchmark | `stdio-evidence-benchmark` |
+| cases | `17` |
+| requests | `22` |
+| false positives | `0` |
+| false negatives | `0` |
+| cache consistency failures | `0` |
+| verdict | `passed` |
+
+<h2>Repository Map</h2>
 
 ```text
 src/cli.ts                stdio entrypoint
@@ -162,8 +242,7 @@ docs/                     threat model, validation, verification packet, distrib
 tests/                    Jest suites for stdio, HTTP, admin, and trust gates
 ```
 
-
-Canonical docs:
+<h2>Canonical Docs</h2>
 
 - client configurations: [docs/CLIENT_CONFIGS.md](docs/CLIENT_CONFIGS.md)
 - integration contract: [docs/INTEGRATION_CONTRACT.md](docs/INTEGRATION_CONTRACT.md)
@@ -185,6 +264,7 @@ Reference docs:
 - distribution notes: [docs/OPEN_SOURCE_DISTRIBUTION.md](docs/OPEN_SOURCE_DISTRIBUTION.md)
 - examples and payloads: [examples/README.md](examples/README.md)
 
+<h2>Environment Surface</h2>
 
 | Variable | Mode | Description | Default |
 |---|---|---|---|
@@ -202,12 +282,12 @@ Reference docs:
 | `MCP_SERVER_ID` | HTTP | cache namespace key prefix | `default` |
 | `MCP_ADMIN_CORS_ORIGIN` | admin | allowed admin origin | `*` |
 
+<h2>Limits</h2>
 
 - The auth envelope is shared-secret based. It is not cryptographic attestation.
 - Strict schema enforcement only applies to tool names present in the registry.
 - The `ast-egress-filter` name is historical. The current implementation is structured recursive string inspection, not a full parser.
 - The firewall is a transport control. It is not a sandbox or post-execution containment layer.
 - Prometheus support exports current control-plane and runtime counters; it does not replace external log retention or SIEM pipelines.
-
 
 This repository is released under the MIT license.

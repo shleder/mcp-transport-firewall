@@ -1,0 +1,85 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#08111f"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="220" y1="80" x2="1040" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0ea5e9"/>
+      <stop offset="0.55" stop-color="#ef4444"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#132033" stop-opacity="0.94"/>
+      <stop offset="1" stop-color="#0b1322" stop-opacity="0.94"/>
+    </linearGradient>
+    <filter id="glow" x="0" y="0" width="1280" height="640" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="640" rx="32" fill="url(#bg)"/>
+  <g opacity="0.34" filter="url(#glow)">
+    <circle cx="204" cy="126" r="92" fill="#0ea5e9"/>
+    <circle cx="1038" cy="180" r="120" fill="#ef4444"/>
+    <circle cx="1094" cy="498" r="96" fill="#f59e0b"/>
+  </g>
+
+  <rect x="48" y="48" width="1184" height="544" rx="28" stroke="rgba(148,163,184,0.18)" fill="rgba(15,23,42,0.28)"/>
+
+  <rect x="82" y="84" width="160" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
+  <circle cx="104" cy="101" r="5" fill="#22c55e"/>
+  <text x="122" y="106" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">STDIO PRIMARY</text>
+
+  <rect x="260" y="84" width="178" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
+  <text x="282" y="106" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">FAIL-CLOSED DEFAULT</text>
+
+  <rect x="456" y="84" width="202" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
+  <text x="478" y="106" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">PUBLIC NPM PACKAGE</text>
+
+  <text x="88" y="194" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="66" font-weight="800">MCP Transport Firewall</text>
+  <text x="88" y="238" fill="#93c5fd" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Trust gates for MCP JSON-RPC tool traffic at the stdio boundary.</text>
+
+  <text x="88" y="302" fill="#cbd5e1" font-family="Consolas, 'Courier New', monospace" font-size="22">npx mcp-transport-firewall</text>
+  <text x="88" y="336" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="20">Protect downstream MCP servers or run the bundled standalone MCP mode.</text>
+
+  <rect x="88" y="386" width="514" height="146" rx="24" fill="url(#card)" stroke="rgba(148,163,184,0.18)"/>
+  <text x="116" y="426" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Gate set</text>
+  <text x="116" y="460" fill="#93c5fd" font-family="Consolas, 'Courier New', monospace" font-size="18">nhi-auth-validator</text>
+  <text x="350" y="460" fill="#fca5a5" font-family="Consolas, 'Courier New', monospace" font-size="18">color-boundary</text>
+  <text x="116" y="492" fill="#fcd34d" font-family="Consolas, 'Courier New', monospace" font-size="18">preflight-validator</text>
+  <text x="350" y="492" fill="#86efac" font-family="Consolas, 'Courier New', monospace" font-size="18">schema-validator</text>
+  <text x="116" y="524" fill="#c4b5fd" font-family="Consolas, 'Courier New', monospace" font-size="18">scope-validator</text>
+  <text x="350" y="524" fill="#67e8f9" font-family="Consolas, 'Courier New', monospace" font-size="18">ast-egress-filter</text>
+
+  <rect x="660" y="164" width="494" height="368" rx="28" fill="url(#card)" stroke="rgba(148,163,184,0.18)"/>
+  <text x="694" y="212" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Request path</text>
+
+  <rect x="698" y="248" width="122" height="64" rx="18" fill="#0f172a" stroke="#334155"/>
+  <text x="723" y="286" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Client</text>
+
+  <rect x="864" y="248" width="150" height="64" rx="18" fill="#111827" stroke="#1d4ed8"/>
+  <text x="887" y="286" fill="#dbeafe" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Firewall</text>
+
+  <rect x="1058" y="248" width="64" height="64" rx="18" fill="#111827" stroke="#ef4444"/>
+  <text x="1075" y="286" fill="#fecaca" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">X</text>
+
+  <path d="M820 280H860" stroke="url(#accent)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M1018 280H1048" stroke="url(#accent)" stroke-width="8" stroke-linecap="round"/>
+
+  <text x="700" y="354" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Allow path</text>
+
+  <rect x="698" y="388" width="122" height="64" rx="18" fill="#0f172a" stroke="#334155"/>
+  <text x="723" y="426" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Client</text>
+
+  <rect x="864" y="388" width="150" height="64" rx="18" fill="#111827" stroke="#1d4ed8"/>
+  <text x="887" y="426" fill="#dbeafe" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Firewall</text>
+
+  <rect x="1058" y="388" width="64" height="64" rx="18" fill="#111827" stroke="#22c55e"/>
+  <text x="1071" y="426" fill="#bbf7d0" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="800">OK</text>
+
+  <path d="M820 420H860" stroke="#22c55e" stroke-width="8" stroke-linecap="round"/>
+  <path d="M1018 420H1048" stroke="#22c55e" stroke-width="8" stroke-linecap="round"/>
+
+  <text x="692" y="506" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="16">Intercept -> validate -> sanitize -> emit evidence</text>
+</svg>
