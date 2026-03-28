@@ -1,40 +1,24 @@
-<svg width="1280" height="280" viewBox="0 0 1280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1280" height="300" viewBox="0 0 1280 300" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="84" y1="16" x2="1196" y2="264" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#08111f"/>
-      <stop offset="1" stop-color="#111827"/>
+    <linearGradient id="shieldAccent" x1="120" y1="48" x2="248" y2="224" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff6b35"/>
+      <stop offset="1" stop-color="#ff2d20"/>
     </linearGradient>
-    <linearGradient id="accent" x1="168" y1="58" x2="920" y2="216" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#38bdf8"/>
-      <stop offset="0.55" stop-color="#f97316"/>
-      <stop offset="1" stop-color="#ef4444"/>
+    <linearGradient id="wordAccent" x1="520" y1="84" x2="1028" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff7a18"/>
+      <stop offset="1" stop-color="#ff2d20"/>
     </linearGradient>
-    <linearGradient id="shieldFill" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#13243a"/>
-      <stop offset="1" stop-color="#0b1424"/>
-    </linearGradient>
-    <filter id="glow" x="0" y="0" width="1280" height="280" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="24"/>
-    </filter>
   </defs>
 
-  <rect width="1280" height="280" rx="24" fill="url(#bg)"/>
+  <rect width="1280" height="300" rx="24" fill="#000000"/>
 
-  <g opacity="0.34" filter="url(#glow)">
-    <circle cx="180" cy="74" r="62" fill="#0ea5e9"/>
-    <circle cx="1088" cy="86" r="92" fill="#ef4444"/>
-    <circle cx="1032" cy="208" r="68" fill="#f59e0b"/>
+  <g transform="translate(132 42)">
+    <path d="M88 4L162 36V110C162 173 120 228 88 246C56 228 14 173 14 110V36L88 4Z" fill="#050505" stroke="url(#shieldAccent)" stroke-width="8"/>
+    <path d="M88 54V176" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <path d="M54 116H122" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="88" cy="116" r="48" stroke="#ffffff" stroke-width="5" opacity="0.9"/>
   </g>
 
-  <rect x="28" y="28" width="1224" height="224" rx="20" fill="rgba(15,23,42,0.24)" stroke="rgba(148,163,184,0.18)"/>
-
-  <g transform="translate(138 40)">
-    <path d="M88 0L152 28V96C152 151 115 198 88 214C61 198 24 151 24 96V28L88 0Z" fill="url(#shieldFill)" stroke="url(#accent)" stroke-width="8"/>
-    <path d="M88 42V156" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
-    <path d="M56 99H120" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
-    <circle cx="88" cy="99" r="46" stroke="#38bdf8" stroke-width="6" opacity="0.72"/>
-  </g>
-
-  <text x="412" y="132" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="88" font-weight="800">MCP</text>
-  <text x="646" y="132" fill="url(#accent)" font-family="Segoe UI, Arial, sans-serif" font-size="88" font-weight="800">FIREWALL</text>
+  <text x="404" y="145" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="94" font-weight="800" letter-spacing="2">MCP</text>
+  <text x="648" y="145" fill="url(#wordAccent)" font-family="Segoe UI, Arial, sans-serif" font-size="94" font-weight="800" letter-spacing="2">FIREWALL</text>
 </svg>
