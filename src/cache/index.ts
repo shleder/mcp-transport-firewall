@@ -63,18 +63,12 @@ export const createCacheManager = <T = unknown>(config: CacheConfig): CacheManag
     get: (method: string, params: unknown): T | undefined => {
       if (!shouldCache(method)) return undefined;
 
-      const startTime = performance.now();
       const key = generateKey(method, params);
 
       const l1Result = l1.get(key);
       if (l1Result !== undefined) {
         l1Hits++;
         auditLog('CACHE_HIT', { level: 'L1', method, key, serverId });
-
-        const latency = (performance.now() - startTime).toFixed(2);
-        const tokens = Math.round(JSON.stringify(l1Result).length / 4);
-        console.error(`Cache Hit! Estimated Tokens Saved: ~${tokens} и ⏱ Latency: ${latency} ms.`);
-
         return l1Result;
       }
 
@@ -83,11 +77,6 @@ export const createCacheManager = <T = unknown>(config: CacheConfig): CacheManag
         l2Hits++;
         l1.set(key, l2Result as T);
         auditLog('CACHE_HIT', { level: 'L2', method, key, serverId });
-
-        const latency = (performance.now() - startTime).toFixed(2);
-        const tokens = Math.round(JSON.stringify(l2Result).length / 4);
-        console.error(`Cache Hit! Estimated Tokens Saved: ~${tokens} и ⏱ Latency: ${latency} ms.`);
-
         return l2Result as T;
       }
 

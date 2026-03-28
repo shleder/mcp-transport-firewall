@@ -152,7 +152,7 @@ if (process.env.NODE_ENV !== 'test') {
       cacheEnabled: true,
       cacheDir: DEFAULT_CACHE_DIR,
     });
-    console.log(`MCP Transport Firewall HTTP review harness listening on port ${DEFAULT_PORT}`);
+    console.log(`MCP Transport Firewall HTTP compatibility harness listening on port ${DEFAULT_PORT}`);
     if (adminPort > 0) {
       console.log(`Admin API listening on port ${adminPort}`);
     }

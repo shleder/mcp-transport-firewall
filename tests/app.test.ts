@@ -167,7 +167,7 @@ describe('app /mcp integration', () => {
     expect(response.body.error.code).toBe('UNKNOWN_ROUTE');
   });
 
-  it('routes a common alias contract through the HTTP review harness', async () => {
+  it('routes a common alias contract through the HTTP compatibility harness', async () => {
     registerRoute('list_files', {
       url: `${targetBaseUrl}/tools/list_files`,
       timeoutMs: 1000,

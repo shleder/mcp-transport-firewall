@@ -5,7 +5,7 @@ This repository is published as a public defensive security control.
 - source code is published in a public repository
 - the project is licensed under MIT
 - the public install contract is `npx mcp-transport-firewall` and `npm install -g mcp-transport-firewall`
-- the full review environment can be reproduced with `docker compose up --build`
+- the full validation environment can be reproduced with `docker compose up --build`
 - test suites, demo paths, and benchmark corpus are included in the repository
 - issue templates, security reporting guidance, and contribution guidance are public
 - the npm tarball is smoke-tested before publication

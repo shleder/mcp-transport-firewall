@@ -23,7 +23,7 @@ The control point is deliberately small: inspect, allow, deny, sanitize, and emi
 - **Secondary surface:** HTTP companion service for compatibility testing and route registration
 - **Control plane:** admin API, React dashboard, and Prometheus-formatted metrics exporter
 
-The stdio runtime is the main product path. The HTTP `/mcp` service exists to reuse the same trust gates in a reviewable harness.
+The stdio runtime is the main product path. The HTTP `/mcp` service exists to reuse the same trust gates in a compatibility harness.
 
 
 | Gate | Enforcement | Code |

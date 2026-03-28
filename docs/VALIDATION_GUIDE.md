@@ -28,7 +28,7 @@ The most useful validation flow is:
 
 `docker compose up --build` packages:
 
-- the HTTP review harness on port `3000`
+- the HTTP compatibility harness on port `3000`
 - the admin control plane on port `9090`
 - the Prometheus-formatted exporter at `http://localhost:9090/metrics`
 - persistent cache storage through the compose volume

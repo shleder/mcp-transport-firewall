@@ -55,7 +55,7 @@ docker compose up --build
 curl http://localhost:9090/metrics
 ```
 
-The Docker path is useful for observability and packaging review. The stdio path remains the main proof of transport-boundary enforcement.
+The Docker path is useful for observability and packaging validation. The stdio path remains the main proof of transport-boundary enforcement.
 
 
 The intended public CLI contract after the first npm release is:
