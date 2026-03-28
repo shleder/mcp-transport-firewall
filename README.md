@@ -1,7 +1,7 @@
 # MCP Transport Firewall - Fail-Closed MCP Stdio Firewall
 
 <p align="center">
-  <img src="docs/assets/readme-hero.svg" alt="MCP Transport Firewall logo" width="920" />
+  <img src="docs/assets/readme-hero.svg" alt="MCP Transport Firewall wordmark" width="900" />
 </p>
 
 <p align="center">
@@ -17,18 +17,12 @@
 </p>
 
 <p align="center">
-  <a href="docs/CLIENT_CONFIGS.md">Client Configs</a>
-  ·
-  <a href="docs/INTEGRATION_CONTRACT.md">Integration Contract</a>
-  ·
-  <a href="docs/THREAT_MODEL.md">Threat Model</a>
-  ·
-  <a href="docs/VALIDATION_GUIDE.md">Validation Guide</a>
-  ·
-  <a href="docs/ARTIFACT_PACK.md">Artifact Pack</a>
-  ·
-  <a href="docs/ARCHITECTURE.md">Architecture</a>
-  ·
+  <a href="docs/CLIENT_CONFIGS.md">Client Configs</a> |
+  <a href="docs/INTEGRATION_CONTRACT.md">Integration Contract</a> |
+  <a href="docs/THREAT_MODEL.md">Threat Model</a> |
+  <a href="docs/VALIDATION_GUIDE.md">Validation Guide</a> |
+  <a href="docs/ARTIFACT_PACK.md">Artifact Pack</a> |
+  <a href="docs/ARCHITECTURE.md">Architecture</a> |
   <a href="docs/RELEASE_CHECKLIST.md">Release Checklist</a>
 </p>
 
