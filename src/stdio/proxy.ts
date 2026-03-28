@@ -18,7 +18,11 @@ import { mcpToolSchemas } from '../mcp-tool-schemas.js';
 import { auditLog } from '../utils/auditLogger.js';
 import { getPrimaryToolInvocation, isRecord } from '../utils/mcp-request.js';
 
-const OOM_MAX_RESPONSE_BYTES = 5 * 1024 * 1024; // 5MB Hard Limit
+const OOM_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
+const DEFAULT_TARGET_TIMEOUT_MS = 30000;
+const TARGET_UNAVAILABLE_CODE = -32004;
+const TARGET_INVALID_JSON_CODE = -32006;
+const TARGET_TIMEOUT_CODE = -32007;
 
 type JsonRpcId = string | number | null;
 
@@ -41,8 +45,10 @@ interface JsonRpcResponse {
 }
 
 interface PendingRequest {
+  id: JsonRpcId;
   toolName?: string;
   cacheParams?: unknown;
+  timeout: NodeJS.Timeout;
 }
 
 export interface StdioFirewallOptions {
@@ -60,6 +66,7 @@ export interface StdioFirewallOptions {
   neverCacheTools?: string[];
   adminEnabled?: boolean;
   adminPort?: number;
+  targetTimeoutMs?: number;
   verbose?: boolean;
   proxyAuthToken?: string;
 }
@@ -117,6 +124,7 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
   const errorOutput: Writable = options.errorOutput ?? process.stderr;
 
   const pendingRequests = new Map<string, PendingRequest>();
+  const targetTimeoutMs = options.targetTimeoutMs ?? DEFAULT_TARGET_TIMEOUT_MS;
 
   const serverId = options.serverId ?? `${options.targetCommand} ${options.targetArgs.join(' ')}`.trim();
   const cacheManager = initializeCache({
@@ -148,18 +156,59 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
     writeRawJson(message);
   };
 
-  const stop = async (): Promise<void> => {
-    if (stopped) return;
-    stopped = true;
+  const buildTargetUnavailableResponse = (id: JsonRpcId, data?: unknown): JsonRpcResponse => {
+    return buildRpcErrorResponse(
+      id,
+      TARGET_UNAVAILABLE_CODE,
+      'Fail-Closed: target process is unavailable.',
+      { code: 'TARGET_UNAVAILABLE', ...(isRecord(data) ? data : {}) },
+    );
+  };
 
-    clientInterface?.close();
+  const clearPendingRequest = (requestId: string): PendingRequest | undefined => {
+    const pending = pendingRequests.get(requestId);
+    if (!pending) {
+      return undefined;
+    }
+
+    clearTimeout(pending.timeout);
+    pendingRequests.delete(requestId);
+    return pending;
+  };
+
+  const failPendingRequests = (code: number, message: string, data?: unknown): void => {
+    for (const requestId of [...pendingRequests.keys()]) {
+      const pending = clearPendingRequest(requestId);
+      if (!pending) {
+        continue;
+      }
+
+      writeRpc(buildRpcErrorResponse(pending.id, code, message, data));
+    }
+  };
+
+  const terminateTarget = (): void => {
     targetInterface?.close();
+    targetInterface = null;
 
     if (targetProcess && !targetProcess.killed) {
       targetProcess.kill('SIGTERM');
     }
+  };
 
-    pendingRequests.clear();
+  const stop = async (): Promise<void> => {
+    if (stopped) return;
+    stopped = true;
+
+    failPendingRequests(
+      TARGET_UNAVAILABLE_CODE,
+      'Fail-Closed: target process is unavailable.',
+      { code: 'TARGET_UNAVAILABLE' },
+    );
+
+    clientInterface?.close();
+    terminateTarget();
+
     cacheManager.close();
     await stopAdminServer();
   };
@@ -204,8 +253,8 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
 
     const requestId = message.id ?? null;
 
-    if (!targetProcess?.stdin.writable) {
-      writeRpc(buildRpcErrorResponse(requestId, -32004, 'Fail-Closed: target process is unavailable.'));
+    if (stopped || !targetProcess?.stdin.writable) {
+      writeRpc(buildTargetUnavailableResponse(requestId));
       return;
     }
 
@@ -213,6 +262,11 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
 
     try {
       await inspectRequest(message);
+
+      if (stopped) {
+        writeRpc(buildTargetUnavailableResponse(requestId));
+        return;
+      }
 
       const tool = getPrimaryToolInvocation(message as unknown as Record<string, unknown>);
       if (message.method === 'tools/call' && tool?.name && requestId !== null) {
@@ -227,14 +281,44 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
         }
       }
 
+      if (stopped || !targetProcess?.stdin.writable) {
+        writeRpc(buildTargetUnavailableResponse(requestId));
+        return;
+      }
+
       if (requestId !== null) {
+        const pendingTimeout = setTimeout(() => {
+          const pending = clearPendingRequest(String(requestId));
+          if (!pending) {
+            return;
+          }
+
+          writeRpc(buildRpcErrorResponse(
+            pending.id,
+            TARGET_TIMEOUT_CODE,
+            'Fail-Closed: target response timed out.',
+            { code: 'TARGET_RESPONSE_TIMEOUT', timeoutMs: targetTimeoutMs },
+          ));
+        }, targetTimeoutMs);
+        pendingTimeout.unref?.();
+
         pendingRequests.set(String(requestId), {
+          id: requestId,
           toolName: tool?.name,
           cacheParams: tool?.arguments ?? message.params,
+          timeout: pendingTimeout,
         });
       }
 
-      targetProcess.stdin.write(JSON.stringify(message) + '\n');
+      try {
+        targetProcess.stdin.write(JSON.stringify(message) + '\n');
+      } catch (error: unknown) {
+        if (requestId !== null) {
+          clearPendingRequest(String(requestId));
+        }
+        const reason = error instanceof Error ? error.message : 'write failed';
+        writeRpc(buildTargetUnavailableResponse(requestId, { reason }));
+      }
     } catch (error: unknown) {
       if (requestId !== null) {
         writeRpc(toRpcError(requestId, error));
@@ -255,7 +339,7 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
       auditLog('OOM_PROTECTION_TRIGGERED', { id, byteLength, limit: OOM_MAX_RESPONSE_BYTES });
       writeRpc(buildRpcErrorResponse(id, -32005, 'Fail-Closed: Response exceeds strict OOM size limit.', {
         byteLength,
-        limit: OOM_MAX_RESPONSE_BYTES
+        limit: OOM_MAX_RESPONSE_BYTES,
       }));
       return false;
     }
@@ -271,6 +355,12 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
       message = JSON.parse(trimmed);
     } catch {
       errorOutput.write(`[proxy] invalid target JSON: ${trimmed}\n`);
+      failPendingRequests(
+        TARGET_INVALID_JSON_CODE,
+        'Fail-Closed: downstream target emitted invalid JSON.',
+        { code: 'TARGET_INVALID_JSON' },
+      );
+      terminateTarget();
       return;
     }
 
@@ -282,9 +372,12 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
       return;
     }
 
-    const pending = pendingRequests.get(String(message.id));
-    if (pending) {
-      pendingRequests.delete(String(message.id));
+    const pending = clearPendingRequest(String(message.id));
+    if (!pending) {
+      if (options.verbose) {
+        errorOutput.write(`[proxy] dropping unmatched target response for id=${String(message.id)}\n`);
+      }
+      return;
     }
 
     if (Object.prototype.hasOwnProperty.call(message, 'result')) {
@@ -350,13 +443,28 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
       }
     });
 
+    targetProcess.on('error', (error) => {
+      auditLog('TARGET_PROCESS_ERROR', {
+        message: error.message,
+        command: options.targetCommand,
+      });
+      failPendingRequests(TARGET_UNAVAILABLE_CODE, 'Fail-Closed: target process is unavailable.', {
+        code: 'TARGET_UNAVAILABLE',
+        reason: error.message,
+      });
+      targetProcess = null;
+      targetInterface?.close();
+      targetInterface = null;
+    });
+
     targetProcess.on('close', (code) => {
       auditLog('TARGET_PROCESS_EXITED', { code });
-      for (const [requestId] of pendingRequests) {
-        writeRpc(buildRpcErrorResponse(requestId, -32004, 'Fail-Closed: target process is unavailable.'));
-      }
-      pendingRequests.clear();
+      failPendingRequests(TARGET_UNAVAILABLE_CODE, 'Fail-Closed: target process is unavailable.', {
+        code: 'TARGET_UNAVAILABLE',
+        exitCode: code,
+      });
       targetProcess = null;
+      targetInterface = null;
 
       if (clientInputClosed) {
         void stop();

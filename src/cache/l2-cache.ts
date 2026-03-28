@@ -76,9 +76,7 @@ export const createL2Cache = (config: Partial<L2CacheConfig> = {}): L2Cache => {
         const excess = result.count - maxEntries;
         stmtEnforceLimit.run(excess);
       }
-    } catch {
-      // Ignore
-    }
+    } catch {}
   };
 
   cleanupIfNeeded();

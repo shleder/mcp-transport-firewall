@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -87,6 +89,46 @@ const ensureSuccess = (label, args, env = {}, matcher) => {
   }
 };
 
+const ensureStandaloneMcpServer = async (tarballPath) => {
+  const transport = new StdioClientTransport({
+    command: npxCommand,
+    args: ['--yes', `--package=${tarballPath}`, 'mcp-transport-firewall'],
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      MCP_ADMIN_ENABLED: 'false',
+    },
+    stderr: 'pipe',
+  });
+
+  const client = new Client(
+    { name: 'pack-smoke', version: '1.0.0' },
+    { capabilities: {} },
+  );
+
+  try {
+    await client.connect(transport);
+
+    const tools = await client.listTools();
+    const toolNames = tools.tools.map((tool) => tool.name);
+    if (!toolNames.includes('firewall_status') || !toolNames.includes('firewall_usage')) {
+      throw new Error(`Standalone mode did not expose the expected bundled tools. Saw: ${toolNames.join(', ')}`);
+    }
+
+    const status = await client.callTool({
+      name: 'firewall_status',
+      arguments: {},
+    });
+
+    const textBlock = status.content.find((item) => item.type === 'text');
+    if (!textBlock || !textBlock.text.includes('standalone embedded MCP server')) {
+      throw new Error('Standalone bundled tool did not return the expected status text.');
+    }
+  } finally {
+    await client.close();
+  }
+};
+
 try {
   ensureSuccess(
     'tarball help smoke test',
@@ -105,6 +147,8 @@ try {
       MCP_ADMIN_ENABLED: 'false',
     },
   );
+
+  await ensureStandaloneMcpServer(tarballPath);
 
   console.log(`package smoke passed for ${tarballName}`);
 } finally {

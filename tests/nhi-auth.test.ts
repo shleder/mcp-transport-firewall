@@ -19,7 +19,7 @@ function createMockRes(): Partial<Response> {
 
 describe("nhiAuthValidator", () => {
   let stderrSpy: jest.SpyInstance;
-  const validServerToken = "12345678901234567890123456789012"; // 32 chars
+  const validServerToken = "12345678901234567890123456789012";
 
   beforeAll(() => {
     process.env.PROXY_AUTH_TOKEN = validServerToken;
@@ -56,7 +56,7 @@ describe("nhiAuthValidator", () => {
     nhiAuthValidator(req as Request, res as Response, next as NextFunction);
 
     expect(next).toHaveBeenCalledTimes(1);
-    expect(req.headers?.authorization).toBeUndefined(); // Zero Passthrough Guard!
+    expect(req.headers?.authorization).toBeUndefined();
     expect(req.nhiScopes).toEqual(["tools.read"]);
   });
 

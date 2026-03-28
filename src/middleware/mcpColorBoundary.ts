@@ -4,7 +4,6 @@ import { McpRequestSchema } from '../types/index.js';
 
 export const mcpColorBoundary = (req: Request, res: Response, next: NextFunction): void => {
   try {
-    // Validate request body
     const parsed = McpRequestSchema.parse(req.body);
     
     if (parsed.tools && parsed.tools.length > 0) {
@@ -28,8 +27,7 @@ export const mcpColorBoundary = (req: Request, res: Response, next: NextFunction
       ip: req.ip,
       path: req.path
     });
-    
-    // Fail-Closed, Hard Halt
+
     res.status(403).json({
       error: "Forbidden",
       code: "SECURITY_VIOLATION"

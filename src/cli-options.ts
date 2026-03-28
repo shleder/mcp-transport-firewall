@@ -3,6 +3,7 @@ export interface CliOptions {
   targetArgs: string[];
   verbose: boolean;
   help: boolean;
+  embeddedTarget: boolean;
 }
 
 export interface ResolvedTarget {
@@ -10,9 +11,73 @@ export interface ResolvedTarget {
   targetArgs: string[];
 }
 
+export interface ResolveTargetRuntime {
+  command: string;
+  execArgv: string[];
+  entryScript?: string;
+}
+
 const splitCommandString = (value: string): string[] => {
-  const matches = value.match(/(?:[^\s"]+|"[^"]*")+/g) ?? [];
-  return matches.map((part) => part.replace(/^"|"$/g, ''));
+  const parts: string[] = [];
+  let current = '';
+  let quote: '"' | "'" | null = null;
+
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+
+    if (quote === "'") {
+      if (character === "'") {
+        quote = null;
+      } else {
+        current += character;
+      }
+      continue;
+    }
+
+    if (quote === '"') {
+      if (character === '"') {
+        quote = null;
+        continue;
+      }
+
+      if (character === '\\') {
+        const next = value[index + 1];
+        if (next === '"' || next === '\\') {
+          current += next;
+          index += 1;
+          continue;
+        }
+      }
+
+      current += character;
+      continue;
+    }
+
+    if (character === '"' || character === "'") {
+      quote = character;
+      continue;
+    }
+
+    if (/\s/.test(character)) {
+      if (current.length > 0) {
+        parts.push(current);
+        current = '';
+      }
+      continue;
+    }
+
+    current += character;
+  }
+
+  if (quote) {
+    throw new Error('Invalid target command: unmatched quote');
+  }
+
+  if (current.length > 0) {
+    parts.push(current);
+  }
+
+  return parts;
 };
 
 const parseJsonArgs = (value: string): string[] => {
@@ -37,6 +102,7 @@ export const parseCliArgs = (args: string[]): CliOptions => {
     targetArgs: [],
     verbose: false,
     help: false,
+    embeddedTarget: false,
   };
 
   for (let i = 0; i < args.length; i += 1) {
@@ -52,12 +118,20 @@ export const parseCliArgs = (args: string[]): CliOptions => {
       continue;
     }
 
+    if (arg === '--embedded-target') {
+      options.embeddedTarget = true;
+      continue;
+    }
+
     if (arg === '--target' || arg === '-t') {
       const next = args[i + 1];
       if (!next) {
         throw new Error('Missing value for --target');
       }
       const parsed = splitCommandString(next);
+      if (parsed.length === 0) {
+        throw new Error('Invalid value for --target');
+      }
       options.targetCommand = parsed[0];
       options.targetArgs = parsed.slice(1);
       i += 1;
@@ -66,9 +140,16 @@ export const parseCliArgs = (args: string[]): CliOptions => {
 
     if (arg === '--') {
       const rest = args.slice(i + 1);
+      if (rest.length === 0) {
+        throw new Error('Missing target command after --');
+      }
       options.targetCommand = rest[0];
       options.targetArgs = rest.slice(1);
       break;
+    }
+
+    if (arg.startsWith('-')) {
+      throw new Error(`Unknown option: ${arg}`);
     }
 
     if (!options.targetCommand) {
@@ -84,6 +165,11 @@ export const parseCliArgs = (args: string[]): CliOptions => {
 export const resolveTarget = (
   cli: CliOptions,
   env: NodeJS.ProcessEnv = process.env,
+  runtime: ResolveTargetRuntime = {
+    command: process.execPath,
+    execArgv: [...process.execArgv],
+    entryScript: process.argv[1],
+  },
 ): ResolvedTarget | undefined => {
   if (cli.targetCommand) {
     return {
@@ -115,17 +201,25 @@ export const resolveTarget = (
   }
 
   const fullCommand = env.MCP_TARGET?.trim();
-  if (!fullCommand) {
-    return undefined;
+  if (fullCommand) {
+    const parsed = splitCommandString(fullCommand);
+    if (parsed.length === 0) {
+      return undefined;
+    }
+
+    return {
+      targetCommand: parsed[0],
+      targetArgs: parsed.slice(1),
+    };
   }
 
-  const parsed = splitCommandString(fullCommand);
-  if (parsed.length === 0) {
+  const entryScript = runtime.entryScript?.trim();
+  if (!entryScript) {
     return undefined;
   }
 
   return {
-    targetCommand: parsed[0],
-    targetArgs: parsed.slice(1),
+    targetCommand: runtime.command,
+    targetArgs: [...runtime.execArgv, entryScript, '--embedded-target'],
   };
 };

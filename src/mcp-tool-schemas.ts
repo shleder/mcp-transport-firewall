@@ -71,6 +71,8 @@ const fetchUrlSchema = z.object({
   timeoutMs: z.number().int().min(100).max(300000).optional(),
 }).strict();
 
+const emptyToolSchema = z.object({}).strict();
+
 export const mcpToolSchemas = {
   read_file: readFileSchema,
   read: readFileSchema,
@@ -85,6 +87,8 @@ export const mcpToolSchemas = {
   execute_command: executeCommandSchema,
   execute: executeCommandSchema,
   fetch_url: fetchUrlSchema,
+  firewall_status: emptyToolSchema,
+  firewall_usage: emptyToolSchema,
 } as const;
 
 export type McpToolSchemaRegistry = typeof mcpToolSchemas;

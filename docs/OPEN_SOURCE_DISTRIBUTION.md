@@ -1,5 +1,5 @@
 
-This repository is intended to maximize public defensive benefit.
+This repository is published as a public defensive security control.
 
 
 - source code is published in a public repository
@@ -32,7 +32,7 @@ Public npm publication is gated by:
 - threat model: `docs/THREAT_MODEL.md`
 - validation guide: `docs/VALIDATION_GUIDE.md`
 - benchmark methodology: `docs/EVIDENCE_BENCHMARK.md`
-- external reviewer packet: `docs/SECURITY_REVIEW_PACKET.md`
+- verification packet: `docs/SECURITY_REVIEW_PACKET.md`
 - GitHub Actions benchmark artifact: `stdio-evidence-benchmark`
 - semver release workflow: `.github/workflows/release-npm.yml`
 

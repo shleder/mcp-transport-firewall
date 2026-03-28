@@ -61,8 +61,22 @@ The Docker path is useful for observability and packaging review. The stdio path
 The intended public CLI contract after the first npm release is:
 
 ```bash
+npx mcp-transport-firewall
 npx mcp-transport-firewall --help
 npm install -g mcp-transport-firewall
 ```
 
-Until the first public npm release is published, validate behavior from the source checkout or use the GitHub source-install fallback in [../examples/README.md](../examples/README.md).
+Standalone MCP client configuration:
+
+```json
+{
+  "mcpServers": {
+    "transport-firewall": {
+      "command": "npx",
+      "args": ["-y", "mcp-transport-firewall"]
+    }
+  }
+}
+```
+
+When you need to protect a downstream MCP server instead of using the bundled standalone tools, add `MCP_TARGET_COMMAND` plus one of the supported argument variables from the root README.

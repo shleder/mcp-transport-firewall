@@ -98,7 +98,7 @@ describe("astEgressFilter (ETT Circuit Breaker)", () => {
 
     await astEgressFilter(req as Request, res as Response, next as NextFunction);
     expect(next).toHaveBeenCalledTimes(1);
-    expect(next).toHaveBeenCalledWith(); // No error passed
+    expect(next).toHaveBeenCalledWith();
   });
 
   it("allows empty body to next()", async () => {

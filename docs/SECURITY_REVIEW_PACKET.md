@@ -1,8 +1,8 @@
 
-This document is written for external reviewers evaluating whether the repository supports its defensive security claims with code, tests, and reproducible evidence.
+This document maps defensive claims to code, tests, and reproducible evidence.
 
 
-1. Read [THREAT_MODEL.md](THREAT_MODEL.md) for boundary and non-goals.
+1. Read [THREAT_MODEL.md](THREAT_MODEL.md) for boundary and limits.
 2. Run `npm run verify:all`.
 3. Run `npm run benchmark:stdio -- --json > evidence.json`.
 4. Run `npm run pack:dry-run`.
@@ -15,7 +15,7 @@ This document is written for external reviewers evaluating whether the repositor
    - `examples/evidence-corpus.json`
 
 
-| Claim | Code | Review Signal |
+| Claim | Code | Evidence |
 |---|---|---|
 | Requests are intercepted before downstream tool execution on the primary path | `src/cli.ts`, `src/stdio/proxy.ts` | `tests/cli.test.ts`, `scripts/stdio-demo.mjs` |
 | Unsafe traffic fails closed instead of passing through | `src/middleware/*` | denial-code assertions across Jest suites |
@@ -27,7 +27,7 @@ This document is written for external reviewers evaluating whether the repositor
 | Control-plane state is externally inspectable | `src/admin/index.ts`, `src/metrics/prometheus.ts` | `/stats`, `/blocked-requests/stats`, `/metrics` |
 
 
-The Prometheus-formatted exporter is designed to expose the smallest useful operational picture for third-party review:
+The Prometheus-formatted exporter is designed to expose the smallest useful operational picture for independent inspection:
 
 - `mcp_firewall_http_requests_total`
 - `mcp_firewall_stdio_requests_total`
@@ -40,18 +40,18 @@ The Prometheus-formatted exporter is designed to expose the smallest useful oper
 - `mcp_firewall_cache_misses_total`
 - `mcp_firewall_circuit_breakers_*`
 
-These metrics do not replace log retention or SIEM pipelines. They provide a scrapeable reviewer surface for current firewall state.
+These metrics do not replace log retention or SIEM pipelines. They provide a scrapeable runtime inspection surface for current firewall state.
 
 
-After running the benchmark and inspecting the metrics, a reviewer should be able to answer:
+After running the benchmark and inspecting the metrics, an operator should be able to answer:
 
 - which attack classes are explicitly denied today
 - whether those denials are tested and benchmarked
-- whether the repository clearly separates supported claims from non-goals
+- whether the repository clearly separates supported claims from limits
 - whether the project can be reproduced locally without closed dependencies
 
 
-This review packet does not claim:
+This verification note does not claim:
 
 - complete prompt-injection elimination
 - cryptographic attestation of every actor in the chain

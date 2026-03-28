@@ -32,7 +32,7 @@ describe("scopeValidator", () => {
   it("returns 403 if tool scope is entirely missing from nhiScopes", () => {
     const req = createMockReq(
       { tools: [{ name: "modify_database" }] },
-      ["tools.read_files"] // lacking tools.modify_database
+      ["tools.read_files"]
     );
     const res = createMockRes();
     const next = jest.fn();

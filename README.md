@@ -3,7 +3,7 @@ Fail-closed transport firewall for **Model Context Protocol (MCP)** tool traffic
 
 This repository implements a model-agnostic interception layer that sits between an MCP client and local or downstream tool servers. The primary security boundary is **stdio**. The firewall inspects MCP-shaped JSON-RPC messages before tool execution and denies unsafe traffic by default.
 
-The project is intended to be a reusable open-source defensive control for the AI agent tool supply chain: a narrow transport-layer component that can be independently reviewed, reproduced, and deployed without changing the agent model itself.
+The repository provides a narrow transport-layer control that can be independently inspected, reproduced, and deployed without changing the agent model itself.
 
 
 The MCP ecosystem currently relies on tool descriptions, client behavior, and downstream tool implementations for most safety properties. This repository adds an explicit transport control with fail-closed behavior for high-risk request classes, including:
@@ -26,7 +26,7 @@ The control point is deliberately small: inspect, allow, deny, sanitize, and emi
 The stdio runtime is the main product path. The HTTP `/mcp` service exists to reuse the same trust gates in a reviewable harness.
 
 
-| Gate | Purpose | Code |
+| Gate | Enforcement | Code |
 |---|---|---|
 | `nhi-auth-validator` | fail-closed shared-secret authorization envelope and scope extraction | `src/middleware/nhi-auth-validator.ts` |
 | `scope-validator` | reject tool calls outside declared scopes | `src/middleware/scope-validator.ts` |
@@ -91,16 +91,30 @@ Control-plane endpoints:
 - [http://localhost:9090](http://localhost:9090)
 
 
-The intended public package contract for this project is:
+The published package contract is:
 
 ```bash
+npx mcp-transport-firewall
 npx mcp-transport-firewall --help
 npm install -g mcp-transport-firewall
 ```
 
-The release pipeline in `.github/workflows/release-npm.yml` is configured to publish this exact CLI on semver tags after hosted CI is available. Until the first public registry release is cut, use the source checkout flow above.
+Standalone published-package MCP client configuration:
 
-Published-package MCP client configuration after the first npm release:
+```json
+{
+  "mcpServers": {
+    "transport-firewall": {
+      "command": "npx",
+      "args": ["-y", "mcp-transport-firewall"]
+    }
+  }
+}
+```
+
+In standalone mode the package exposes bundled MCP tools for status and launch guidance, so it can be attached as a self-contained MCP server with no additional repo checkout or downstream server install.
+
+Protected downstream proxy mode:
 
 ```json
 {
@@ -118,16 +132,10 @@ Published-package MCP client configuration after the first npm release:
 }
 ```
 
-Alternative target configuration inputs:
+Alternative target configuration inputs for downstream proxy mode:
 
 - `MCP_TARGET_ARGS` for a space-delimited argument string
 - `MCP_TARGET` for a full target command string
-
-Source-install fallback before the first registry release:
-
-```bash
-npx -y github:maksboreichuk88-commits/mcp-transport-firewall --help
-```
 
 
 ```text
@@ -142,7 +150,7 @@ src/metrics/              Prometheus-formatted exporter
 ui/                       React dashboard
 scripts/                  demos, repeatable benchmarks, and package smoke checks
 examples/                 demo target and benchmark corpus
-docs/                     threat model, validation, reviewer packet, distribution notes
+docs/                     threat model, validation, verification packet, distribution notes
 tests/                    Jest suites for stdio, HTTP, admin, and trust gates
 ```
 
@@ -151,12 +159,12 @@ tests/                    Jest suites for stdio, HTTP, admin, and trust gates
 - validation guide: [docs/VALIDATION_GUIDE.md](docs/VALIDATION_GUIDE.md)
 - stdio walkthrough: [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)
 - benchmark methodology: [docs/EVIDENCE_BENCHMARK.md](docs/EVIDENCE_BENCHMARK.md)
-- external reviewer packet: [docs/SECURITY_REVIEW_PACKET.md](docs/SECURITY_REVIEW_PACKET.md)
+- verification packet: [docs/SECURITY_REVIEW_PACKET.md](docs/SECURITY_REVIEW_PACKET.md)
 - open-source distribution plan: [docs/OPEN_SOURCE_DISTRIBUTION.md](docs/OPEN_SOURCE_DISTRIBUTION.md)
 - examples and payloads: [examples/README.md](examples/README.md)
 
 
-| Variable | Mode | Purpose | Default |
+| Variable | Mode | Description | Default |
 |---|---|---|---|
 | `PROXY_AUTH_TOKEN` | stdio + HTTP | shared secret for fail-closed auth | none |
 | `MCP_TARGET_COMMAND` | stdio | protected target command for MCP client configs | none |
@@ -180,4 +188,4 @@ tests/                    Jest suites for stdio, HTTP, admin, and trust gates
 - Prometheus support exports current control-plane and runtime counters; it does not replace external log retention or SIEM pipelines.
 
 
-This repository is released under the MIT license for maximal public reuse and adaptation.
+This repository is released under the MIT license.
