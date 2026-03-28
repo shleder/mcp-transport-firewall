@@ -11,9 +11,9 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/mcp-transport-firewall"><img alt="npm version" src="https://img.shields.io/npm/v/mcp-transport-firewall?style=for-the-badge&label=npm" /></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-0f172a?style=for-the-badge" /></a>
-  <img alt="primary boundary" src="https://img.shields.io/badge/boundary-stdio-c2410c?style=for-the-badge" />
-  <img alt="default mode" src="https://img.shields.io/badge/default-fail--closed-991b1b?style=for-the-badge" />
-  <img alt="benchmark" src="https://img.shields.io/badge/benchmark-17_cases_|_0_fp_|_0_fn-14532d?style=for-the-badge" />
+  <a href="docs/INTEGRATION_CONTRACT.md"><img alt="primary boundary" src="https://img.shields.io/badge/boundary-stdio-c2410c?style=for-the-badge" /></a>
+  <a href="docs/INTEGRATION_CONTRACT.md"><img alt="default mode" src="https://img.shields.io/badge/default-fail--closed-991b1b?style=for-the-badge" /></a>
+  <a href="docs/STDIO_BENCHMARK_SNAPSHOT.json"><img alt="benchmark" src="https://img.shields.io/badge/benchmark-17_cases_|_0_fp_|_0_fn-14532d?style=for-the-badge" /></a>
 </p>
 
 <p align="center">
