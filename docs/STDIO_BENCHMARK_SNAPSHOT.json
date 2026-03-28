@@ -1,0 +1,396 @@
+{
+  "benchmark": "stdio-evidence-benchmark",
+  "description": "Repeatable validation corpus for fail-closed stdio evidence and false-positive measurement.",
+  "source": "examples\\evidence-corpus.json",
+  "startedAt": "2026-03-28T11:44:46.316Z",
+  "finishedAt": "2026-03-28T11:44:54.552Z",
+  "verdict": "passed",
+  "cases": [
+    {
+      "id": "allow-search-files-cache",
+      "kind": "allow",
+      "repeat": 2,
+      "expectedCode": null,
+      "requests": [
+        {
+          "id": 1,
+          "status": "allow-primary",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {
+              "callCount": 1,
+              "tool": "search_files",
+              "arguments": {
+                "query": "TODO"
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        },
+        {
+          "id": 2,
+          "status": "cache-hit",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "result": {
+              "callCount": 1,
+              "tool": "search_files",
+              "arguments": {
+                "query": "TODO"
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "allow-search-alias-cache",
+      "kind": "allow",
+      "repeat": 2,
+      "expectedCode": null,
+      "requests": [
+        {
+          "id": 3,
+          "status": "allow-primary",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "result": {
+              "callCount": 2,
+              "tool": "search",
+              "arguments": {
+                "query": "transport firewall",
+                "path": "docs"
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        },
+        {
+          "id": 4,
+          "status": "cache-hit",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "result": {
+              "callCount": 2,
+              "tool": "search",
+              "arguments": {
+                "query": "transport firewall",
+                "path": "docs"
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "allow-read-file-cache",
+      "kind": "allow",
+      "repeat": 2,
+      "expectedCode": null,
+      "requests": [
+        {
+          "id": 5,
+          "status": "allow-primary",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "result": {
+              "callCount": 3,
+              "tool": "read_file",
+              "arguments": {
+                "path": "README.md"
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        },
+        {
+          "id": 6,
+          "status": "cache-hit",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "result": {
+              "callCount": 3,
+              "tool": "read_file",
+              "arguments": {
+                "path": "README.md"
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "allow-open-file-cache",
+      "kind": "allow",
+      "repeat": 2,
+      "expectedCode": null,
+      "requests": [
+        {
+          "id": 7,
+          "status": "allow-primary",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "result": {
+              "callCount": 4,
+              "tool": "open_file",
+              "arguments": {
+                "path": "docs/THREAT_MODEL.md",
+                "encoding": "utf8"
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        },
+        {
+          "id": 8,
+          "status": "cache-hit",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "result": {
+              "callCount": 4,
+              "tool": "open_file",
+              "arguments": {
+                "path": "docs/THREAT_MODEL.md",
+                "encoding": "utf8"
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "allow-list-directory-cache",
+      "kind": "allow",
+      "repeat": 2,
+      "expectedCode": null,
+      "requests": [
+        {
+          "id": 9,
+          "status": "allow-primary",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "result": {
+              "callCount": 5,
+              "tool": "list_directory",
+              "arguments": {
+                "path": "docs",
+                "recursive": false,
+                "maxDepth": 1
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        },
+        {
+          "id": 10,
+          "status": "cache-hit",
+          "response": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "result": {
+              "callCount": 5,
+              "tool": "list_directory",
+              "arguments": {
+                "path": "docs",
+                "recursive": false,
+                "maxDepth": 1
+              },
+              "target": "examples/demo-target.js"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "block-shadowleak-fetch-url",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "SHADOWLEAK_DETECTED",
+      "requests": [
+        {
+          "id": 11,
+          "status": "blocked",
+          "errorCode": "SHADOWLEAK_DETECTED"
+        }
+      ]
+    },
+    {
+      "id": "block-sensitive-path-read-file",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "SENSITIVE_PATH_BLOCKED",
+      "requests": [
+        {
+          "id": 12,
+          "status": "blocked",
+          "errorCode": "SENSITIVE_PATH_BLOCKED"
+        }
+      ]
+    },
+    {
+      "id": "block-sensitive-path-write-file",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "SENSITIVE_PATH_BLOCKED",
+      "requests": [
+        {
+          "id": 13,
+          "status": "blocked",
+          "errorCode": "SENSITIVE_PATH_BLOCKED"
+        }
+      ]
+    },
+    {
+      "id": "block-shell-injection-execute-command",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "SHELL_INJECTION_BLOCKED",
+      "requests": [
+        {
+          "id": 14,
+          "status": "blocked",
+          "errorCode": "SHELL_INJECTION_BLOCKED"
+        }
+      ]
+    },
+    {
+      "id": "block-ett-contradiction-search-files",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "EPISTEMIC_CONTRADICTION_DETECTED",
+      "requests": [
+        {
+          "id": 15,
+          "status": "blocked",
+          "errorCode": "EPISTEMIC_CONTRADICTION_DETECTED"
+        }
+      ]
+    },
+    {
+      "id": "block-missing-auth-search-files",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "AUTH_FAILURE",
+      "requests": [
+        {
+          "id": 16,
+          "status": "blocked",
+          "errorCode": "AUTH_FAILURE"
+        }
+      ]
+    },
+    {
+      "id": "block-missing-scope-execute-command",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "MISSING_SCOPE",
+      "requests": [
+        {
+          "id": 17,
+          "status": "blocked",
+          "errorCode": "MISSING_SCOPE"
+        }
+      ]
+    },
+    {
+      "id": "block-schema-validation-fetch-url",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "SCHEMA_VALIDATION_FAILED",
+      "requests": [
+        {
+          "id": 18,
+          "status": "blocked",
+          "errorCode": "SCHEMA_VALIDATION_FAILED"
+        }
+      ]
+    },
+    {
+      "id": "block-schema-smuggled-write-file",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "SCHEMA_VALIDATION_FAILED",
+      "requests": [
+        {
+          "id": 19,
+          "status": "blocked",
+          "errorCode": "SCHEMA_VALIDATION_FAILED"
+        }
+      ]
+    },
+    {
+      "id": "block-cross-tool-hijack-mixed-tools",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "CROSS_TOOL_HIJACK_ATTEMPT",
+      "requests": [
+        {
+          "id": 20,
+          "status": "blocked",
+          "errorCode": "CROSS_TOOL_HIJACK_ATTEMPT"
+        }
+      ]
+    },
+    {
+      "id": "block-preflight-required-blue-tool",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "PREFLIGHT_REQUIRED",
+      "requests": [
+        {
+          "id": 21,
+          "status": "blocked",
+          "errorCode": "PREFLIGHT_REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "block-preflight-not-found-blue-tool",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "PREFLIGHT_NOT_FOUND",
+      "requests": [
+        {
+          "id": 22,
+          "status": "blocked",
+          "errorCode": "PREFLIGHT_NOT_FOUND"
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "cases": 17,
+    "requests": 22,
+    "allowedRequests": 10,
+    "blockedRequests": 12,
+    "cacheHits": 5,
+    "cacheConsistencyFailures": 0,
+    "falsePositives": 0,
+    "falseNegatives": 0
+  },
+  "blockedByCode": {
+    "SHADOWLEAK_DETECTED": 1,
+    "SENSITIVE_PATH_BLOCKED": 2,
+    "SHELL_INJECTION_BLOCKED": 1,
+    "EPISTEMIC_CONTRADICTION_DETECTED": 1,
+    "AUTH_FAILURE": 1,
+    "MISSING_SCOPE": 1,
+    "SCHEMA_VALIDATION_FAILED": 2,
+    "CROSS_TOOL_HIJACK_ATTEMPT": 1,
+    "PREFLIGHT_REQUIRED": 1,
+    "PREFLIGHT_NOT_FOUND": 1
+  }
+}

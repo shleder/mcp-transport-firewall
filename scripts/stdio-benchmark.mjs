@@ -127,15 +127,37 @@ const clone = (value) => {
   return structuredClone(value);
 };
 
+const isRecord = (value) => {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+};
+
 const buildRequest = (benchmarkCase, requestId) => {
   const message = clone(benchmarkCase.request);
   message.id = requestId;
 
   if (benchmarkCase.auth?.type === 'nhi') {
     const scopes = Array.isArray(benchmarkCase.auth.scopes) ? benchmarkCase.auth.scopes : [];
+    const authorization = createAuthorization(scopes);
+
+    message._meta ??= {};
+    message._meta.authorization = authorization;
+
     message.params ??= {};
     message.params._meta ??= {};
-    message.params._meta.authorization = createAuthorization(scopes);
+    message.params._meta.authorization = authorization;
+
+    if (Array.isArray(message.params.tools)) {
+      for (const tool of message.params.tools) {
+        if (!isRecord(tool)) {
+          continue;
+        }
+
+        tool._meta ??= {};
+        if (isRecord(tool._meta)) {
+          tool._meta.authorization = authorization;
+        }
+      }
+    }
   }
 
   return message;

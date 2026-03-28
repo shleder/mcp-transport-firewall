@@ -13,6 +13,7 @@ This document maps defensive claims to code, tests, and reproducible evidence.
    - `http://localhost:9090`
    - `tests/`
    - `examples/evidence-corpus.json`
+   - `docs/ARTIFACT_PACK.md`
 
 
 | Claim | Code | Evidence |

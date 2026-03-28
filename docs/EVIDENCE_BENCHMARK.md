@@ -24,19 +24,28 @@ npm run benchmark:stdio -- --json > evidence.json
 The benchmark corpus currently covers:
 
 - cacheable `search_files`
+- cacheable `search`
 - cacheable `read_file`
+- cacheable `open_file`
+- cacheable `list_directory`
 - ShadowLeak-style `fetch_url` exfiltration
 - sensitive-path `read_file`
+- sensitive-path `write_file`
 - shell-injection `execute_command`
+- epistemic-contradiction denial on `search_files`
 - missing-authorization `search_files`
+- missing-scope denial on `execute_command`
 - strict schema rejection for invalid `fetch_url`
+- strict schema rejection for smuggled `write_file` arguments
+- mixed-trust cross-tool hijack denial in a bundled `tools` payload
+- missing and unregistered preflight IDs for `blue` actions
 
 
 - `allow` cases represent traffic that should pass through the stdio firewall with valid NHI authorization and a deterministic local target.
 - `false positive` means an `allow` case returned an error instead of reaching the target.
 - `cache consistency failure` means a repeated allow case returned a different result than the first response for the same payload.
 - `block` cases represent traffic that should fail closed before downstream execution. A `false negative` means the case either returned a result or returned the wrong denial code.
-- The corpus is intentionally small and validation-oriented. It is meant to be diffable across commits, not presented as exhaustive coverage of every MCP deployment.
+- The corpus is still intentionally compact and validation-oriented. It is meant to be diffable across commits while covering more trust-gate families than the original baseline.
 
 
 The benchmark passes when all of the following are true:
