@@ -18,7 +18,7 @@ Local verification:
 
 Release surfaces:
 
-- confirm `README.md`, `docs/VALIDATION_GUIDE.md`, and `docs/ARTIFACT_PACK.md` still reflect the current package
+- confirm `README.md`, `docs/CLIENT_CONFIGS.md`, `docs/INTEGRATION_CONTRACT.md`, `docs/VALIDATION_GUIDE.md`, and `docs/ARTIFACT_PACK.md` still reflect the current package
 - confirm `docs/STDIO_BENCHMARK_SNAPSHOT.json` is refreshed if the benchmark corpus changed
 - confirm issue tracker state does not contradict current public claims
 - confirm Docker metadata and repository links point to the active repository

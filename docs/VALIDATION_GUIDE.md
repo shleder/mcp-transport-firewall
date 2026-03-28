@@ -4,12 +4,14 @@ This repository is easiest to validate as a **reproducible defensive control**, 
 The most useful validation flow is:
 
 1. inspect the threat model in [THREAT_MODEL.md](THREAT_MODEL.md)
-2. run `npm run verify:all`
-3. run `npm run benchmark:stdio -- --json > evidence.json`
-4. run `npm run pack:dry-run`
-5. run `npm run pack:smoke`
-6. inspect `/metrics` on the admin control plane when running the Docker path
-7. compare documented claims to tests, benchmark results, tarball behavior, and control-plane state
+2. inspect the published package examples in [CLIENT_CONFIGS.md](CLIENT_CONFIGS.md)
+3. inspect the runtime guarantees in [INTEGRATION_CONTRACT.md](INTEGRATION_CONTRACT.md)
+4. run `npm run verify:all`
+5. run `npm run benchmark:stdio -- --json > evidence.json`
+6. run `npm run pack:dry-run`
+7. run `npm run pack:smoke`
+8. inspect `/metrics` on the admin control plane when running the Docker path
+9. compare documented claims to tests, benchmark results, tarball behavior, and control-plane state
 
 
 | Topic | Code | Evidence |

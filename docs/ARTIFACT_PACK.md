@@ -13,6 +13,8 @@ Artifact index:
 | benchmark JSON snapshot | `docs/STDIO_BENCHMARK_SNAPSHOT.json` | `npm run benchmark:stdio -- --json > evidence.json` |
 | stdio demo transcript | `docs/STDIO_DEMO_TRANSCRIPT.md` | `npm run demo:stdio` |
 | architecture diagram | `docs/ARCHITECTURE.md` | tracked file |
+| client configuration guide | `docs/CLIENT_CONFIGS.md` | tracked file |
+| integration contract | `docs/INTEGRATION_CONTRACT.md` | tracked file |
 | threat-model summary | `docs/THREAT_MODEL_SUMMARY.md` | tracked file |
 | limits and non-goals summary | `docs/LIMITS_AND_NON_GOALS.md` | tracked file |
 
@@ -31,4 +33,6 @@ Expected inspection outcomes:
 - blocked cases fail with explicit denial codes
 - mixed-trust and preflight failures are visible in the corpus
 - the package surface still matches the documented npm contract
+- the client configuration guide matches the current published package behavior
+- the integration contract matches the current runtime and denial semantics
 - the repository separates enforcement claims from limits

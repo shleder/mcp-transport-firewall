@@ -99,6 +99,14 @@ npx mcp-transport-firewall --help
 npm install -g mcp-transport-firewall
 ```
 
+Canonical package integration paths:
+
+- standalone bundled MCP server
+- protected downstream MCP server
+- protected read-only file and search workflow
+
+See [docs/CLIENT_CONFIGS.md](docs/CLIENT_CONFIGS.md) for tested client configuration examples and [docs/INTEGRATION_CONTRACT.md](docs/INTEGRATION_CONTRACT.md) for the stable runtime contract.
+
 Standalone published-package MCP client configuration:
 
 ```json
@@ -155,19 +163,26 @@ tests/                    Jest suites for stdio, HTTP, admin, and trust gates
 ```
 
 
+Canonical docs:
+
+- client configurations: [docs/CLIENT_CONFIGS.md](docs/CLIENT_CONFIGS.md)
+- integration contract: [docs/INTEGRATION_CONTRACT.md](docs/INTEGRATION_CONTRACT.md)
 - threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
 - validation guide: [docs/VALIDATION_GUIDE.md](docs/VALIDATION_GUIDE.md)
-- stdio walkthrough: [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)
-- release checklist: [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
-- benchmark methodology: [docs/EVIDENCE_BENCHMARK.md](docs/EVIDENCE_BENCHMARK.md)
-- benchmark snapshot: [docs/STDIO_BENCHMARK_SNAPSHOT.json](docs/STDIO_BENCHMARK_SNAPSHOT.json)
 - artifact pack: [docs/ARTIFACT_PACK.md](docs/ARTIFACT_PACK.md)
 - architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- release checklist: [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
+
+Reference docs:
+
+- stdio walkthrough: [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)
+- benchmark methodology: [docs/EVIDENCE_BENCHMARK.md](docs/EVIDENCE_BENCHMARK.md)
+- benchmark snapshot: [docs/STDIO_BENCHMARK_SNAPSHOT.json](docs/STDIO_BENCHMARK_SNAPSHOT.json)
 - threat-model summary: [docs/THREAT_MODEL_SUMMARY.md](docs/THREAT_MODEL_SUMMARY.md)
 - limits and non-goals: [docs/LIMITS_AND_NON_GOALS.md](docs/LIMITS_AND_NON_GOALS.md)
 - stdio demo transcript: [docs/STDIO_DEMO_TRANSCRIPT.md](docs/STDIO_DEMO_TRANSCRIPT.md)
 - verification packet: [docs/SECURITY_REVIEW_PACKET.md](docs/SECURITY_REVIEW_PACKET.md)
-- open-source distribution plan: [docs/OPEN_SOURCE_DISTRIBUTION.md](docs/OPEN_SOURCE_DISTRIBUTION.md)
+- distribution notes: [docs/OPEN_SOURCE_DISTRIBUTION.md](docs/OPEN_SOURCE_DISTRIBUTION.md)
 - examples and payloads: [examples/README.md](examples/README.md)
 
 

@@ -3,12 +3,13 @@ This document maps defensive claims to code, tests, and reproducible evidence.
 
 
 1. Read [THREAT_MODEL.md](THREAT_MODEL.md) for boundary and limits.
-2. Run `npm run verify:all`.
-3. Run `npm run benchmark:stdio -- --json > evidence.json`.
-4. Run `npm run pack:dry-run`.
-5. Run `npm run pack:smoke`.
-6. Run `docker compose up --build`.
-7. Inspect:
+2. Read [CLIENT_CONFIGS.md](CLIENT_CONFIGS.md) and [INTEGRATION_CONTRACT.md](INTEGRATION_CONTRACT.md) for the published package surface.
+3. Run `npm run verify:all`.
+4. Run `npm run benchmark:stdio -- --json > evidence.json`.
+5. Run `npm run pack:dry-run`.
+6. Run `npm run pack:smoke`.
+7. Run `docker compose up --build`.
+8. Inspect:
    - `http://localhost:9090/metrics`
    - `http://localhost:9090`
    - `tests/`

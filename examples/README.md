@@ -5,8 +5,16 @@
 
 The delayed target used to reproduce the shutdown-race regression lives in `tests/fixtures/slow-stdio-target.js`, not in this directory.
 
+For the canonical published-package examples, see [docs/CLIENT_CONFIGS.md](../docs/CLIENT_CONFIGS.md).
+For the stable runtime contract, see [docs/INTEGRATION_CONTRACT.md](../docs/INTEGRATION_CONTRACT.md).
 For the complete Windows and Linux walkthrough, see [docs/WALKTHROUGH.md](../docs/WALKTHROUGH.md).
 For the repeatable benchmark output, see [docs/EVIDENCE_BENCHMARK.md](../docs/EVIDENCE_BENCHMARK.md) and run `npm run benchmark:stdio`.
+
+Maintained package paths:
+
+1. standalone bundled MCP mode via `npx -y mcp-transport-firewall`
+2. protected downstream MCP server mode via `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS_JSON`
+3. protected read-only file and search workflow via `examples/demo-target.js`
 
 Quick demo path:
 
@@ -40,6 +48,15 @@ Published-package MCP client configuration path:
 ```
 
 Then write JSON-RPC lines to stdin. If `PROXY_AUTH_TOKEN` is configured, include `_meta.authorization` inside the request body.
+
+Read-only file and search workflow using the packaged CLI:
+
+```powershell
+$env:PROXY_AUTH_TOKEN = "12345678901234567890123456789012"
+$env:MCP_TARGET_COMMAND = "node"
+$env:MCP_TARGET_ARGS_JSON = "[\"C:/absolute/path/to/examples/demo-target.js\"]"
+npx --yes mcp-transport-firewall
+```
 
 Source-install fallback when you want to execute the repository HEAD instead of the published npm package:
 

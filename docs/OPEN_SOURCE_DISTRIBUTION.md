@@ -27,9 +27,12 @@ Public npm publication is gated by:
 - repeatable benchmark output
 - tarball smoke execution of the packaged CLI
 - hosted CI publication of evidence artifacts
+- synchronized package docs for install, config, and integration behavior
 
 
 - threat model: `docs/THREAT_MODEL.md`
+- client configurations: `docs/CLIENT_CONFIGS.md`
+- integration contract: `docs/INTEGRATION_CONTRACT.md`
 - validation guide: `docs/VALIDATION_GUIDE.md`
 - benchmark methodology: `docs/EVIDENCE_BENCHMARK.md`
 - verification packet: `docs/SECURITY_REVIEW_PACKET.md`
@@ -46,4 +49,5 @@ Public npm publication is gated by:
 - expanded benchmark corpora for additional MCP tool contracts
 - broader test coverage for denial classes and cache invariants
 - additional operator notes for cross-platform deployment
+- more public integration examples that consume the published npm package directly
 - continued publication of code, tests, and evidence artifacts in the public repository
