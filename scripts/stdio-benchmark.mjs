@@ -267,8 +267,6 @@ const main = async () => {
           summary.totals.cacheConsistencyFailures += 1;
         } else if (requestResult.status === 'cache-hit') {
           summary.totals.cacheHits += 1;
-        } else {
-          // primary allow response; no extra counters
         }
       }
     }

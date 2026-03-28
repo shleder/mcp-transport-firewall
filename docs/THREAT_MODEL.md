@@ -1,6 +1,6 @@
 
 
-This repository implements a fail-closed transport control for **MCP JSON-RPC tool traffic**. The goal is to reduce risk in the AI agent tool supply chain by intercepting unsafe traffic before tool execution and by sanitizing tool output before it re-enters the agent context.
+This repository implements a fail-closed transport control for **MCP JSON-RPC tool traffic**. It intercepts unsafe traffic before tool execution and sanitizes tool output before it re-enters the agent context.
 
 The design is intentionally narrow:
 

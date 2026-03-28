@@ -14,7 +14,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - environment-based stdio target resolution for shorter MCP client configurations
 - regression coverage that verifies the proxy kills the target after draining the last piped stdio response
 - Prometheus-formatted control-plane metrics exporter for blocked requests, cache state, routes, preflight, and circuit breakers
-- reviewer-oriented documentation for threat modeling, validation, and open-source distribution
+- verification-oriented documentation for threat modeling, validation, and open-source distribution
 - npm package smoke test for the published `mcp-transport-firewall` CLI contract
 - semver-tagged npm release workflow and dedicated package-smoke workflow definitions
 
@@ -24,7 +24,7 @@ The format is based on Keep a Changelog and the project follows semantic version
 - documented the benchmark methodology and supported schema families for operators and maintainers
 - switched the persistent L2 cache to SQLite-backed storage and updated Windows test teardown to close the cache explicitly
 - limited npm package contents to the runtime entrypoints and user-facing docs required for one-line installs
-- updated CI to publish the stdio benchmark artifact, workflow summary, and tarball smoke evidence for reproducible external review
+- updated CI to publish the stdio benchmark artifact, workflow summary, and tarball smoke evidence for reproducible inspection
 
 
 

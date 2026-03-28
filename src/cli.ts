@@ -10,9 +10,8 @@ const printHelp = (): void => {
 
 Usage:
   mcp-transport-firewall
-  mcp-transport-firewall --target "node target.js"
   mcp-transport-firewall -- node target.js
-  MCP_TARGET_COMMAND=node MCP_TARGET_ARGS_JSON='["server.js"]' mcp-transport-firewall
+  mcp-transport-firewall --target "node target.js"
 
 Modes:
   no target supplied      start the bundled standalone MCP server
@@ -28,6 +27,7 @@ Environment:
   MCP_TARGET_ARGS_JSON    JSON array of target args for MCP_TARGET_COMMAND
   MCP_TARGET_ARGS         Space-delimited fallback for target args
   MCP_TARGET              Full target command string fallback
+  MCP_TARGET_TIMEOUT_MS   Downstream response timeout in milliseconds
   MCP_ADMIN_ENABLED       Start admin API/dashboard when set to true
   MCP_ADMIN_PORT          Admin API port, default 9090
   MCP_CACHE_DIR           Persistent cache directory
@@ -63,6 +63,7 @@ const main = async (): Promise<void> => {
     adminPort: parseInt(process.env.MCP_ADMIN_PORT ?? process.env.ADMIN_PORT ?? '9090', 10),
     cacheDir: process.env.MCP_CACHE_DIR ?? process.env.CACHE_DIR,
     cacheTtlSeconds: parseInt(process.env.MCP_CACHE_TTL_SECONDS ?? process.env.CACHE_TTL_SECONDS ?? '300', 10),
+    targetTimeoutMs: parseInt(process.env.MCP_TARGET_TIMEOUT_MS ?? '30000', 10),
     verbose: cli.verbose || process.env.MCP_VERBOSE === 'true' || process.env.VERBOSE === 'true',
     proxyAuthToken: process.env.PROXY_AUTH_TOKEN,
   });

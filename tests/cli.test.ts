@@ -307,4 +307,170 @@ describe('stdio firewall proxy', () => {
 
     await waitForNoJsonLine(clientOutput, 300);
   });
+
+  it('fails closed when the downstream target command cannot be spawned', async () => {
+    await proxy.stop();
+
+    proxy = createStdioFirewallProxy({
+      input: clientInput,
+      output: clientOutput,
+      errorOutput: clientError,
+      targetCommand: 'mcp-transport-firewall-missing-command',
+      targetArgs: [],
+      cacheDir,
+      cacheTtlSeconds: 60,
+      proxyAuthToken: proxyToken,
+    });
+
+    await proxy.start();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    clientInput.write(JSON.stringify({
+      jsonrpc: '2.0',
+      id: 7,
+      method: 'tools/call',
+      params: {
+        name: 'search_files',
+        arguments: { query: 'spawn-failure' },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.search_files']),
+        },
+      },
+    }) + '\n');
+
+    const response = await waitForJsonLine(clientOutput);
+
+    expect(response.error).toEqual(expect.objectContaining({
+      code: -32004,
+      message: 'Fail-Closed: target process is unavailable.',
+      data: expect.objectContaining({
+        code: 'TARGET_UNAVAILABLE',
+      }),
+    }));
+  });
+
+  it('fails closed when the downstream target emits invalid JSON', async () => {
+    await proxy.stop();
+
+    proxy = createStdioFirewallProxy({
+      input: clientInput,
+      output: clientOutput,
+      errorOutput: clientError,
+      targetCommand: process.execPath,
+      targetArgs: [path.join(process.cwd(), 'tests', 'fixtures', 'invalid-json-stdio-target.js')],
+      cacheDir,
+      cacheTtlSeconds: 60,
+      proxyAuthToken: proxyToken,
+    });
+
+    await proxy.start();
+
+    clientInput.write(JSON.stringify({
+      jsonrpc: '2.0',
+      id: 8,
+      method: 'tools/call',
+      params: {
+        name: 'search_files',
+        arguments: { query: 'invalid-json' },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.search_files']),
+        },
+      },
+    }) + '\n');
+
+    const response = await waitForJsonLine(clientOutput);
+
+    expect(response.error).toEqual(expect.objectContaining({
+      code: -32006,
+      message: 'Fail-Closed: downstream target emitted invalid JSON.',
+      data: expect.objectContaining({
+        code: 'TARGET_INVALID_JSON',
+      }),
+    }));
+  });
+
+  it('fails closed with an explicit timeout when the downstream target is too slow', async () => {
+    await proxy.stop();
+
+    proxy = createStdioFirewallProxy({
+      input: clientInput,
+      output: clientOutput,
+      errorOutput: clientError,
+      targetCommand: process.execPath,
+      targetArgs: [path.join(process.cwd(), 'tests', 'fixtures', 'slow-stdio-target.js')],
+      cacheDir,
+      cacheTtlSeconds: 60,
+      targetTimeoutMs: 20,
+      proxyAuthToken: proxyToken,
+    });
+
+    await proxy.start();
+
+    clientInput.write(JSON.stringify({
+      jsonrpc: '2.0',
+      id: 9,
+      method: 'tools/call',
+      params: {
+        name: 'search_files',
+        arguments: { query: 'timeout' },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.search_files']),
+        },
+      },
+    }) + '\n');
+
+    const response = await waitForJsonLine(clientOutput);
+
+    expect(response.error).toEqual(expect.objectContaining({
+      code: -32007,
+      message: 'Fail-Closed: target response timed out.',
+      data: {
+        code: 'TARGET_RESPONSE_TIMEOUT',
+        timeoutMs: 20,
+      },
+    }));
+
+    await waitForNoJsonLine(clientOutput, 200);
+  });
+
+  it('returns an explicit unavailable error when stop interrupts an in-flight request', async () => {
+    await proxy.stop();
+
+    proxy = createStdioFirewallProxy({
+      input: clientInput,
+      output: clientOutput,
+      errorOutput: clientError,
+      targetCommand: process.execPath,
+      targetArgs: [path.join(process.cwd(), 'tests', 'fixtures', 'slow-stdio-target.js')],
+      cacheDir,
+      cacheTtlSeconds: 60,
+      proxyAuthToken: proxyToken,
+    });
+
+    await proxy.start();
+
+    clientInput.write(JSON.stringify({
+      jsonrpc: '2.0',
+      id: 10,
+      method: 'tools/call',
+      params: {
+        name: 'search_files',
+        arguments: { query: 'stop-mid-flight' },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.search_files']),
+        },
+      },
+    }) + '\n');
+
+    await proxy.stop();
+    const response = await waitForJsonLine(clientOutput);
+
+    expect(response.error).toEqual(expect.objectContaining({
+      code: -32004,
+      message: 'Fail-Closed: target process is unavailable.',
+      data: expect.objectContaining({
+        code: 'TARGET_UNAVAILABLE',
+      }),
+    }));
+  });
 });

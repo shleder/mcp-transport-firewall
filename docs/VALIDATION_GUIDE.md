@@ -37,7 +37,7 @@ Use the Docker path when you want:
 
 - a scrapeable control-plane metrics surface
 - a built dashboard for blocked requests and cache behavior
-- a packaged environment for third-party review
+- a packaged environment for independent inspection
 
 Use the stdio walkthrough when you want:
 
@@ -52,7 +52,7 @@ The repository CI is designed to do three things on hosted runners:
 - upload a JSON benchmark artifact named `stdio-evidence-benchmark`
 - run distributable tarball smoke checks before npm publication
 
-The artifact is designed to answer the following review questions:
+The artifact is designed to answer the following inspection questions:
 
 - do blocked corpus cases fail with the expected denial code?
 - do allow corpus cases remain stable across repeats?
