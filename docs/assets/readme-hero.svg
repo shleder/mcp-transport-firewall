@@ -1,10 +1,10 @@
-<svg width="1280" height="520" viewBox="0 0 1280 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1280" height="360" viewBox="0 0 1280 360" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="80" y1="40" x2="1200" y2="480" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="96" y1="24" x2="1184" y2="336" gradientUnits="userSpaceOnUse">
       <stop stop-color="#09111f"/>
       <stop offset="1" stop-color="#111827"/>
     </linearGradient>
-    <linearGradient id="accent" x1="258" y1="148" x2="820" y2="320" gradientUnits="userSpaceOnUse">
+    <linearGradient id="accent" x1="200" y1="96" x2="860" y2="264" gradientUnits="userSpaceOnUse">
       <stop stop-color="#38bdf8"/>
       <stop offset="0.55" stop-color="#f97316"/>
       <stop offset="1" stop-color="#ef4444"/>
@@ -13,53 +13,29 @@
       <stop stop-color="#13243a"/>
       <stop offset="1" stop-color="#0b1424"/>
     </linearGradient>
-    <filter id="blurGlow" x="0" y="0" width="1280" height="520" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="30"/>
+    <filter id="blurGlow" x="0" y="0" width="1280" height="360" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="26"/>
     </filter>
   </defs>
 
-  <rect width="1280" height="520" rx="28" fill="url(#bg)"/>
+  <rect width="1280" height="360" rx="26" fill="url(#bg)"/>
 
   <g opacity="0.34" filter="url(#blurGlow)">
-    <circle cx="196" cy="118" r="82" fill="#0ea5e9"/>
-    <circle cx="1064" cy="146" r="112" fill="#ef4444"/>
-    <circle cx="1028" cy="388" r="88" fill="#f59e0b"/>
+    <circle cx="194" cy="92" r="70" fill="#0ea5e9"/>
+    <circle cx="1074" cy="118" r="100" fill="#ef4444"/>
+    <circle cx="1016" cy="274" r="72" fill="#f59e0b"/>
   </g>
 
-  <rect x="44" y="44" width="1192" height="432" rx="26" fill="rgba(15,23,42,0.26)" stroke="rgba(148,163,184,0.18)"/>
+  <rect x="34" y="34" width="1212" height="292" rx="22" fill="rgba(15,23,42,0.24)" stroke="rgba(148,163,184,0.18)"/>
 
-  <g transform="translate(118 138)">
-    <path d="M84 0L146 26V90C146 146 109 193 84 208C59 193 22 146 22 90V26L84 0Z" fill="url(#shieldFill)" stroke="url(#accent)" stroke-width="8"/>
-    <path d="M84 40V154" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
-    <path d="M54 92H114" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
-    <circle cx="84" cy="92" r="44" stroke="#38bdf8" stroke-width="6" opacity="0.65"/>
+  <g transform="translate(128 76)">
+    <path d="M92 0L158 28V98C158 158 118 210 92 226C66 210 26 158 26 98V28L92 0Z" fill="url(#shieldFill)" stroke="url(#accent)" stroke-width="8"/>
+    <path d="M92 44V166" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
+    <path d="M58 106H126" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="92" cy="106" r="48" stroke="#38bdf8" stroke-width="6" opacity="0.7"/>
   </g>
 
-  <rect x="108" y="82" width="160" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
-  <circle cx="130" cy="99" r="5" fill="#22c55e"/>
-  <text x="148" y="104" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">STDIO PRIMARY</text>
-
-  <rect x="286" y="82" width="176" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
-  <text x="308" y="104" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">FAIL-CLOSED DEFAULT</text>
-
-  <rect x="480" y="82" width="202" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
-  <text x="502" y="104" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">PUBLIC NPM PACKAGE</text>
-
-  <text x="330" y="205" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="74" font-weight="800">MCP Transport Firewall</text>
-  <text x="332" y="246" fill="#93c5fd" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Trust gates for MCP JSON-RPC tool traffic at the stdio boundary.</text>
-
-  <text x="332" y="314" fill="#e2e8f0" font-family="Consolas, 'Courier New', monospace" font-size="24">npx mcp-transport-firewall</text>
-  <text x="332" y="352" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="20">Protect downstream MCP servers or run the bundled standalone MCP mode.</text>
-
-  <rect x="332" y="390" width="162" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
-  <text x="354" y="412" fill="#7dd3fc" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">MODEL-AGNOSTIC</text>
-
-  <rect x="512" y="390" width="174" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
-  <text x="534" y="412" fill="#fda4af" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">EXPLICIT DENIALS</text>
-
-  <rect x="704" y="390" width="188" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
-  <text x="726" y="412" fill="#fde68a" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">REPRODUCIBLE EVIDENCE</text>
-
-  <rect x="910" y="390" width="176" height="34" rx="17" fill="#0f172a" stroke="#1e293b"/>
-  <text x="932" y="412" fill="#86efac" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">PACKAGE-FIRST</text>
+  <text x="394" y="162" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="84" font-weight="800">MCP</text>
+  <text x="628" y="162" fill="url(#accent)" font-family="Segoe UI, Arial, sans-serif" font-size="84" font-weight="800">FIREWALL</text>
+  <text x="396" y="212" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">Fail-closed stdio transport control for MCP tool traffic</text>
 </svg>
