@@ -1,5 +1,7 @@
+# MCP Transport Firewall - Fail-Closed MCP Stdio Firewall
+
 <p align="center">
-  <img src="docs/assets/readme-hero.svg" alt="MCP Transport Firewall" width="960" />
+  <img src="docs/assets/readme-hero.svg" alt="MCP Transport Firewall logo" width="920" />
 </p>
 
 <p align="center">
