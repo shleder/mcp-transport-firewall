@@ -158,6 +158,7 @@ tests/                    Jest suites for stdio, HTTP, admin, and trust gates
 - threat model: [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
 - validation guide: [docs/VALIDATION_GUIDE.md](docs/VALIDATION_GUIDE.md)
 - stdio walkthrough: [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)
+- release checklist: [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md)
 - benchmark methodology: [docs/EVIDENCE_BENCHMARK.md](docs/EVIDENCE_BENCHMARK.md)
 - benchmark snapshot: [docs/STDIO_BENCHMARK_SNAPSHOT.json](docs/STDIO_BENCHMARK_SNAPSHOT.json)
 - artifact pack: [docs/ARTIFACT_PACK.md](docs/ARTIFACT_PACK.md)
