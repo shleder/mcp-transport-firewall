@@ -1,11 +1,12 @@
 # Roadmap
 
-This project is already usable as a fail-closed MCP transport firewall. The next steps are about keeping the stdio path solid, making release flow boring, and expanding useful coverage without bloating the core.
+This project is already usable as a fail-closed MCP transport firewall. The next steps are about keeping the stdio path solid, making release flow boring, and turning early operator use into real trust, feedback, and repeatable setup paths without bloating the core.
 
 Near term:
 
-- restore GitHub Actions release execution so benchmark artifacts and npm release checks run again
-- complete trusted npm publication from tagged commits once hosted CI is healthy
+- keep one sharp story for the primary user: local Codex or Claude Code operators protecting risky MCP calls
+- ship a coherent release line where the git tag, GitHub release, and npm latest all match
+- collect first guided setup requests and tight operator feedback from real local workflows
 - add more operator notes for Windows and Linux client setups
 - keep benchmark snapshots and evidence docs aligned with the current package
 
@@ -15,6 +16,7 @@ Mid term:
 - improve dashboard visibility for gate decisions, blocked-request trends, and metrics scrape status
 - add more denial-code regression cases for indirect prompt-injection traffic
 - keep release checklists and provenance notes versioned with the release line
+- turn repeated guided setup pain into clearer product defaults and stronger docs
 
 Later:
 

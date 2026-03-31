@@ -1,6 +1,7 @@
 ## Proxy Setup
 
 Use this page when you want the firewall in front of a local read/search-shaped downstream MCP server.
+The primary fit is an individual Codex or Claude Code operator protecting a risky local MCP workflow.
 
 Primary proof path:
 
@@ -80,3 +81,5 @@ Recommended client configuration:
 ```
 
 If you need a self-contained MCP server without a downstream target, standalone bundled mode is still available through `npx -y mcp-transport-firewall`.
+
+If you want help getting from the demo path to a real protected workflow, use [Guided setup and audits](GUIDED_SETUP_AND_AUDITS.md).

@@ -8,6 +8,7 @@ Current package surface:
 - the full validation environment can be reproduced with `docker compose up --build`
 - tests, demo paths, and benchmark corpus live in this repository
 - the npm tarball is smoke-tested before publication
+- guided setup and audit requests are routed through the public GitHub issue chooser and `docs/GUIDED_SETUP_AND_AUDITS.md`
 
 The runtime stays intentionally narrow:
 
@@ -27,6 +28,7 @@ Release work is gated by:
 - post-publish verification that npm `repository`, `homepage`, `bugs`, and `gitHead` match `shleder/mcp-transport-firewall`
 - parity across the git tag, GitHub Release, and published npm version
 - synced package docs for install, config, and runtime behavior
+- a public repo story that stays narrow: risky local MCP tool calls first, broader control-plane stories second
 
 Useful follow-up docs:
 
@@ -34,3 +36,4 @@ Useful follow-up docs:
 - client config examples: `docs/CLIENT_CONFIG_EXAMPLES.md`
 - runtime contract: `docs/RUNTIME_CONTRACT.md`
 - verification guide: `docs/VERIFICATION_GUIDE.md`
+- guided setup and audits: `docs/GUIDED_SETUP_AND_AUDITS.md`

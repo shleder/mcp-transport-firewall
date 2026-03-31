@@ -2,6 +2,7 @@
 
 Use this page when wiring `mcp-transport-firewall` into a local MCP setup.
 The default path is the protected downstream proxy.
+The primary fit is an individual Codex or Claude Code user protecting a risky local MCP workflow.
 
 Supported entry points:
 
@@ -112,3 +113,5 @@ Use the GitHub fallback only when you intentionally want repository HEAD instead
 ```bash
 npx -y github:shleder/mcp-transport-firewall --help
 ```
+
+If you want help adapting one of these examples to a real local MCP stack, use [Guided setup and audits](GUIDED_SETUP_AND_AUDITS.md).

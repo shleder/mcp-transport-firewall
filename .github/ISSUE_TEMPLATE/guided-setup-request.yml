@@ -1,0 +1,62 @@
+name: Guided setup request
+description: Request guided help for a protected local MCP workflow, hardening review, or trust-gate tuning.
+title: "[guided-setup] "
+body:
+  - type: input
+    id: client
+    attributes:
+      label: MCP client
+      description: Codex, Claude Code, or another MCP-enabled client.
+      placeholder: Codex
+    validations:
+      required: true
+  - type: input
+    id: downstream
+    attributes:
+      label: Downstream MCP server
+      description: What local server or tool surface do you want to protect?
+      placeholder: local filesystem server
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Protected workflow
+      description: Describe the risky file/search/fetch/execute path you want to guard.
+    validations:
+      required: true
+  - type: textarea
+    id: help_needed
+    attributes:
+      label: Help needed
+      description: Setup walkthrough, hardening audit, trust-gate tuning, or something else concrete.
+    validations:
+      required: true
+  - type: textarea
+    id: sanitized_context
+    attributes:
+      label: Sanitized context
+      description: Share only sanitized commands, configs, logs, or screenshots. Do not include secrets.
+    validations:
+      required: true
+  - type: dropdown
+    id: follow_up
+    attributes:
+      label: Private follow-up needed
+      description: Choose yes if the real details cannot be shared publicly after sanitization.
+      options:
+        - no
+        - yes
+    validations:
+      required: true
+  - type: dropdown
+    id: feedback
+    attributes:
+      label: Willing to share feedback
+      description: Early operator requests are strongest when they can produce usage notes, a quote, or a case study.
+      options:
+        - yes
+        - maybe
+        - no
+    validations:
+      required: true

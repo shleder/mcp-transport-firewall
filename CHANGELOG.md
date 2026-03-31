@@ -3,12 +3,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning.
 
+## 2.2.4 - 2026-03-31
+
+- adds a guided setup intake path for Codex and Claude Code operators who want help protecting a local MCP workflow
+- adds a workflow hardening guide focused on risky local MCP calls, auth gaps, exfiltration patterns, and fail-closed rollout
+- makes the service-led path visible in `README.md` and `SUPPORT.md` so early operator help requests have one clear route
+- updates the public roadmap around first users, release trust, and operator feedback loops
+
 ## 2.2.3 - 2026-03-31
 
 - restores canonical package identity checks for `repository`, `homepage`, and `bugs`
 - adds release guardrails for GitHub tag, GitHub release, and npm registry parity
 - narrows public onboarding around one primary use case: risky local MCP file/search tool calls
 - makes the short `npm run demo:stdio` path the primary proof before broader integration paths
+- sharpens package metadata around risky local MCP tool calls and Codex/Claude Code operator fit
+- adds a public guided setup and workflow hardening request path for early operator intake
+- routes service-led help through the issue chooser instead of mixing it with bugs or security reports
 
 
 - 2.2.2 removes noisy cache-hit stderr output from the runtime path

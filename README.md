@@ -13,10 +13,11 @@
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-0f172a?style=for-the-badge" /></a>
 </p>
 
-`mcp-transport-firewall` sits between an MCP client and a local downstream MCP server. It inspects `tools/call` over `stdio`, lets read/search-shaped requests continue, and blocks risky exfiltration, path, and shell-style patterns before they reach the target.
+`mcp-transport-firewall` sits between a coding-agent client and a local downstream MCP server. It inspects `tools/call` over `stdio`, lets read/search-shaped requests continue, and blocks risky exfiltration, path, and shell-style patterns before they reach the target.
 
 ## Best For
 
+- individual Codex and Claude Code users who already run local MCP servers
 - local MCP-enabled coding workflows that should not run high-risk calls blindly
 - file, read, list, and search-oriented downstream MCP servers
 - teams that want a fail-closed transport control before downstream execution
@@ -70,6 +71,20 @@ Protected downstream proxy mode is the primary integration path.
 ```
 
 Use `PROXY_AUTH_TOKEN` for fail-closed auth, and `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS_JSON` as the default downstream target input. See [docs/CLIENT_CONFIG_EXAMPLES.md](docs/CLIENT_CONFIG_EXAMPLES.md) for client examples.
+
+## Need Help Hardening A Local MCP Workflow?
+
+Use the guided setup path when you want practical help instead of a generic feature request.
+
+- guided setup for a Codex or Claude Code local MCP stack
+- workflow hardening audit for risky file, search, fetch, or execute paths
+- trust-gate tuning for a specific downstream MCP server
+
+Start here:
+
+- read the operator guide: [docs/WORKFLOW_HARDENING.md](docs/WORKFLOW_HARDENING.md)
+- open a guided setup request: [guided setup request](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
+- use the scoped intake and early-operator offer details: [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md)
 
 ## What This Is Not
 
@@ -154,6 +169,8 @@ The recommended order is:
 - verification guide: [docs/VERIFICATION_GUIDE.md](docs/VERIFICATION_GUIDE.md)
 - evidence bundle: [docs/EVIDENCE_BUNDLE.md](docs/EVIDENCE_BUNDLE.md)
 - ship checklist: [docs/SHIP_CHECKLIST.md](docs/SHIP_CHECKLIST.md)
+- workflow hardening guide: [docs/WORKFLOW_HARDENING.md](docs/WORKFLOW_HARDENING.md)
+- guided setup and audits: [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md)
 
 Reference docs:
 
