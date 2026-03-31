@@ -16,6 +16,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -23,17 +25,15 @@ jobs:
           cache: 'npm'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Verify tag matches package version
-        run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          const tag = process.env.GITHUB_REF_NAME;
-          const expectedTag = `v${pkg.version}`;
-          if (tag !== expectedTag) {
-            throw new Error(`Release tag ${tag} does not match package.json version ${pkg.version}. Expected ${expectedTag}.`);
-          }
-          NODE
+      - name: Assert package metadata
+        run: npm run assert:package-metadata
+
+      - name: Verify release parity before publish
+        run: npm run verify:release-parity
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
 
       - name: Install dependencies
         run: npm ci
@@ -45,7 +45,7 @@ jobs:
         run: npm run verify:all
 
       - name: Generate stdio benchmark evidence packet
-        run: npm run benchmark:stdio -- --json > evidence.json
+        run: npm run benchmark:stdio -- --json --output evidence.json
 
       - name: Dry-run npm pack
         run: npm run pack:dry-run
@@ -82,6 +82,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Verify published registry metadata
+        run: npm run verify:registry-metadata -- --version "${GITHUB_REF_NAME#v}"
+        env:
+          EXPECTED_GIT_HEAD: ${{ github.sha }}
+
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
@@ -92,3 +97,62 @@ jobs:
             - full verification suite passed
             - stdio benchmark attached as `evidence.json`
             - npm tarball smoke checks passed before publication
+
+      - name: Summarize published release identity
+        run: |
+          node <<'NODE'
+          const { execFileSync } = require('node:child_process');
+          const fs = require('node:fs');
+
+          const version = process.env.GITHUB_REF_NAME.replace(/^v/, '');
+          const metadata = JSON.parse(
+            execFileSync(
+              'npm',
+              [
+                'view',
+                `mcp-transport-firewall@${version}`,
+                'version',
+                'repository',
+                'homepage',
+                'bugs',
+                'gitHead',
+                '--json',
+              ],
+              { encoding: 'utf8' }
+            )
+          );
+
+          const getField = (value) => {
+            if (!value) {
+              return '(missing)';
+            }
+
+            if (typeof value === 'string') {
+              return value;
+            }
+
+            if (typeof value === 'object' && value.url) {
+              return value.url;
+            }
+
+            return JSON.stringify(value);
+          };
+
+          const lines = [
+            '## published release identity',
+            '',
+            `- tag: \`${process.env.GITHUB_REF_NAME}\``,
+            `- package version: \`${metadata.version || version}\``,
+            `- npm repository: \`${getField(metadata.repository)}\``,
+            `- npm homepage: \`${getField(metadata.homepage)}\``,
+            `- npm bugs: \`${getField(metadata.bugs)}\``,
+            `- npm gitHead: \`${getField(metadata.gitHead)}\``,
+          ];
+
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
+          NODE
+
+      - name: Confirm GitHub release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}"

@@ -82,7 +82,7 @@
         "params": {
           "name": "open_file",
           "arguments": {
-            "path": "docs/THREAT_MODEL.md",
+            "path": "docs/RISK_MODEL.md",
             "encoding": "utf8"
           }
         }

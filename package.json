@@ -1,7 +1,7 @@
 {
   "name": "mcp-transport-firewall",
-  "version": "2.2.2",
-  "description": "Fail-closed stdio transport firewall for MCP JSON-RPC tool traffic",
+  "version": "2.2.4",
+  "description": "Fail-closed stdio firewall for risky local MCP JSON-RPC tool calls",
   "main": "dist/lib.js",
   "exports": {
     ".": "./dist/lib.js",
@@ -32,6 +32,9 @@
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "codex",
+    "claude-code",
+    "local-mcp",
     "security",
     "firewall",
     "stdio",
@@ -49,19 +52,22 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "assert:package-metadata": "node scripts/assert-package-metadata.mjs",
     "build": "tsc",
     "start": "node dist/index.js",
     "start:cli": "node dist/cli.js",
     "dev": "tsx watch src/index.ts",
     "dev:cli": "tsx src/cli.ts",
     "demo:stdio": "node scripts/stdio-demo.mjs",
-    "benchmark:stdio": "npm run build && node scripts/stdio-benchmark.mjs",
+    "benchmark:stdio": "node scripts/stdio-benchmark.mjs",
     "pack:dry-run": "npm pack --dry-run",
     "pack:smoke": "node scripts/pack-smoke.mjs",
-    "prepublishOnly": "npm run verify:all && npm run pack:dry-run && npm run pack:smoke",
+    "prepublishOnly": "npm run assert:package-metadata && npm run verify:all && npm run pack:dry-run && npm run pack:smoke",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "typecheck": "tsc --noEmit",
-    "verify:all": "npm run typecheck && npm run build && npm test && npm run demo:stdio && npm --prefix ui run build && npm --prefix ui run lint"
+    "verify:all": "npm run assert:package-metadata && npm run typecheck && npm run build && npm test && npm run demo:stdio && npm --prefix ui run build && npm --prefix ui run lint",
+    "verify:registry-metadata": "node scripts/verify-registry-metadata.mjs",
+    "verify:release-parity": "node scripts/verify-release-parity.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.1",

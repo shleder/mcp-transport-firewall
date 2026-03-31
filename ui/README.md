@@ -1,7 +1,7 @@
 
-React/Vite control-plane UI for the MCP Transport Firewall.
+React/Vite admin UI for the MCP Transport Firewall.
 
-The dashboard is not the primary security boundary. The primary boundary is the stdio firewall runtime. The UI exposes operational state for runtime inspection and operators:
+The dashboard is not the primary boundary. The primary boundary is the stdio firewall runtime. The UI shows operational state for local inspection:
 
 - blocked-request totals and denial codes
 - cache hit and miss statistics

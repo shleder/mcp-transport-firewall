@@ -36,7 +36,7 @@ jobs:
         run: npm run verify:all
 
       - name: Generate stdio benchmark evidence packet
-        run: npm run benchmark:stdio -- --json > evidence.json
+        run: npm run benchmark:stdio -- --json --output evidence.json
 
       - name: Dry-run npm pack
         run: npm run pack:dry-run

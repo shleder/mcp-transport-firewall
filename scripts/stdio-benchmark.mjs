@@ -12,8 +12,19 @@ const targetPath = path.join(repoRoot, 'examples', 'demo-target.js');
 const corpusPath = path.join(repoRoot, 'examples', 'evidence-corpus.json');
 const proxyToken = process.env.PROXY_AUTH_TOKEN ?? '12345678901234567890123456789012';
 
-const argv = new Set(process.argv.slice(2));
+const rawArgs = process.argv.slice(2);
+const argv = new Set(rawArgs);
 const jsonOnly = argv.has('--json');
+const readArgValue = (flag) => {
+  const index = rawArgs.indexOf(flag);
+  if (index === -1) {
+    return null;
+  }
+
+  return rawArgs[index + 1] ?? null;
+};
+const outputPathArg = readArgValue('--output');
+const outputPath = outputPathArg ? path.resolve(process.cwd(), outputPathArg) : null;
 
 if (!fs.existsSync(cliPath)) {
   console.error('Missing dist/cli.js. Run "npm run build" before "npm run benchmark:stdio".');
@@ -335,9 +346,19 @@ const main = async () => {
     summary.totals.falseNegatives > 0 ||
     summary.totals.cacheConsistencyFailures > 0;
   summary.verdict = failed ? 'failed' : 'passed';
+  const jsonReport = JSON.stringify(summary, null, 2);
+
+  if (outputPath) {
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    fs.writeFileSync(outputPath, `${jsonReport}\n`, 'utf8');
+  }
 
   if (jsonOnly) {
-    console.log(JSON.stringify(summary, null, 2));
+    if (!outputPath) {
+      console.log(jsonReport);
+    } else {
+      console.log(`wrote benchmark JSON to ${path.relative(process.cwd(), outputPath)}`);
+    }
   } else {
     console.log(`${summary.benchmark} ${summary.verdict}`);
     console.log(`source: ${summary.source}`);
@@ -352,7 +373,10 @@ const main = async () => {
     for (const [code, count] of Object.entries(summary.blockedByCode)) {
       console.log(`blocked-by-code: ${code} x${count}`);
     }
-    console.log(JSON.stringify(summary, null, 2));
+    if (outputPath) {
+      console.log(`json artifact: ${path.relative(process.cwd(), outputPath)}`);
+    }
+    console.log(jsonReport);
   }
 
   if (failed) {

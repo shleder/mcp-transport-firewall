@@ -1,22 +1,22 @@
-
-
-- `demo-target.js`: local JSON-RPC tool server used by the stdio firewall demo and tests
+- `demo-target.js`: reproducible downstream JSON-RPC target used for the README demo and regression coverage
 - `evidence-corpus.json`: benchmark corpus for regression and false-positive measurement
 
 The delayed target used to reproduce the shutdown-race regression lives in `tests/fixtures/slow-stdio-target.js`, not in this directory.
 
-For the canonical published-package examples, see [docs/CLIENT_CONFIGS.md](../docs/CLIENT_CONFIGS.md).
-For the stable runtime contract, see [docs/INTEGRATION_CONTRACT.md](../docs/INTEGRATION_CONTRACT.md).
-For the complete Windows and Linux walkthrough, see [docs/WALKTHROUGH.md](../docs/WALKTHROUGH.md).
-For the repeatable benchmark output, see [docs/EVIDENCE_BENCHMARK.md](../docs/EVIDENCE_BENCHMARK.md) and run `npm run benchmark:stdio`.
+Related docs:
+
+- client setups: [docs/CLIENT_CONFIG_EXAMPLES.md](../docs/CLIENT_CONFIG_EXAMPLES.md)
+- runtime behavior: [docs/RUNTIME_CONTRACT.md](../docs/RUNTIME_CONTRACT.md)
+- shortest local proof path: [docs/PROXY_SETUP.md](../docs/PROXY_SETUP.md)
+- repeatable benchmark output: [docs/STDIO_BENCHMARK_GUIDE.md](../docs/STDIO_BENCHMARK_GUIDE.md)
 
 Maintained package paths:
 
-1. standalone bundled MCP mode via `npx -y mcp-transport-firewall`
-2. protected downstream MCP server mode via `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS_JSON`
-3. protected read-only file and search workflow via `examples/demo-target.js`
+1. primary path: protected downstream MCP server mode via `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS_JSON`
+2. demo path: protected local read/search workflow via `examples/demo-target.js`
+3. secondary standalone path: bundled MCP mode via `npx -y mcp-transport-firewall`
 
-Quick demo path:
+Repo-local demo path:
 
 ```bash
 npm run build
@@ -29,7 +29,7 @@ Manual interactive path:
 npm run start:cli -- -- node examples/demo-target.js
 ```
 
-Published-package MCP client configuration path:
+MCP client configuration path:
 
 ```json
 {
@@ -49,7 +49,7 @@ Published-package MCP client configuration path:
 
 Then write JSON-RPC lines to stdin. If `PROXY_AUTH_TOKEN` is configured, include `_meta.authorization` inside the request body.
 
-Read-only file and search workflow using the packaged CLI:
+Read/search-shaped protected workflow using the packaged CLI:
 
 ```powershell
 $env:PROXY_AUTH_TOKEN = "12345678901234567890123456789012"
@@ -58,12 +58,15 @@ $env:MCP_TARGET_ARGS_JSON = "[\"C:/absolute/path/to/examples/demo-target.js\"]"
 npx --yes mcp-transport-firewall
 ```
 
-Source-install fallback when you want to execute the repository HEAD instead of the published npm package:
+This uses a reproducible demo target for proof and regression coverage. It is not a full filesystem MCP server.
+
+Use the GitHub fallback only when you intentionally want repository HEAD instead of the npm package:
 
 ```bash
 npx -y github:shleder/mcp-transport-firewall --help
 ```
 
+Secondary HTTP harness artifacts:
 
 - `register-route.json`: admin payload for registering a downstream HTTP tool route
 - `tool-call.json`: MCP `tools/call` payload for the HTTP `/mcp` harness

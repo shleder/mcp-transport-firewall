@@ -1,6 +1,9 @@
+# Security Reporting
 
+Use private reporting if GitHub security reporting or advisories are available for this repository.
+If private reporting is not available, open a minimal issue, keep exploit detail out of the thread, and ask for a private follow-up.
 
-This repository implements a fail-closed MCP transport firewall. Security reports are especially relevant when they involve:
+The most relevant findings here are:
 
 - auth bypass
 - scope bypass
@@ -8,34 +11,18 @@ This repository implements a fail-closed MCP transport firewall. Security report
 - replay or preflight bypass
 - data exfiltration bypass
 - response sanitization bypass
-- failures that allow unsafe traffic to reach the stdio target or HTTP companion service
-
-
-Security fixes are expected on:
-
-- the latest tagged release
-- the `main` branch
-
-Older releases may not receive backports.
-
-
-Do not publish full exploit details in a public issue if the issue could expose active users.
-
-Preferred path:
-
-1. Use GitHub private vulnerability reporting or a security advisory if available for this repository.
-2. If that path is unavailable, open a minimal public issue requesting a private follow-up and exclude proof-of-concept details, secrets, and exploit instructions.
+- any failure that lets unsafe traffic reach the stdio target or HTTP companion service
 
 Include:
 
 - affected version or commit
-- trust gate or component affected
-- reproduction steps
+- trust gate or component involved
+- exact reproduction steps
 - expected behavior
 - observed behavior
-- impact assessment
+- impact
 
+Please avoid live credentials, private datasets, or third-party secrets in reports.
+Fixes are expected on `main` and, when practical, on the latest supported tagged line.
 
-- Provide enough detail to reproduce the issue safely.
-- Avoid posting live credentials, private datasets, or third-party secrets.
-- Give maintainers reasonable time to validate and patch before broad public disclosure.
+If you need guided setup or workflow hardening help rather than reporting a vulnerability, use [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md) instead of `SECURITY.md`.

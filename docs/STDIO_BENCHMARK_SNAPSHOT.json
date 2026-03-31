@@ -144,7 +144,7 @@
               "callCount": 4,
               "tool": "open_file",
               "arguments": {
-                "path": "docs/THREAT_MODEL.md",
+                "path": "docs/RISK_MODEL.md",
                 "encoding": "utf8"
               },
               "target": "examples/demo-target.js"
@@ -161,7 +161,7 @@
               "callCount": 4,
               "tool": "open_file",
               "arguments": {
-                "path": "docs/THREAT_MODEL.md",
+                "path": "docs/RISK_MODEL.md",
                 "encoding": "utf8"
               },
               "target": "examples/demo-target.js"

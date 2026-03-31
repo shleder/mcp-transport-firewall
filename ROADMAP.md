@@ -1,19 +1,25 @@
+# Roadmap
 
-This project is usable today as a fail-closed MCP transport firewall. The roadmap is organized around strengthening its value as an open defensive baseline for agent toolchains.
+This project is already usable as a fail-closed MCP transport firewall. The next steps are about keeping the stdio path solid, making release flow boring, and turning early operator use into real trust, feedback, and repeatable setup paths without bloating the core.
 
+Near term:
 
-- restore GitHub-hosted Actions execution so public CI can publish benchmark artifacts and gate npm releases again
-- complete trusted npm publication from tagged commits once hosted CI is running
-- add more operator notes for Windows and Linux client configurations
-- keep benchmark snapshots and artifact-pack docs aligned with the latest published package
+- keep one sharp story for the primary user: local Codex or Claude Code operators protecting risky MCP calls
+- ship a coherent release line where the git tag, GitHub release, and npm latest all match
+- collect first guided setup requests and tight operator feedback from real local workflows
+- add more operator notes for Windows and Linux client setups
+- keep benchmark snapshots and evidence docs aligned with the current package
 
+Mid term:
 
-- broaden the schema registry for additional widely used MCP tool contracts
+- broaden the schema registry for more common MCP tool contracts
 - improve dashboard visibility for gate decisions, blocked-request trends, and metrics scrape status
-- add more denial-code regression cases for indirect prompt-injection style traffic
-- publish versioned release checklists and provenance notes for tagged npm releases
+- add more denial-code regression cases for indirect prompt-injection traffic
+- keep release checklists and provenance notes versioned with the release line
+- turn repeated guided setup pain into clearer product defaults and stronger docs
 
+Later:
 
-- publish benchmark snapshots for longitudinal comparison across releases
+- keep benchmark snapshots comparable across releases
 - add optional integrations for external metrics collectors and log pipelines without changing the fail-closed core
-- document reference deployment patterns for open-source agent frameworks and local tool servers
+- document more deployment patterns for local tool servers and operator environments

@@ -1,23 +1,23 @@
+## Verification Guide
 
-This repository is easiest to validate as a **reproducible defensive control**, not as a product demo.
+This repository is easiest to verify as a reproducible transport control, not as a polished product demo.
 
-The most useful validation flow is:
+Recommended verification flow:
 
-1. inspect the threat model in [THREAT_MODEL.md](THREAT_MODEL.md)
-2. inspect the published package examples in [CLIENT_CONFIGS.md](CLIENT_CONFIGS.md)
-3. inspect the runtime guarantees in [INTEGRATION_CONTRACT.md](INTEGRATION_CONTRACT.md)
+1. inspect the risk model in [RISK_MODEL.md](RISK_MODEL.md)
+2. inspect the local setup examples in [CLIENT_CONFIG_EXAMPLES.md](CLIENT_CONFIG_EXAMPLES.md)
+3. inspect the runtime guarantees in [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md)
 4. run `npm run verify:all`
-5. run `npm run benchmark:stdio -- --json > evidence.json`
+5. run `npm run benchmark:stdio -- --json --output evidence.json`
 6. run `npm run pack:dry-run`
 7. run `npm run pack:smoke`
 8. inspect `/metrics` on the admin control plane when running the Docker path
 9. compare documented claims to tests, benchmark results, tarball behavior, and control-plane state
 
-
 | Topic | Code | Evidence |
 |---|---|---|
 | stdio interception path | `src/cli.ts`, `src/stdio/proxy.ts` | `tests/cli.test.ts`, `scripts/stdio-demo.mjs` |
-| repeatable evidence corpus | `scripts/stdio-benchmark.mjs`, `examples/evidence-corpus.json` | `docs/EVIDENCE_BENCHMARK.md` |
+| repeatable evidence corpus | `scripts/stdio-benchmark.mjs`, `examples/evidence-corpus.json` | `docs/STDIO_BENCHMARK_GUIDE.md` |
 | fail-closed auth | `src/middleware/nhi-auth-validator.ts` | `tests/nhi-auth.test.ts`, `tests/cli.test.ts` |
 | scope enforcement | `src/middleware/scope-validator.ts` | `tests/scope-validator.test.ts` |
 | trust-domain separation | `src/middleware/color-boundary.ts` | `tests/color-boundary.test.ts` |
@@ -26,7 +26,6 @@ The most useful validation flow is:
 | exfiltration and injection blocking | `src/middleware/ast-egress-filter.ts` | `tests/ast-egress-filter.test.ts`, `tests/cli.test.ts` |
 | HTTP harness and route fail-closed behavior | `src/index.ts`, `src/proxy/router.ts` | `tests/app.test.ts`, `tests/router.test.ts` |
 | blocked-request and Prometheus metrics | `src/admin/index.ts`, `src/metrics/prometheus.ts` | `tests/admin.test.ts` |
-
 
 `docker compose up --build` packages:
 
@@ -41,26 +40,26 @@ Use the Docker path when you want:
 - a built dashboard for blocked requests and cache behavior
 - a packaged environment for independent inspection
 
-Use the stdio walkthrough when you want:
+Use the stdio path when you want:
 
 - direct validation of the transport boundary
 - proof that blocked traffic fails before tool execution
 - reproducible benchmark output from a deterministic local target
 
+CI does three useful things:
 
-The repository CI is designed to do three things on hosted runners:
+- runs the full verification suite
+- uploads a JSON benchmark artifact named `stdio-evidence-benchmark`
+- runs distributable tarball smoke checks before npm publication
 
-- run the full verification suite
-- upload a JSON benchmark artifact named `stdio-evidence-benchmark`
-- run distributable tarball smoke checks before npm publication
-
-The artifact is designed to answer the following inspection questions:
+The artifact answers:
 
 - do blocked corpus cases fail with the expected denial code?
-- do allow corpus cases remain stable across repeats?
+- do allow corpus cases stay stable across repeats?
 - did a change alter cache consistency or increase false positives?
-- does the packaged CLI still expose the documented `mcp-transport-firewall` contract?
+- does the packaged CLI still expose the documented `mcp-transport-firewall` entry points?
 
+What this repo currently demonstrates:
 
 - fail-closed blocking on missing or invalid auth
 - fail-closed blocking on scope mismatch
@@ -71,6 +70,7 @@ The artifact is designed to answer the following inspection questions:
 - response sanitization before tool output is returned
 - reproducible benchmark output and control-plane metrics
 
+What it does not claim:
 
 - cryptographic proof of tool identity
 - complete prompt-injection elimination
