@@ -30,6 +30,8 @@ ui/node_modules/
 compile.log
 coverage_report.txt
 coverage_report2.txt
+evidence.json
+evidence-*.json
 
 # Internal planning docs
 Project-Architecture-Master-Plan.txt
