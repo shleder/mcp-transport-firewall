@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and the project follows semantic versioning.
 
+## 2.2.5 - 2026-03-31
+
+- hardens runtime parsing for admin port, cache TTL, and downstream timeout environment variables so invalid values fail back to safe defaults
+- restores the `fetch_url` upper URL length bound and extends regression coverage for the fail-closed schema path
+- fixes stdio benchmark blocked-request accounting, isolates benchmark cache state per spawned session, and keeps repeated evidence runs stable
+- prevents cache reinitialization from breaking long-lived stdio proxy references and enforces the OOM guard on oversized downstream JSON-RPC error payloads
+- restores `.grants/` ignore coverage, adds `prepare` for source installs, and removes stale package examples that pointed at unpublished local-only paths
+
 ## 2.2.4 - 2026-03-31
 
 - adds a guided setup intake path for Codex and Claude Code operators who want help protecting a local MCP workflow

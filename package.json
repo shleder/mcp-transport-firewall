@@ -1,6 +1,6 @@
 {
   "name": "mcp-transport-firewall",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "Fail-closed stdio firewall for risky local MCP JSON-RPC tool calls",
   "main": "dist/lib.js",
   "exports": {

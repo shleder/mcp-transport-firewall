@@ -117,10 +117,10 @@ describe('release guardrails', () => {
   it('accepts release parity in the expected repo with the expected tag', () => {
     const result = verifyReleaseParity({
       pkg: {
-        version: '2.2.4',
+        version: '2.2.5',
       },
       env: {
-        GITHUB_REF_NAME: 'v2.2.4',
+        GITHUB_REF_NAME: 'v2.2.5',
         GITHUB_REPOSITORY: 'shleder/mcp-transport-firewall',
       },
       readGitFn: (...args: string[]) => {
@@ -132,7 +132,7 @@ describe('release guardrails', () => {
       },
     });
 
-    expect(result.expectedTag).toBe('v2.2.4');
+    expect(result.expectedTag).toBe('v2.2.5');
     expect(result.normalizedOriginRepository).toBe('shleder/mcp-transport-firewall');
     expect(result.mismatches).toEqual([]);
   });
@@ -140,10 +140,10 @@ describe('release guardrails', () => {
   it('rejects release parity when the repo is not the expected one', () => {
     const result = verifyReleaseParity({
       pkg: {
-        version: '2.2.4',
+        version: '2.2.5',
       },
       env: {
-        GITHUB_REF_NAME: 'v2.2.4',
+        GITHUB_REF_NAME: 'v2.2.5',
         GITHUB_REPOSITORY: 'wrong-owner/mcp-transport-firewall',
       },
       readGitFn: (...args: string[]) => {
@@ -161,10 +161,10 @@ describe('release guardrails', () => {
   it('accepts SSH origin URLs when they resolve to the canonical repository', () => {
     const result = verifyReleaseParity({
       pkg: {
-        version: '2.2.4',
+        version: '2.2.5',
       },
       env: {
-        GITHUB_REF_NAME: 'v2.2.4',
+        GITHUB_REF_NAME: 'v2.2.5',
         GITHUB_REPOSITORY: 'shleder/mcp-transport-firewall',
       },
       readGitFn: (...args: string[]) => {
@@ -183,10 +183,10 @@ describe('release guardrails', () => {
   it('rejects origins that only contain the canonical repository as a substring', () => {
     const result = verifyReleaseParity({
       pkg: {
-        version: '2.2.4',
+        version: '2.2.5',
       },
       env: {
-        GITHUB_REF_NAME: 'v2.2.4',
+        GITHUB_REF_NAME: 'v2.2.5',
         GITHUB_REPOSITORY: 'shleder/mcp-transport-firewall',
       },
       readGitFn: (...args: string[]) => {
@@ -206,10 +206,10 @@ describe('release guardrails', () => {
   it('rejects lookalike hostnames even when the owner and repo path match', () => {
     const result = verifyReleaseParity({
       pkg: {
-        version: '2.2.4',
+        version: '2.2.5',
       },
       env: {
-        GITHUB_REF_NAME: 'v2.2.4',
+        GITHUB_REF_NAME: 'v2.2.5',
         GITHUB_REPOSITORY: 'shleder/mcp-transport-firewall',
       },
       readGitFn: (...args: string[]) => {
@@ -230,10 +230,10 @@ describe('release guardrails', () => {
   it('reports a missing origin remote as a structured mismatch', () => {
     const result = verifyReleaseParity({
       pkg: {
-        version: '2.2.4',
+        version: '2.2.5',
       },
       env: {
-        GITHUB_REF_NAME: 'v2.2.4',
+        GITHUB_REF_NAME: 'v2.2.5',
         GITHUB_REPOSITORY: 'shleder/mcp-transport-firewall',
       },
       readGitFn: (...args: string[]) => {
