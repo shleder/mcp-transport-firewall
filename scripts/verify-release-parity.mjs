@@ -36,7 +36,7 @@ const normalizeRepositoryUrl = (originUrl) => {
 
   try {
     const parsedUrl = new URL(normalizedUrl);
-    if (!/github\.com$/i.test(parsedUrl.hostname)) {
+    if (parsedUrl.hostname.toLowerCase() !== 'github.com') {
       return null;
     }
 

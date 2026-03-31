@@ -203,6 +203,30 @@ describe('release guardrails', () => {
     );
   });
 
+  it('rejects lookalike hostnames even when the owner and repo path match', () => {
+    const result = verifyReleaseParity({
+      pkg: {
+        version: '2.2.4',
+      },
+      env: {
+        GITHUB_REF_NAME: 'v2.2.4',
+        GITHUB_REPOSITORY: 'shleder/mcp-transport-firewall',
+      },
+      readGitFn: (...args: string[]) => {
+        if (args[0] === 'config') {
+          return 'https://notgithub.com/shleder/mcp-transport-firewall.git';
+        }
+
+        return 'abc123';
+      },
+    });
+
+    expect(result.normalizedOriginRepository).toBeNull();
+    expect(result.mismatches).toContain(
+      'remote.origin.url must point to shleder/mcp-transport-firewall, got https://notgithub.com/shleder/mcp-transport-firewall.git'
+    );
+  });
+
   it('reports a missing origin remote as a structured mismatch', () => {
     const result = verifyReleaseParity({
       pkg: {

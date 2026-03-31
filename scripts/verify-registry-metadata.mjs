@@ -94,8 +94,8 @@ export const verifyRegistryMetadata = ({ pkg, env = process.env, registryMetadat
 
 export const main = async () => {
   const pkg = readPackageJson();
-  const attempts = Number(readArgValue('--attempts') ?? process.env.REGISTRY_VERIFY_ATTEMPTS ?? 10);
-  const delayMs = Number(readArgValue('--delay-ms') ?? process.env.REGISTRY_VERIFY_DELAY_MS ?? 6000);
+  const attempts = Number(readArgValue('--attempts') ?? process.env.REGISTRY_VERIFY_ATTEMPTS ?? 20);
+  const delayMs = Number(readArgValue('--delay-ms') ?? process.env.REGISTRY_VERIFY_DELAY_MS ?? 10000);
   let result = null;
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
