@@ -35,6 +35,51 @@ export interface CacheManager<T = unknown> {
   close: () => void;
 }
 
+interface SwappableCacheManager<T = unknown> extends CacheManager<T> {
+  replace: (next: CacheManager<T>) => void;
+}
+
+const createNoopCacheManager = <T = unknown>(): CacheManager<T> => ({
+  generateKey: () => '',
+  shouldCache: () => false,
+  get: () => undefined,
+  set: () => undefined,
+  invalidate: () => false,
+  clear: () => undefined,
+  getStats: () => ({
+    l1: { size: 0, maxSize: 0 },
+    l2: { entries: 0, expiredEntries: 0 },
+    hits: { l1: 0, l2: 0, total: 0 },
+    misses: 0,
+    hitRatio: 0,
+  }),
+  close: () => undefined,
+});
+
+const createSwappableCacheManager = <T = unknown>(initial: CacheManager<T>): SwappableCacheManager<T> => {
+  let current = initial;
+
+  return {
+    generateKey: (method: string, params: unknown) => current.generateKey(method, params),
+    shouldCache: (method: string) => current.shouldCache(method),
+    get: (method: string, params: unknown) => current.get(method, params),
+    set: (method: string, params: unknown, value: T, ttlMs?: number) => current.set(method, params, value, ttlMs),
+    invalidate: (method: string, params: unknown) => current.invalidate(method, params),
+    clear: () => current.clear(),
+    getStats: () => current.getStats(),
+    close: () => {
+      const previous = current;
+      current = createNoopCacheManager<T>();
+      previous.close();
+    },
+    replace: (next: CacheManager<T>) => {
+      const previous = current;
+      current = next;
+      previous.close();
+    },
+  };
+};
+
 export const createCacheManager = <T = unknown>(config: CacheConfig): CacheManager<T> => {
   const serverId = config.serverId;
   const l1 = createL1Cache<T>(config.l1);
@@ -133,13 +178,17 @@ export const createCacheManager = <T = unknown>(config: CacheConfig): CacheManag
   };
 };
 
-let globalCacheManager: CacheManager | undefined;
+let globalCacheManager: SwappableCacheManager | undefined;
 
 export const initializeCache = (config: CacheConfig): CacheManager => {
+  const nextCacheManager = createCacheManager(config);
+
   if (globalCacheManager) {
-    globalCacheManager.close();
+    globalCacheManager.replace(nextCacheManager);
+    return globalCacheManager;
   }
-  globalCacheManager = createCacheManager(config);
+
+  globalCacheManager = createSwappableCacheManager(nextCacheManager);
   return globalCacheManager;
 };
 

@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
+import { initializeCache } from '../src/cache/index.js';
 import { createStdioFirewallProxy, StdioFirewallProxy } from '../src/stdio/proxy.js';
 
 const proxyToken = '12345678901234567890123456789012';
@@ -85,6 +86,7 @@ const waitForNoJsonLine = async (stream: PassThrough, timeoutMs: number): Promis
 
 describe('stdio firewall proxy', () => {
   let cacheDir: string;
+  let extraCacheDirs: string[];
   let clientInput: PassThrough;
   let clientOutput: PassThrough;
   let clientError: PassThrough;
@@ -92,6 +94,7 @@ describe('stdio firewall proxy', () => {
 
   beforeEach(async () => {
     cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-stdio-cache-'));
+    extraCacheDirs = [];
     clientInput = new PassThrough();
     clientOutput = new PassThrough();
     clientError = new PassThrough();
@@ -115,6 +118,9 @@ describe('stdio firewall proxy', () => {
   afterEach(async () => {
     await proxy.stop();
     fs.rmSync(cacheDir, { recursive: true, force: true });
+    for (const extraCacheDir of extraCacheDirs) {
+      fs.rmSync(extraCacheDir, { recursive: true, force: true });
+    }
   });
 
   it('proxies a tool call over stdio and serves the second response from cache', async () => {
@@ -431,6 +437,98 @@ describe('stdio firewall proxy', () => {
     }));
 
     await waitForNoJsonLine(clientOutput, 200);
+  });
+
+  it('continues serving requests after cache reinitialization swaps the backing store', async () => {
+    clientInput.write(JSON.stringify({
+      jsonrpc: '2.0',
+      id: 10,
+      method: 'tools/call',
+      params: {
+        name: 'search_files',
+        arguments: { query: 'before-cache-swap' },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.search_files']),
+        },
+      },
+    }) + '\n');
+
+    const firstResponse = await waitForJsonLine(clientOutput);
+    expect(firstResponse.result).toEqual({
+      callCount: 1,
+      tool: 'search_files',
+      arguments: { query: 'before-cache-swap' },
+    });
+
+    const replacementCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-stdio-cache-reinit-'));
+    extraCacheDirs.push(replacementCacheDir);
+    initializeCache({
+      serverId: 'reloaded-proxy',
+      l1: { maxSize: 50, ttlMs: 60000 },
+      l2: { dbPath: replacementCacheDir, ttlMs: 60000 },
+      alwaysCacheTools: ['search_files'],
+      neverCacheTools: [],
+    });
+
+    clientInput.write(JSON.stringify({
+      jsonrpc: '2.0',
+      id: 11,
+      method: 'tools/call',
+      params: {
+        name: 'search_files',
+        arguments: { query: 'after-cache-swap' },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.search_files']),
+        },
+      },
+    }) + '\n');
+
+    const secondResponse = await waitForJsonLine(clientOutput);
+    expect(secondResponse.result).toEqual({
+      callCount: 2,
+      tool: 'search_files',
+      arguments: { query: 'after-cache-swap' },
+    });
+  });
+
+  it('fails closed when a downstream JSON-RPC error exceeds the OOM payload limit', async () => {
+    await proxy.stop();
+
+    proxy = createStdioFirewallProxy({
+      input: clientInput,
+      output: clientOutput,
+      errorOutput: clientError,
+      targetCommand: process.execPath,
+      targetArgs: [path.join(process.cwd(), 'tests', 'fixtures', 'oom-error-stdio-target.js')],
+      cacheDir,
+      cacheTtlSeconds: 60,
+      proxyAuthToken: proxyToken,
+    });
+
+    await proxy.start();
+
+    clientInput.write(JSON.stringify({
+      jsonrpc: '2.0',
+      id: 12,
+      method: 'tools/call',
+      params: {
+        name: 'search_files',
+        arguments: { query: 'oom-error' },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.search_files']),
+        },
+      },
+    }) + '\n');
+
+    const response = await waitForJsonLine(clientOutput);
+
+    expect(response.error).toEqual(expect.objectContaining({
+      code: -32005,
+      message: 'Fail-Closed: Response exceeds strict OOM size limit.',
+      data: expect.objectContaining({
+        limit: 5 * 1024 * 1024,
+      }),
+    }));
   });
 
   it('returns an explicit unavailable error when stop interrupts an in-flight request', async () => {

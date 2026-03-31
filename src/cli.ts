@@ -3,6 +3,7 @@
 import 'dotenv/config';
 import { parseCliArgs, resolveTarget } from './cli-options.js';
 import { startEmbeddedMcpServer } from './embedded/server.js';
+import { resolveProxyRuntimeConfig } from './runtime-config.js';
 import { createStdioFirewallProxy } from './stdio/proxy.js';
 
 const printHelp = (): void => {
@@ -49,6 +50,7 @@ const main = async (): Promise<void> => {
   }
 
   const target = resolveTarget(cli);
+  const runtimeConfig = resolveProxyRuntimeConfig(process.env);
 
   if (!target) {
     printHelp();
@@ -60,10 +62,10 @@ const main = async (): Promise<void> => {
     targetCommand: target.targetCommand,
     targetArgs: target.targetArgs,
     adminEnabled: process.env.MCP_ADMIN_ENABLED === 'true' || process.env.ADMIN_ENABLED === 'true',
-    adminPort: parseInt(process.env.MCP_ADMIN_PORT ?? process.env.ADMIN_PORT ?? '9090', 10),
+    adminPort: runtimeConfig.adminPort,
     cacheDir: process.env.MCP_CACHE_DIR ?? process.env.CACHE_DIR,
-    cacheTtlSeconds: parseInt(process.env.MCP_CACHE_TTL_SECONDS ?? process.env.CACHE_TTL_SECONDS ?? '300', 10),
-    targetTimeoutMs: parseInt(process.env.MCP_TARGET_TIMEOUT_MS ?? '30000', 10),
+    cacheTtlSeconds: runtimeConfig.cacheTtlSeconds,
+    targetTimeoutMs: runtimeConfig.targetTimeoutMs,
     verbose: cli.verbose || process.env.MCP_VERBOSE === 'true' || process.env.VERBOSE === 'true',
     proxyAuthToken: process.env.PROXY_AUTH_TOKEN,
   });

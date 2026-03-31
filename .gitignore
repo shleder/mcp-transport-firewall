@@ -22,6 +22,7 @@ ui/node_modules/
 .agents/
 
 # Private drafts (internal only)
+.grants/
 .private-notes/
 .codex/
 

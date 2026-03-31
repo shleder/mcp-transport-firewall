@@ -74,6 +74,20 @@ describe('schema-validator (Progressive Disclosure)', () => {
     expect(res.status).toHaveBeenCalledWith(403);
   });
 
+  it('blocks overlong http(s) URLs for fetch_url', () => {
+    const req = createMockReq({
+      method: 'tools/call',
+      params: { name: 'fetch_url', arguments: { url: `https://example.com/${'a'.repeat(2050)}` } },
+    });
+    const { res } = createMockRes();
+    const next = jest.fn();
+
+    validator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+  });
+
   it('allows a strict execute_command payload', () => {
     const req = createMockReq({
       method: 'tools/call',

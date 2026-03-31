@@ -49,12 +49,12 @@ If `PROXY_AUTH_TOKEN` is configured, client requests must carry `_meta.authoriza
 
 ## Protected local read/search demo
 
-Use this when you want the smallest reproducible protected workflow backed by `examples/demo-target.js` or a similar read-only MCP server.
+Use this when you want the smallest reproducible protected workflow backed by a local read-only MCP server you control.
 
 ```powershell
 $env:PROXY_AUTH_TOKEN = "12345678901234567890123456789012"
 $env:MCP_TARGET_COMMAND = "node"
-$env:MCP_TARGET_ARGS_JSON = "[\"C:/absolute/path/to/examples/demo-target.js\"]"
+$env:MCP_TARGET_ARGS_JSON = "[\"C:/absolute/path/to/your-mcp-server.js\"]"
 npx --yes mcp-transport-firewall
 ```
 
@@ -105,13 +105,7 @@ This path:
 ```bash
 npx --yes mcp-transport-firewall --help
 npx --yes mcp-transport-firewall
-npx --yes mcp-transport-firewall -- node examples/demo-target.js
-```
-
-Use the GitHub fallback only when you intentionally want repository HEAD instead of the npm package:
-
-```bash
-npx -y github:shleder/mcp-transport-firewall --help
+npx --yes mcp-transport-firewall -- node C:/absolute/path/to/your-mcp-server.js
 ```
 
 If you want help adapting one of these examples to a real local MCP stack, use [Guided setup and audits](GUIDED_SETUP_AND_AUDITS.md).

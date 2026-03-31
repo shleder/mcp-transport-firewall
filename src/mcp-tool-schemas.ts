@@ -8,7 +8,7 @@ const nonEmptyCommand = z.string().min(1).max(512).refine((value) => !value.incl
   message: 'must not contain NUL bytes',
 });
 
-const httpUrl = z.string().url().refine((value) => {
+const httpUrl = z.string().max(2048).url().refine((value) => {
   try {
     const protocol = new URL(value).protocol;
     return protocol === 'http:' || protocol === 'https:';

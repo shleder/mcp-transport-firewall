@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import readline from 'node:readline';
 import { spawn } from 'node:child_process';
@@ -50,12 +51,14 @@ const createAuthorization = (scopes) => {
 };
 
 const createSession = () => {
+  const sessionCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-stdio-bench-cache-'));
   const proxy = spawn(process.execPath, [cliPath, '--', process.execPath, targetPath], {
     cwd: repoRoot,
     env: {
       ...process.env,
       PROXY_AUTH_TOKEN: proxyToken,
       MCP_ADMIN_ENABLED: 'false',
+      MCP_CACHE_DIR: sessionCacheDir,
     },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
@@ -68,6 +71,9 @@ const createSession = () => {
   const pendingResponses = [];
   const stderrLines = [];
   let closed = false;
+  const exitPromise = new Promise((resolve) => {
+    proxy.once('exit', () => resolve(undefined));
+  });
 
   proxy.stderr.on('data', (chunk) => {
     stderrLines.push(chunk.toString());
@@ -124,7 +130,12 @@ const createSession = () => {
     if (!proxy.killed) {
       proxy.kill('SIGTERM');
     }
+    await Promise.race([
+      exitPromise,
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
     stdoutReader.close();
+    fs.rmSync(sessionCacheDir, { recursive: true, force: true });
   };
 
   return {
@@ -322,9 +333,9 @@ const main = async () => {
 
         for (const requestResult of caseResult.requests) {
           summary.totals.requests += 1;
-          summary.totals.blockedRequests += 1;
 
           if (requestResult.status === 'blocked') {
+            summary.totals.blockedRequests += 1;
             const code = requestResult.errorCode;
             if (typeof code === 'string') {
               summary.blockedByCode[code] = (summary.blockedByCode[code] ?? 0) + 1;

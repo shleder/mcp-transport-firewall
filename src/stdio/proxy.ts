@@ -407,6 +407,13 @@ export const createStdioFirewallProxy = (options: StdioFirewallOptions): StdioFi
     }
 
     const sanitizedError = sanitizeResponse(message.error);
+    if (!checkOomLimit(message.id, sanitizedError)) {
+      if (clientInputClosed && processingCount === 0 && pendingRequests.size === 0) {
+        void stop();
+      }
+      return;
+    }
+
     writeRpc({
       jsonrpc: '2.0',
       id: message.id,
