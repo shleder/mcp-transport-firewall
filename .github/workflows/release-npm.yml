@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*.*.*'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   release:
     name: Verify, Benchmark, And Publish
@@ -15,11 +18,11 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -72,7 +75,7 @@ jobs:
           NODE
 
       - name: Upload stdio benchmark evidence packet
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: stdio-evidence-benchmark
           path: evidence.json
@@ -88,15 +91,23 @@ jobs:
           EXPECTED_GIT_HEAD: ${{ github.sha }}
 
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: evidence.json
-          body: |
-            Release evidence:
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > release-notes.txt <<'EOF'
+          Release evidence:
 
-            - full verification suite passed
-            - stdio benchmark attached as `evidence.json`
-            - npm tarball smoke checks passed before publication
+          - full verification suite passed
+          - stdio benchmark attached as `evidence.json`
+          - npm tarball smoke checks passed before publication
+          EOF
+
+          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" evidence.json --repo "${GITHUB_REPOSITORY}" --clobber
+            gh release edit "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" --title "${GITHUB_REF_NAME}" --notes-file release-notes.txt
+          else
+            gh release create "${GITHUB_REF_NAME}" evidence.json --repo "${GITHUB_REPOSITORY}" --title "${GITHUB_REF_NAME}" --notes-file release-notes.txt
+          fi
 
       - name: Summarize published release identity
         run: |
