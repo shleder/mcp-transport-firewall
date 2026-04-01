@@ -1,7 +1,7 @@
 ## Proxy Setup
 
-Use this page when you want the firewall in front of a local read/search-shaped downstream MCP server.
-The primary fit is an individual Codex or Claude Code operator protecting a risky local MCP workflow.
+Use this page when you want the firewall in front of one local filesystem/search MCP workflow.
+The primary fit is a single user proving repo investigation or config review before rolling the pattern out any wider.
 
 Primary proof path:
 
@@ -28,6 +28,15 @@ What this proves:
 - the second identical `search_files` request is served from cache
 - the `fetch_url` exfiltration sample is denied before downstream execution
 - the missing-auth sample is denied at the transport boundary
+
+## 3-To-5 Minute Rollout
+
+1. run `npm run demo:stdio` and confirm the allow, cache, and deny lines above
+2. point `MCP_TARGET_COMMAND` and `MCP_TARGET_ARGS_JSON` at one local filesystem/search MCP server
+3. ask the agent for one safe search or read action in the real workflow
+4. confirm one risky request still fails closed before downstream execution
+
+If that four-step path is not clear yet, do not widen the scope to team rollout or secondary modes.
 
 After the proof:
 
@@ -67,7 +76,7 @@ Recommended client configuration:
 ```json
 {
   "mcpServers": {
-    "protected-local-tooling": {
+    "protected-filesystem-search": {
       "command": "npx",
       "args": ["-y", "mcp-transport-firewall"],
       "env": {
@@ -79,6 +88,8 @@ Recommended client configuration:
   }
 }
 ```
+
+This is the main package story. The Docker path and standalone bundled server are still supported, but they are secondary to the protected filesystem/search workflow.
 
 If you need a self-contained MCP server without a downstream target, standalone bundled mode is still available through `npx -y mcp-transport-firewall`.
 

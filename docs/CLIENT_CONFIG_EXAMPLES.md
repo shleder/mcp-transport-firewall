@@ -1,8 +1,8 @@
 ## Client Config Examples
 
-Use this page when wiring `mcp-transport-firewall` into a local MCP setup.
+Use this page when wiring `mcp-transport-firewall` into one local filesystem/search MCP workflow.
 The default path is the protected downstream proxy.
-The primary fit is an individual Codex or Claude Code user protecting a risky local MCP workflow.
+Start with one downstream server that mostly reads, lists, or searches local files.
 
 Supported entry points:
 
@@ -13,19 +13,19 @@ npm install -g mcp-transport-firewall
 
 Recommended order:
 
-1. protected downstream MCP server
+1. protected local filesystem/search MCP server
 2. protected local read/search demo
 3. standalone bundled MCP server
 4. direct terminal and CLI flow
 
-## Protected downstream MCP server
+## Start Here: protected local filesystem/search MCP server
 
-Use this when you already have an MCP server and want the firewall in front of it.
+Use this when you already have a local filesystem/search MCP server and want the firewall in front of it.
 
 ```json
 {
   "mcpServers": {
-    "protected-local-tooling": {
+    "protected-filesystem-search": {
       "command": "npx",
       "args": ["-y", "mcp-transport-firewall"],
       "env": {
@@ -47,9 +47,11 @@ Target input notes:
 
 If `PROXY_AUTH_TOKEN` is configured, client requests must carry `_meta.authorization` in the request body. See `scripts/stdio-demo.mjs` for a concrete Bearer envelope example.
 
+This is the flagship workflow for the package. Keep the first rollout narrow: one downstream server, one safe read/search proof, one blocked risky request.
+
 ## Protected local read/search demo
 
-Use this when you want the smallest reproducible protected workflow backed by a local read-only MCP server you control.
+Use this when you want the smallest reproducible proof before you point the proxy at a real local filesystem/search server.
 
 ```powershell
 $env:PROXY_AUTH_TOKEN = "12345678901234567890123456789012"
@@ -77,7 +79,7 @@ Example request shape:
 }
 ```
 
-This is a demo path for proof and regression testing, not a full filesystem MCP server.
+This is a demo path for proof and regression testing, not a full filesystem MCP server. Its job is to prove the transport boundary before you wire the real workflow.
 
 ## Standalone bundled MCP server
 
@@ -108,4 +110,4 @@ npx --yes mcp-transport-firewall
 npx --yes mcp-transport-firewall -- node C:/absolute/path/to/your-mcp-server.js
 ```
 
-If you want help adapting one of these examples to a real local MCP stack, use [Guided setup and audits](GUIDED_SETUP_AND_AUDITS.md).
+If you want help adapting the primary filesystem/search path to a real local MCP stack, use [Guided setup and audits](GUIDED_SETUP_AND_AUDITS.md).

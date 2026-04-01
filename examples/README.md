@@ -1,3 +1,7 @@
+# Examples
+
+Use this directory to prove the flagship workflow before wiring the package to a real local filesystem/search MCP server.
+
 - `demo-target.js`: reproducible downstream JSON-RPC target used for the README demo and regression coverage
 - `evidence-corpus.json`: benchmark corpus for regression and false-positive measurement
 
@@ -12,9 +16,11 @@ Related docs:
 
 Maintained package paths:
 
-1. primary path: protected downstream MCP server mode via `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS_JSON`
-2. demo path: protected local read/search workflow via `examples/demo-target.js`
+1. primary path: protected local filesystem/search MCP workflow via `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS_JSON`
+2. demo path: reproducible protected read/search proof via `examples/demo-target.js`
 3. secondary standalone path: bundled MCP mode via `npx -y mcp-transport-firewall`
+
+The demo target is intentionally small and reproducible. Prove the allow, cache, and deny behavior here first, then replace it with the real local filesystem/search server you want to protect.
 
 Repo-local demo path:
 
@@ -34,7 +40,7 @@ MCP client configuration path:
 ```json
 {
   "mcpServers": {
-    "protected-demo-target": {
+    "protected-filesystem-search": {
       "command": "npx",
       "args": ["-y", "mcp-transport-firewall"],
       "env": {
@@ -58,7 +64,7 @@ $env:MCP_TARGET_ARGS_JSON = "[\"C:/absolute/path/to/examples/demo-target.js\"]"
 npx --yes mcp-transport-firewall
 ```
 
-This uses a reproducible demo target for proof and regression coverage. It is not a full filesystem MCP server.
+This uses a reproducible demo target for proof and regression coverage. It is not a full filesystem MCP server, but it mirrors the search/read-shaped traffic the flagship workflow depends on.
 
 Use the GitHub fallback only when you intentionally want repository HEAD instead of the npm package:
 

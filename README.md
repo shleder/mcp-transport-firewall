@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Fail-closed proxy for risky local MCP file/search tool calls.</strong>
+  <strong>Fail-closed proxy for local filesystem/search MCP workflows.</strong>
 </p>
 
 <p align="center">
@@ -13,16 +13,16 @@
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-0f172a?style=for-the-badge" /></a>
 </p>
 
-`mcp-transport-firewall` sits between a coding-agent client and a local downstream MCP server. It inspects `tools/call` over `stdio`, lets read/search-shaped requests continue, and blocks risky exfiltration, path, and shell-style patterns before they reach the target.
+`mcp-transport-firewall` sits between a coding-agent client and a local downstream MCP server. The primary fit is one local filesystem/search workflow: let read, list, and search requests continue, but block risky exfiltration, path, and shell-style patterns before they reach downstream execution.
 
 ## Best For
 
-- individual Codex and Claude Code users who already run local MCP servers
-- local MCP-enabled coding workflows that should not run high-risk calls blindly
+- one local filesystem/search MCP server that a coding agent already uses
+- repo investigation, config review, and read-only local search workflows
 - file, read, list, and search-oriented downstream MCP servers
-- teams that want a fail-closed transport control before downstream execution
+- teams that want to prove one safe local workflow before wider rollout
 
-## 60-Second Proof
+## 3-Minute Proof
 
 ```bash
 npm install
@@ -50,6 +50,18 @@ block: missing auth denied with code=AUTH_FAILURE
 
 See [docs/DEMO_RUN_TRANSCRIPT.md](docs/DEMO_RUN_TRANSCRIPT.md) for the example transcript.
 
+## Flagship Workflow
+
+Start with one protected local filesystem/search MCP server for repo investigation.
+
+Typical shape:
+
+1. the agent uses a local MCP server for `search_files`, reads, and listing
+2. the firewall sits on the stdio path in front of that server
+3. safe search/read traffic continues, while risky fetch, path, or shell-shaped requests fail closed
+
+This is the shortest path from install to trust because the proof is visible in one run and maps cleanly to a real coding workflow.
+
 ## Install In Your MCP Client
 
 Protected downstream proxy mode is the primary integration path.
@@ -57,7 +69,7 @@ Protected downstream proxy mode is the primary integration path.
 ```json
 {
   "mcpServers": {
-    "protected-local-tooling": {
+    "protected-filesystem-search": {
       "command": "npx",
       "args": ["-y", "mcp-transport-firewall"],
       "env": {
@@ -72,19 +84,11 @@ Protected downstream proxy mode is the primary integration path.
 
 Use `PROXY_AUTH_TOKEN` for fail-closed auth, and `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS_JSON` as the default downstream target input. See [docs/CLIENT_CONFIG_EXAMPLES.md](docs/CLIENT_CONFIG_EXAMPLES.md) for client examples.
 
-## Need Help Hardening A Local MCP Workflow?
+## Real Workflows
 
-Use the guided setup path when you want practical help instead of a generic feature request.
-
-- guided setup for a Codex or Claude Code local MCP stack
-- workflow hardening audit for risky file, search, fetch, or execute paths
-- trust-gate tuning for a specific downstream MCP server
-
-Start here:
-
-- read the operator guide: [docs/WORKFLOW_HARDENING.md](docs/WORKFLOW_HARDENING.md)
-- open a guided setup request: [guided setup request](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
-- use the scoped intake and early-operator offer details: [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md)
+- solo repo investigation: put the firewall in front of a local filesystem/search MCP server and let the agent trace `TODO`, `auth`, `token`, `migration`, or ownership across a repo without letting a risky pivot reach downstream
+- local config and security review: let the agent search `.github/`, `Dockerfile`, `package.json`, `docs/`, and `src/`, while the transport layer blocks exfiltration-shaped or shell-style requests before execution
+- small-team rollout: prove the single-user filesystem/search path first, then reuse the same trust defaults for a shared local workflow
 
 ## What This Is Not
 
@@ -105,7 +109,7 @@ See [docs/LIMITS_AND_NON_GOALS.md](docs/LIMITS_AND_NON_GOALS.md) for the explici
 
 The primary inspected surface is JSON-RPC `tools/call` over `stdio`. Blocked requests fail closed and are not forwarded to the downstream target.
 
-## Additional Modes
+## Secondary Modes
 
 ### Standalone Bundled MCP Server
 
@@ -156,27 +160,36 @@ npm install -g mcp-transport-firewall
 The recommended order is:
 
 1. prove the boundary locally with `npm run demo:stdio`
-2. integrate protected downstream proxy mode in your MCP client
-3. use standalone bundled mode only when you explicitly want embedded status tools instead of a downstream target
+2. point the proxy at one local filesystem/search MCP server
+3. verify one safe request and one blocked request in the real workflow
+4. use standalone bundled mode only when you explicitly want embedded status tools instead of a downstream target
 
 ## Docs
 
-- client setups: [docs/CLIENT_CONFIG_EXAMPLES.md](docs/CLIENT_CONFIG_EXAMPLES.md)
 - proxy setup: [docs/PROXY_SETUP.md](docs/PROXY_SETUP.md)
+- client setups: [docs/CLIENT_CONFIG_EXAMPLES.md](docs/CLIENT_CONFIG_EXAMPLES.md)
+- demo transcript: [docs/DEMO_RUN_TRANSCRIPT.md](docs/DEMO_RUN_TRANSCRIPT.md)
+- workflow hardening guide: [docs/WORKFLOW_HARDENING.md](docs/WORKFLOW_HARDENING.md)
 - runtime contract: [docs/RUNTIME_CONTRACT.md](docs/RUNTIME_CONTRACT.md)
 - limits and non-goals: [docs/LIMITS_AND_NON_GOALS.md](docs/LIMITS_AND_NON_GOALS.md)
 - risk model: [docs/RISK_MODEL.md](docs/RISK_MODEL.md)
 - verification guide: [docs/VERIFICATION_GUIDE.md](docs/VERIFICATION_GUIDE.md)
 - evidence bundle: [docs/EVIDENCE_BUNDLE.md](docs/EVIDENCE_BUNDLE.md)
 - ship checklist: [docs/SHIP_CHECKLIST.md](docs/SHIP_CHECKLIST.md)
-- workflow hardening guide: [docs/WORKFLOW_HARDENING.md](docs/WORKFLOW_HARDENING.md)
 - guided setup and audits: [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md)
+
+## Support Intake
+
+Use the guided setup path only when the protected workflow is already clear and you need help wiring or tuning it.
+
+- read the workflow guide: [docs/WORKFLOW_HARDENING.md](docs/WORKFLOW_HARDENING.md)
+- open a sanitized intake issue: [guided setup request](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
+- use the scoped setup notes only when you need them: [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md)
 
 Reference docs:
 
 - benchmark guide: [docs/STDIO_BENCHMARK_GUIDE.md](docs/STDIO_BENCHMARK_GUIDE.md)
 - benchmark snapshot: [docs/STDIO_BENCHMARK_SNAPSHOT.json](docs/STDIO_BENCHMARK_SNAPSHOT.json)
-- demo transcript: [docs/DEMO_RUN_TRANSCRIPT.md](docs/DEMO_RUN_TRANSCRIPT.md)
 - architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - risk summary: [docs/RISK_SUMMARY.md](docs/RISK_SUMMARY.md)
 - assurance packet: [docs/ASSURANCE_PACKET.md](docs/ASSURANCE_PACKET.md)
