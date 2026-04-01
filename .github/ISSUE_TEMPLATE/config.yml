@@ -1,14 +1,14 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Guided setup request
+  - name: Workflow intake
     url: https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml
-    about: Ask for help protecting a real Codex or Claude Code MCP workflow.
+    about: Open a narrow public intake for one protected local MCP workflow.
   - name: Security reporting policy
     url: https://github.com/shleder/mcp-transport-firewall/blob/main/SECURITY.md
     about: Follow the security policy for sensitive findings instead of posting exploit details publicly.
-  - name: Guided setup and audits
+  - name: Workflow intake notes
     url: https://github.com/shleder/mcp-transport-firewall/blob/main/docs/GUIDED_SETUP_AND_AUDITS.md
-    about: Use the guided setup path if you want help hardening a real Codex or Claude Code local MCP workflow.
+    about: Read the intake boundaries and when private follow-up is appropriate.
   - name: Workflow hardening guide
     url: https://github.com/shleder/mcp-transport-firewall/blob/main/docs/WORKFLOW_HARDENING.md
-    about: Start with the operator guide for risky local MCP calls, auth gaps, and fail-closed rollout.
+    about: Start with the rollout guide for risky local MCP calls, auth gaps, and fail-closed rollout.

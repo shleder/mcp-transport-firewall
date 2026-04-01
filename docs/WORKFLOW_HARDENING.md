@@ -1,12 +1,12 @@
 ## Workflow Hardening Guide
 
-Use this page when the package itself is clear but the real operator question is practical:
+Use this page when the package itself is clear but the real workflow question is practical:
 
-- how do I put this in front of a live Codex or Claude Code MCP workflow?
+- how do I put this in front of a live local MCP workflow?
 - what risky local MCP calls should I guard first?
 - how do I roll this out without opening a bigger hole than I close?
 
-This guide stays narrow on purpose. The best current fit is a local MCP operator who already has a downstream tool server and wants a fail-closed control before risky local execution.
+This guide stays narrow on purpose. The best current fit is a local MCP user who already has a downstream tool server and wants a fail-closed control before risky local execution.
 
 ## Start With One Protected Workflow
 
@@ -22,9 +22,9 @@ Recommended order:
 
 If you cannot explain which single workflow you want to protect first, stop and narrow scope before adding more trust gates or more tool surface.
 
-## The Operator Pain This Is Built For
+## The Workflow Problems This Is Built For
 
-The early user is not looking for generic security language. The early user usually has one of these problems:
+The early user is not looking for generic security language. The usual starting point is one of these workflow problems:
 
 - a local MCP server can read or search more than it should, and the client will call it too easily
 - a risky fetch, path, or shell-shaped payload can reach a downstream target before anyone notices
@@ -72,19 +72,15 @@ Why this comes second:
 
 If any of those are missing, treat the rollout as incomplete.
 
-## When To Ask For Guided Setup
+## When To Use Workflow Intake
 
-Use the guided setup path when:
+Use the workflow intake path when:
 
 - you can run the demo locally but the real client wiring still feels brittle
 - you are not sure which trust gate is blocking a real workflow
 - you want a workflow hardening review before putting the setup in front of a wider team
 - you need custom trust-gate tuning for a downstream server with a non-obvious tool contract
 
-Open a request here:
+Open the intake here:
 
-- [guided setup request](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
-
-Early operator note:
-
-- the first 10 guided setup requests can ask for a short workflow review in exchange for tight feedback, a short quote, or a reproducible user story
+- [workflow intake](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)

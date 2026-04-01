@@ -1,12 +1,12 @@
-name: Guided setup request
-description: Request guided help for a protected local MCP workflow, hardening review, or trust-gate tuning.
-title: "[guided-setup] "
+name: Workflow intake
+description: Request help for one protected local MCP workflow, a hardening review, or trust-gate diagnosis.
+title: "[workflow-intake] "
 body:
   - type: input
     id: client
     attributes:
-      label: MCP client
-      description: Codex, Claude Code, or another MCP-enabled client.
+      label: MCP client or host tool
+      description: Codex, Claude Code, or another tool that is driving the MCP workflow.
       placeholder: Codex
     validations:
       required: true
@@ -28,35 +28,24 @@ body:
   - type: textarea
     id: help_needed
     attributes:
-      label: Help needed
-      description: Setup walkthrough, hardening audit, trust-gate tuning, or something else concrete.
+      label: Intake goal
+      description: Setup walkthrough, hardening review, trust-gate diagnosis, or another concrete need.
     validations:
       required: true
   - type: textarea
     id: sanitized_context
     attributes:
-      label: Sanitized context
+      label: Sanitized evidence
       description: Share only sanitized commands, configs, logs, or screenshots. Do not include secrets.
     validations:
       required: true
   - type: dropdown
     id: follow_up
     attributes:
-      label: Private follow-up needed
+      label: Private follow-up required
       description: Choose yes if the real details cannot be shared publicly after sanitization.
       options:
         - no
         - yes
-    validations:
-      required: true
-  - type: dropdown
-    id: feedback
-    attributes:
-      label: Willing to share feedback
-      description: Early operator requests are strongest when they can produce usage notes, a quote, or a case study.
-      options:
-        - yes
-        - maybe
-        - no
     validations:
       required: true

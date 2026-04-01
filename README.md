@@ -72,19 +72,15 @@ Protected downstream proxy mode is the primary integration path.
 
 Use `PROXY_AUTH_TOKEN` for fail-closed auth, and `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS_JSON` as the default downstream target input. See [docs/CLIENT_CONFIG_EXAMPLES.md](docs/CLIENT_CONFIG_EXAMPLES.md) for client examples.
 
-## Need Help Hardening A Local MCP Workflow?
+## Support Intake
 
-Use the guided setup path when you want practical help instead of a generic feature request.
-
-- guided setup for a Codex or Claude Code local MCP stack
-- workflow hardening audit for risky file, search, fetch, or execute paths
-- trust-gate tuning for a specific downstream MCP server
+Use the support path only when the protected workflow is already clear and you need help wiring, narrowing, or debugging it.
 
 Start here:
 
-- read the operator guide: [docs/WORKFLOW_HARDENING.md](docs/WORKFLOW_HARDENING.md)
-- open a guided setup request: [guided setup request](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
-- use the scoped intake and early-operator offer details: [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md)
+- read the workflow guide: [docs/WORKFLOW_HARDENING.md](docs/WORKFLOW_HARDENING.md)
+- open a sanitized workflow intake issue: [workflow intake](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
+- use the scoped intake notes when the public issue needs more context: [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md)
 
 ## What This Is Not
 
@@ -170,7 +166,7 @@ The recommended order is:
 - evidence bundle: [docs/EVIDENCE_BUNDLE.md](docs/EVIDENCE_BUNDLE.md)
 - ship checklist: [docs/SHIP_CHECKLIST.md](docs/SHIP_CHECKLIST.md)
 - workflow hardening guide: [docs/WORKFLOW_HARDENING.md](docs/WORKFLOW_HARDENING.md)
-- guided setup and audits: [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md)
+- workflow intake notes: [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md)
 
 Reference docs:
 
