@@ -55,12 +55,12 @@ Why this matters:
 
 ### 3. Shared Local Tooling For A Small Team
 
-Best when several operators reuse one local MCP setup and want the same trust defaults.
+Best when several users reuse one local MCP setup and want the same trust defaults.
 
 Why this comes second:
 
 - team rollout is more valuable after a single-user path is already proven
-- it is easier to tune trust gates when one operator workflow is already stable
+- it is easier to tune trust gates when one user workflow is already stable
 
 ## What To Check Before You Trust The Rollout
 
@@ -78,7 +78,7 @@ Use the workflow intake path when:
 
 - you can run the demo locally but the real client wiring still feels brittle
 - you are not sure which trust gate is blocking a real workflow
-- you want a workflow hardening review before putting the setup in front of a wider team
+- you want a workflow hardening diagnosis before putting the setup in front of a wider team
 - you need custom trust-gate tuning for a downstream server with a non-obvious tool contract
 
 Open the intake here:

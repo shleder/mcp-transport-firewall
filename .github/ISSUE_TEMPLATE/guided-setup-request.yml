@@ -29,7 +29,7 @@ body:
     id: help_needed
     attributes:
       label: Intake goal
-      description: Setup walkthrough, hardening review, trust-gate diagnosis, or another concrete need.
+      description: Blocked integration, trust-gate diagnosis, rollout question, or another concrete need.
     validations:
       required: true
   - type: textarea

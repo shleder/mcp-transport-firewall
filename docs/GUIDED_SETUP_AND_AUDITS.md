@@ -11,7 +11,7 @@ Best fit:
 What this repository can help with:
 
 - narrow setup help for one local MCP stack
-- workflow hardening review for one real downstream MCP server
+- workflow hardening diagnosis for one real downstream MCP server
 - trust-gate diagnosis for a specific read, search, fetch, or high-trust action path
 
 How to request help:
@@ -32,12 +32,11 @@ What to include in a useful request:
 - Node.js version
 - exact command or config shape you want to protect
 - current failure mode, risk, or engineering concern
-- whether you want a proof path, a setup walkthrough, or a hardening review
+- whether you want a proof path, blocked-integration diagnosis, or trust-gate diagnosis
 
 What this is not:
 
 - not a vulnerability disclosure path; use `SECURITY.md` for security findings
-- not a managed control plane or hosted enterprise onboarding flow
-- not a public workflow-review program
-- not open-ended consulting intake
+- not a hosted control plane
+- not a broad intake path for unrelated workflows
 - not a promise that every custom setup request will be accepted

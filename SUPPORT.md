@@ -27,6 +27,6 @@ Workflow intake policy:
 Direct request paths:
 
 - issue chooser: [github.com/shleder/mcp-transport-firewall/issues/new/choose](https://github.com/shleder/mcp-transport-firewall/issues/new/choose)
-- workflow intake issue: [guided-setup-request.yml](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
+- workflow intake issue: [workflow intake](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
 
 The fastest path to triage is still a narrow repro with exact inputs and observed output.

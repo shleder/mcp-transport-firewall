@@ -108,4 +108,4 @@ npx --yes mcp-transport-firewall
 npx --yes mcp-transport-firewall -- node C:/absolute/path/to/your-mcp-server.js
 ```
 
-If you want help adapting one of these examples to a real local MCP stack, use [Guided setup and audits](GUIDED_SETUP_AND_AUDITS.md).
+If you want help adapting one of these examples to a real local MCP stack, use [workflow intake notes](GUIDED_SETUP_AND_AUDITS.md).
