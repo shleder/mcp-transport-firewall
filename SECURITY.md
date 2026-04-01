@@ -25,4 +25,4 @@ Include:
 Please avoid live credentials, private datasets, or third-party secrets in reports.
 Fixes are expected on `main` and, when practical, on the latest supported tagged line.
 
-If you need guided setup or workflow hardening help rather than reporting a vulnerability, use [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md) instead of `SECURITY.md`.
+If you need setup help or a workflow review rather than reporting a vulnerability, use [docs/GUIDED_SETUP_AND_AUDITS.md](docs/GUIDED_SETUP_AND_AUDITS.md) instead of `SECURITY.md`.

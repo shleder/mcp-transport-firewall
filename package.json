@@ -32,9 +32,8 @@
   "keywords": [
     "mcp",
     "model-context-protocol",
-    "codex",
-    "claude-code",
     "local-mcp",
+    "mcp-client",
     "security",
     "firewall",
     "stdio",

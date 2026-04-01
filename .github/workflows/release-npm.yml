@@ -1,4 +1,4 @@
-name: Release npm Package
+name: Publish npm Release
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
 
 jobs:
   release:
-    name: Verify, Benchmark, And Publish
+    name: Verify, Publish, And Record Release
     runs-on: ubuntu-latest
 
     permissions:
@@ -77,7 +77,7 @@ jobs:
       - name: Upload stdio benchmark evidence packet
         uses: actions/upload-artifact@v7
         with:
-          name: stdio-evidence-benchmark
+          name: stdio-benchmark-evidence
           path: evidence.json
 
       - name: Publish to npm

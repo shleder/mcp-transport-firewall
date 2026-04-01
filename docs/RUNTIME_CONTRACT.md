@@ -1,6 +1,6 @@
 ## Runtime Contract
 
-This page describes the expected runtime behavior of `mcp-transport-firewall` for local operators and downstream MCP setups.
+This page describes the expected runtime behavior of `mcp-transport-firewall` for local users and downstream MCP setups.
 
 Supported entry points:
 

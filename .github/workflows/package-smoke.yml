@@ -1,4 +1,4 @@
-name: Package Smoke
+name: Package Verification
 
 on:
   push:
@@ -9,16 +9,16 @@ on:
 
 jobs:
   package-smoke:
-    name: Build And Smoke Test npm Tarball
+    name: Build And Verify npm Package
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'

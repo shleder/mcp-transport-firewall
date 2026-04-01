@@ -1,4 +1,4 @@
-name: CI/CD
+name: Project Verification
 
 on:
   push:
@@ -13,7 +13,7 @@ env:
 
 jobs:
   quality:
-    name: Type Check, Test, Build & Evidence
+    name: Verify Source, Package, And Evidence
     runs-on: ubuntu-latest
 
     permissions:
@@ -66,11 +66,11 @@ jobs:
       - name: Upload stdio benchmark evidence packet
         uses: actions/upload-artifact@v7
         with:
-          name: stdio-evidence-benchmark
+          name: stdio-benchmark-evidence
           path: evidence.json
 
   docker:
-    name: Build & Push Docker Image
+    name: Publish Container Image
     needs: quality
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

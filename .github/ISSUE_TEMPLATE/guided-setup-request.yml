@@ -1,13 +1,13 @@
-name: Guided setup request
-description: Request guided help for a protected local MCP workflow, hardening review, or trust-gate tuning.
-title: "[guided-setup] "
+name: Setup request
+description: Request help for a protected local MCP workflow, setup review, or policy tuning.
+title: "[setup] "
 body:
   - type: input
     id: client
     attributes:
       label: MCP client
-      description: Codex, Claude Code, or another MCP-enabled client.
-      placeholder: Codex
+      description: Which MCP client or integration are you using?
+      placeholder: Desktop MCP client
     validations:
       required: true
   - type: input
@@ -29,7 +29,7 @@ body:
     id: help_needed
     attributes:
       label: Help needed
-      description: Setup walkthrough, hardening audit, trust-gate tuning, or something else concrete.
+      description: Setup walkthrough, workflow review, policy tuning, or something else concrete.
     validations:
       required: true
   - type: textarea
@@ -52,8 +52,8 @@ body:
   - type: dropdown
     id: feedback
     attributes:
-      label: Willing to share feedback
-      description: Early operator requests are strongest when they can produce usage notes, a quote, or a case study.
+      label: Can you share follow-up results
+      description: Only if you are comfortable sharing a short note about what worked or what failed.
       options:
         - yes
         - maybe

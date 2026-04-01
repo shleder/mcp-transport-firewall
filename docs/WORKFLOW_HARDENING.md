@@ -1,12 +1,12 @@
 ## Workflow Hardening Guide
 
-Use this page when the package itself is clear but the real operator question is practical:
+Use this page when the package itself is clear but the real workflow question is practical:
 
-- how do I put this in front of a live Codex or Claude Code MCP workflow?
+- how do I put this in front of a live local MCP workflow?
 - what risky local MCP calls should I guard first?
 - how do I roll this out without opening a bigger hole than I close?
 
-This guide stays narrow on purpose. The best current fit is a local MCP operator who already has a downstream tool server and wants a fail-closed control before risky local execution.
+This guide stays narrow on purpose. The best current fit is someone who already has a downstream tool server and wants a fail-closed control before risky local execution.
 
 ## Start With One Protected Workflow
 
@@ -22,9 +22,9 @@ Recommended order:
 
 If you cannot explain which single workflow you want to protect first, stop and narrow scope before adding more trust gates or more tool surface.
 
-## The Operator Pain This Is Built For
+## Common Reasons People Use This
 
-The early user is not looking for generic security language. The early user usually has one of these problems:
+Most real setups start with one of these problems:
 
 - a local MCP server can read or search more than it should, and the client will call it too easily
 - a risky fetch, path, or shell-shaped payload can reach a downstream target before anyone notices
@@ -55,12 +55,12 @@ Why this matters:
 
 ### 3. Shared Local Tooling For A Small Team
 
-Best when several operators reuse one local MCP setup and want the same trust defaults.
+Best when several people reuse one local MCP setup and want the same trust defaults.
 
 Why this comes second:
 
 - team rollout is more valuable after a single-user path is already proven
-- it is easier to tune trust gates when one operator workflow is already stable
+- it is easier to tune trust gates when one workflow is already stable
 
 ## What To Check Before You Trust The Rollout
 
@@ -72,9 +72,9 @@ Why this comes second:
 
 If any of those are missing, treat the rollout as incomplete.
 
-## When To Ask For Guided Setup
+## When To Ask For Help
 
-Use the guided setup path when:
+Use the setup request path when:
 
 - you can run the demo locally but the real client wiring still feels brittle
 - you are not sure which trust gate is blocking a real workflow
@@ -83,8 +83,4 @@ Use the guided setup path when:
 
 Open a request here:
 
-- [guided setup request](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
-
-Early operator note:
-
-- the first 10 guided setup requests can ask for a short workflow review in exchange for tight feedback, a short quote, or a reproducible user story
+- [setup request](https://github.com/shleder/mcp-transport-firewall/issues/new?template=guided-setup-request.yml)
