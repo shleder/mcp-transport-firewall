@@ -22,6 +22,6 @@ body:
     id: evidence
     attributes:
       label: Why this matters
-      description: User, operator, maintainer, or developer impact.
+      description: User, team, maintainer, or developer impact.
     validations:
       required: true

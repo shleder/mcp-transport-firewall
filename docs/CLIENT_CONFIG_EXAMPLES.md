@@ -2,7 +2,7 @@
 
 Use this page when wiring `mcp-transport-firewall` into a local MCP setup.
 The default path is the protected downstream proxy.
-The primary fit is an individual Codex or Claude Code user protecting a risky local MCP workflow.
+The primary fit is a local MCP client protecting a risky local MCP workflow.
 
 Supported entry points:
 
@@ -108,4 +108,4 @@ npx --yes mcp-transport-firewall
 npx --yes mcp-transport-firewall -- node C:/absolute/path/to/your-mcp-server.js
 ```
 
-If you want help adapting one of these examples to a real local MCP stack, use [Guided setup and audits](GUIDED_SETUP_AND_AUDITS.md).
+If you want help adapting one of these examples to a real local MCP stack, use [Setup notes](GUIDED_SETUP_AND_AUDITS.md).

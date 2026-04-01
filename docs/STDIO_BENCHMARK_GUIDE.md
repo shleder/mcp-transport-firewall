@@ -1,6 +1,6 @@
 ## Stdio Benchmark Guide
 
-This repository includes a repeatable stdio benchmark for operators and maintainers.
+This repository includes a repeatable stdio benchmark for users and maintainers.
 It measures `false positives`, `false negatives`, and cache behavior at the transport boundary.
 
 The benchmark covers:
