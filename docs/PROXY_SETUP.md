@@ -1,7 +1,9 @@
 ## Proxy Setup
 
+`Toolwall` is the display name on the repo surface. The installable package and CLI entrypoint stay `mcp-transport-firewall`.
+
 Use this page when you want the firewall in front of a local read/search-shaped downstream MCP server.
-The primary fit is an individual Codex or Claude Code operator protecting a risky local MCP workflow.
+The main fit is one protected local filesystem/search workflow over `stdio`.
 
 ## Canonical install path
 
@@ -81,5 +83,3 @@ curl http://localhost:9090/metrics
 The Docker path is useful for observability and packaging validation. The stdio path stays the main proof of transport-boundary enforcement.
 
 If you need the packaged status tools without configuring another downstream target, `npx -y mcp-transport-firewall` falls back to the bundled `--embedded-target` path behind the same stdio boundary.
-
-If you want help getting from the demo path to a real protected workflow, use [Guided setup and audits](GUIDED_SETUP_AND_AUDITS.md).

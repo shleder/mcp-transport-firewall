@@ -1,8 +1,10 @@
 ## Client Config Examples
 
+`Toolwall` is the display name on the repo surface. The package and CLI name stay `mcp-transport-firewall`.
+
 Use this page when wiring `mcp-transport-firewall` into a local MCP setup.
 The default path is the protected downstream proxy for one local filesystem/search-style workflow.
-The primary fit is an individual Codex or Claude Code user protecting a risky local MCP workflow.
+The main fit is one protected local filesystem/search workflow over `stdio`.
 
 ## Canonical protected downstream config
 
@@ -101,5 +103,3 @@ npx --yes mcp-transport-firewall --help
 npx --yes mcp-transport-firewall
 npx --yes mcp-transport-firewall -- node C:/absolute/path/to/your-mcp-server.js
 ```
-
-If you want help adapting one of these examples to a real local MCP stack, use [Guided setup and audits](GUIDED_SETUP_AND_AUDITS.md).
