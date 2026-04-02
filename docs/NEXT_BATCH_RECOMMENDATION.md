@@ -4,7 +4,7 @@ Updated: 2026-04-02
 
 ## Chosen Batch
 
-Name: `future push/PR readiness from the converged local stack`
+Name: `publication review from the converged local stack`
 
 ## Why This Is The Best ROI
 
@@ -19,13 +19,13 @@ Name: `future push/PR readiness from the converged local stack`
   - durable operator state for secondary surfaces
   - expanded flagship schema coverage
   - short-chunk ShadowLeak hardening
-- after the current convergence refresh, the remaining risk is publication sequencing and truth maintenance, not another missing runtime capability
+- after the current convergence refresh and first-read Toolwall cleanup, the remaining risk is publication sequencing and truth maintenance, not another missing runtime capability
 - another isolated hardening or docs-only packet would mostly re-fragment a branch that is now close to one reviewable boundary
-- the next meaningful `2.2.6` discussion should start from a future push/PR boundary around this stack, not from mixed local and draft surfaces
+- the next meaningful `2.2.6` discussion should start from external review on this exact branch boundary, not from mixed local and draft surfaces
 
 ## Recommended Scope For The Next Phase
 
-- open a future push/PR phase around `project/tests-first-quality` or a direct descendant
+- publish `project/tests-first-quality` itself for external review
 - keep README, runtime docs, and proof docs centered on one local filesystem/search stdio workflow
 - keep `Toolwall` as display/planning only until a later deliberate display-copy batch
 - carry over only non-renaming workflow hygiene if it clearly improves coherence more than churn
@@ -49,7 +49,7 @@ Name: `future push/PR readiness from the converged local stack`
 ### 1. broader display-name rollout
 
 - `Toolwall` is still a planning/display boundary, not a technical identity migration
-- broader naming rollout before branch convergence would add churn faster than clarity
+- broader naming rollout before publication review would add churn faster than clarity
 
 ### 2. monetization or audience-growth work
 

@@ -29,7 +29,7 @@ These PRs are public on GitHub, but they are not merged and they do not change t
 ## local-only
 
 - checked-out branch: `project/tests-first-quality`
-- the current checked-out tip is local-only and unpublished; re-read `git log --oneline --decorate -n 20` for the exact hash
+- the current checked-out tip is local-only and unpublished; re-read `git log --oneline --decorate -n 30` for the exact hash
 - re-read `git status --short --branch` for the exact ahead count on the current tip
 - the intended local release-candidate boundary should keep a clean working tree
 - current local-only stack already includes:
@@ -43,6 +43,8 @@ These PRs are public on GitHub, but they are not merged and they do not change t
   - durable operator state for secondary surfaces
   - expanded flagship schema coverage
   - short-chunk ShadowLeak hardening
+  - release-boundary convergence
+  - first-read Toolwall cleanup for external review prep
 - current local-only packets already include these recent unpublished commits:
   - `1d194f2 test(packaging): Lock packaged install contract`
   - `6d530b6 docs(grounding): reconcile local architecture and current state`
@@ -54,6 +56,8 @@ These PRs are public on GitHub, but they are not merged and they do not change t
   - `672bf38 feat(state): Persist secondary-surface route registry`
   - `1c05fbd feat(schema): Expand flagship tool contract coverage`
   - `d71a736 feat(egress): Harden short-chunk ShadowLeak detection`
+  - `dbb35d5 docs(release): Converge local stack for future release boundary`
+  - `fa26c69 docs(readme): Clean first-read surface and remove logo`
 - separate unpublished local branch: `project/naming-and-ci-discipline` at `ebbdd73`
 
 ## convergence status
@@ -66,6 +70,7 @@ These PRs are public on GitHub, but they are not merged and they do not change t
 - the secondary HTTP/admin route registry is now restart-durable without broadening the flagship stdio story
 - strict schema coverage expanded only for common safe filesystem sibling tools
 - ShadowLeak detection now blocks repeated short query chunks under one key without widening the safe search/read path
+- the README and first-read repo surface now present `Toolwall` as the display name while keeping `mcp-transport-firewall` as the technical package/install identity
 
 ### still fragmented or intentionally separate
 
@@ -75,7 +80,7 @@ These PRs are public on GitHub, but they are not merged and they do not change t
 
 ### blockers before a meaningful future `2.2.6` discussion
 
-- decide the future push/PR boundary for this current local-only stack
+- use the current checked-out branch as one explicit push/PR review boundary instead of reopening scope with another implementation packet
 - keep `public/current` and `local-only` state explicitly separate in repo and handoff docs
 - either port only the non-renaming workflow hygiene worth carrying forward now, or explicitly defer the rest of the naming branch
 - do not claim exact `2.2.6` contents until that future review boundary exists
@@ -84,7 +89,7 @@ These PRs are public on GitHub, but they are not merged and they do not change t
 
 - `git status --short --branch`
 - `git branch --show-current`
-- `git log --oneline --decorate -n 20`
+- `git log --oneline --decorate -n 30`
 - `npm test`
 - `npm run demo:stdio`
 - `npm run pack:smoke`
