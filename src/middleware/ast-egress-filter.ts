@@ -37,6 +37,10 @@ const EPISTEMIC_CONTRADICTION_PATTERNS: RegExp[] = [
 ];
 
 const SINGLE_CHAR_QUERY_THRESHOLD = 3;
+const REPEATED_SHORT_QUERY_THRESHOLD = 4;
+const SHORT_QUERY_CHUNK_MIN_LENGTH = 2;
+const SHORT_QUERY_CHUNK_MAX_LENGTH = 4;
+const SHORT_QUERY_CHUNK_PATTERN = /^[A-Za-z0-9+/_=-]+$/;
 
 const extractAllStringValues = (obj: unknown, results: string[] = []): string[] => {
   if (typeof obj === 'string') {
@@ -62,14 +66,32 @@ const detectShadowLeak = (value: string): boolean => {
     const url = new URL(value);
     const params = url.searchParams;
     let singleCharCount = 0;
+    const repeatedShortChunkCount = new Map<string, number>();
 
-    for (const [, paramValue] of params) {
+    for (const [paramName, paramValue] of params) {
       if (paramValue.length === 1) {
         singleCharCount++;
       }
+
+      const isShortChunk = paramValue.length >= SHORT_QUERY_CHUNK_MIN_LENGTH &&
+        paramValue.length <= SHORT_QUERY_CHUNK_MAX_LENGTH &&
+        SHORT_QUERY_CHUNK_PATTERN.test(paramValue);
+      if (isShortChunk) {
+        repeatedShortChunkCount.set(paramName, (repeatedShortChunkCount.get(paramName) ?? 0) + 1);
+      }
     }
 
-    return singleCharCount >= SINGLE_CHAR_QUERY_THRESHOLD;
+    if (singleCharCount >= SINGLE_CHAR_QUERY_THRESHOLD) {
+      return true;
+    }
+
+    for (const chunkCount of repeatedShortChunkCount.values()) {
+      if (chunkCount >= REPEATED_SHORT_QUERY_THRESHOLD) {
+        return true;
+      }
+    }
+
+    return false;
   } catch {
     return false;
   }
@@ -117,7 +139,7 @@ export const validateAstEgress = async (
     for (const value of allValues) {
       if (detectShadowLeak(value)) {
         const ex = new EpistemicSecurityException(
-          'Egress violation: character-by-character exfiltration pattern detected in URL parameters.',
+          'Egress violation: dense short-chunk exfiltration pattern detected in URL parameters.',
           'SHADOWLEAK_DETECTED'
         );
         auditLogWithSIEM('FIREWALL_BLOCK', {

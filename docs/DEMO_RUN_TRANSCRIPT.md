@@ -1,8 +1,10 @@
 ## Demo Run Transcript
 
-Command:
+Proof path:
 
 ```powershell
+npm install
+npm run build
 npm run demo:stdio
 ```
 

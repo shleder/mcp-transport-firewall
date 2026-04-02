@@ -38,7 +38,7 @@ This includes indirect prompt-injection traffic only to the extent that it appea
 | `nhi-auth-validator` | Is the caller carrying the expected shared secret and declared scopes? | deny request |
 | `scope-validator` | Is the requested tool inside the declared scope set? | deny request |
 | `color-boundary` | Does the request mix incompatible trust domains or flip an established session color? | deny request |
-| `preflight-validator` | Does a high-trust (`blue`) action carry a valid one-time preflight ID? | deny request |
+| `preflight-validator` | Does an explicit or default high-trust action carry a valid one-time preflight ID? | deny request |
 | `schema-validator` | Do registered tool arguments match a strict contract? | deny request |
 | `ast-egress-filter` | Do request strings match exfiltration, sensitive-path, shell-injection, or epistemic-risk markers? | deny request |
 
@@ -51,7 +51,7 @@ All gates fail closed. If validation cannot be completed, the request is rejecte
 | mixed trust domains / cross-tool hijack | `color-boundary` | `tests/color-boundary.test.ts` |
 | missing or replayed approval for high-trust actions | `preflight-validator` | `tests/preflight-validator.test.ts` |
 | undeclared or schema-smuggled arguments | `schema-validator` | `tests/schema-validator.test.ts` |
-| ShadowLeak-style URL exfiltration | `ast-egress-filter` | `tests/ast-egress-filter.test.ts`, `tests/cli.test.ts` |
+| ShadowLeak-style URL exfiltration, including repeated short chunks under one query key | `ast-egress-filter` | `tests/ast-egress-filter.test.ts`, `tests/cli.test.ts`, `examples/evidence-corpus.json` |
 | sensitive-path access markers | `ast-egress-filter` | `tests/ast-egress-filter.test.ts`, `examples/evidence-corpus.json` |
 | shell-injection markers in tool arguments | `ast-egress-filter` | `tests/ast-egress-filter.test.ts`, `examples/evidence-corpus.json` |
 | unsafe response material flowing back to the caller | response sanitization | `src/proxy/shadow-leak-sanitizer.ts`, `tests/app.test.ts` |

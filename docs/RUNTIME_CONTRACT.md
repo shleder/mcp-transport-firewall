@@ -14,21 +14,22 @@ Recommended order:
 
 1. prove the boundary locally with `npm run demo:stdio`
 2. wire protected downstream proxy mode into your MCP client
-3. use standalone bundled mode only when you want embedded status tools without a downstream target
+3. use the embedded fallback path only when you want bundled status tools without wiring another downstream target
 
-## Runtime modes
+## Runtime paths
 
-Mode 1: standalone bundled MCP server
+Mode 1: bundled embedded target
 
-- selected when no downstream target is supplied
+- reached when the current package entrypoint runs with `--embedded-target`
 - starts the embedded MCP server from `src/embedded/server.ts`
 - exposes `firewall_status` and `firewall_usage`
+- serves as the default fallback target behind the stdio boundary when no explicit downstream target is supplied
 
 Mode 2: protected downstream proxy
 
-- selected when a target is supplied through CLI flags or environment
+- this is the default operator-facing CLI path
 - starts the stdio firewall proxy from `src/stdio/proxy.ts`
-- forwards allowed traffic to the downstream MCP server and returns sanitized results
+- forwards allowed traffic to either an explicit downstream MCP server or the bundled embedded fallback target, then returns sanitized results
 
 ## Target resolution order
 
@@ -37,7 +38,7 @@ Mode 2: protected downstream proxy
 3. `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS_JSON`
 4. `MCP_TARGET_COMMAND` plus `MCP_TARGET_ARGS`
 5. `MCP_TARGET`
-6. bundled standalone fallback
+6. current package entrypoint with `--embedded-target`
 
 ## Inspected wire scope
 
@@ -51,9 +52,9 @@ Mode 2: protected downstream proxy
 1. shared-secret authorization and scope extraction
 2. scope validation
 3. color-boundary validation
-4. preflight validation for `blue` actions
-5. strict schema validation for registered tool contracts
-6. egress and injection marker validation
+4. egress and injection marker validation
+5. preflight validation for explicit `blue` actions and default high-trust tool families
+6. strict schema validation for registered tool contracts
 
 Blocked requests fail closed and are not forwarded to the downstream target.
 
@@ -64,7 +65,7 @@ Observed denial surfaces include:
 - mixed trust domains
 - missing, expired, or replayed preflight IDs
 - schema mismatch on registered tools
-- ShadowLeak, sensitive-path, shell-injection, and epistemic-risk markers
+- ShadowLeak, including repeated short-chunk URL exfiltration, plus sensitive-path, shell-injection, and epistemic-risk markers
 
 ## Downstream failure behavior
 
@@ -80,6 +81,16 @@ Observed denial surfaces include:
 - write, create, and execute style tools are not cacheable by default
 - cache behavior is L1 memory plus L2 SQLite persistence
 - cache keys are derived from `serverId`, method name, and request parameters
+
+## Secondary operator-state contract
+
+- the HTTP/admin route registry now survives restart
+- on process start, secondary-surface route state is restored from `route-registry.json` under the startup cache root (`MCP_CACHE_DIR` or the default `.mcp-cache` directory)
+- admin route registration, deletion, and clear operations update that on-disk snapshot before the in-memory registry is swapped in
+- if the route snapshot is missing, unreadable, or invalid, the HTTP harness fails closed with an empty registry instead of guessing
+- preflight registrations remain in-memory and do not survive restart
+- color-boundary session state remains in-memory and does not survive restart
+- tenant rate-limit config remains in-memory and does not survive restart in this batch
 
 ## Core runtime variables
 

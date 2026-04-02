@@ -154,22 +154,46 @@ const createAdminRouter = (): express.Router => {
       auditLog('ADMIN_ROUTE_REGISTERED', { toolName: parsed.toolName, url: parsed.url });
       res.json({ success: true, toolName: parsed.toolName });
     } catch (error) {
-      res.status(400).json({ error: { code: 'INVALID_CONFIG', message: error instanceof Error ? error.message : 'Invalid route config' } });
+      const isValidationError = error instanceof z.ZodError;
+      res.status(isValidationError ? 400 : 500).json({
+        error: {
+          code: isValidationError ? 'INVALID_CONFIG' : 'ROUTE_PERSISTENCE_ERROR',
+          message: error instanceof Error ? error.message : 'Invalid route config',
+        },
+      });
     }
   });
 
   router.delete('/routes/:toolName', adminAuthMiddleware, (req: Request, res: Response) => {
-    const toolName = String(req.params.toolName);
-    const removed = removeRoute(toolName);
-    auditLog('ADMIN_ROUTE_REMOVED', { toolName, removed });
-    res.json({ success: removed, toolName });
+    try {
+      const toolName = String(req.params.toolName);
+      const removed = removeRoute(toolName);
+      auditLog('ADMIN_ROUTE_REMOVED', { toolName, removed });
+      res.json({ success: removed, toolName });
+    } catch (error) {
+      res.status(500).json({
+        error: {
+          code: 'ROUTE_PERSISTENCE_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to update route registry state',
+        },
+      });
+    }
   });
 
   router.delete('/routes', adminAuthMiddleware, (_req: Request, res: Response) => {
-    clearRoutes();
-    clearColorSessions();
-    auditLog('ADMIN_ROUTES_CLEARED', {});
-    res.json({ success: true });
+    try {
+      clearRoutes();
+      clearColorSessions();
+      auditLog('ADMIN_ROUTES_CLEARED', {});
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({
+        error: {
+          code: 'ROUTE_PERSISTENCE_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to clear route registry state',
+        },
+      });
+    }
   });
 
   router.get('/cache/stats', (_req: Request, res: Response) => {

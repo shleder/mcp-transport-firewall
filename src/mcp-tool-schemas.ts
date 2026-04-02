@@ -8,6 +8,14 @@ const nonEmptyCommand = z.string().min(1).max(512).refine((value) => !value.incl
   message: 'must not contain NUL bytes',
 });
 
+const nonEmptyPattern = z.string().min(1).max(256).refine((value) => !value.includes('\0'), {
+  message: 'must not contain NUL bytes',
+});
+
+const nonEmptySearchQuery = z.string().min(1).max(4096).refine((value) => !value.includes('\0'), {
+  message: 'must not contain NUL bytes',
+});
+
 const httpUrl = z.string().max(2048).url().refine((value) => {
   try {
     const protocol = new URL(value).protocol;
@@ -43,14 +51,26 @@ const listDirectorySchema = z.object({
   recursive: z.boolean().optional(),
   includeHidden: z.boolean().optional(),
   maxDepth: z.number().int().min(1).max(32).optional(),
-  pattern: z.string().max(256).optional(),
+  pattern: nonEmptyPattern.optional(),
+}).strict();
+
+const readMultipleFilesSchema = z.object({
+  paths: z.array(nonEmptyPath).min(1).max(100),
+}).strict();
+
+const directoryTreeSchema = z.object({
+  path: nonEmptyPath,
+}).strict();
+
+const getFileInfoSchema = z.object({
+  path: nonEmptyPath,
 }).strict();
 
 const searchFilesSchema = z.object({
-  query: z.string().min(1).max(4096),
+  query: nonEmptySearchQuery,
   path: nonEmptyPath.optional(),
-  include: z.array(z.string().min(1).max(256)).max(20).optional(),
-  exclude: z.array(z.string().min(1).max(256)).max(20).optional(),
+  include: z.array(nonEmptyPattern).max(20).optional(),
+  exclude: z.array(nonEmptyPattern).max(20).optional(),
   recursive: z.boolean().optional(),
   maxResults: z.number().int().min(1).max(1000).optional(),
 }).strict();
@@ -77,11 +97,15 @@ export const mcpToolSchemas = {
   read_file: readFileSchema,
   read: readFileSchema,
   open_file: readFileSchema,
+  read_multiple_files: readMultipleFilesSchema,
   write_file: writeFileSchema,
   write: writeFileSchema,
   create_file: createFileSchema,
+  get_file_info: getFileInfoSchema,
   list_directory: listDirectorySchema,
   list_files: listDirectorySchema,
+  list_allowed_directories: emptyToolSchema,
+  directory_tree: directoryTreeSchema,
   search_files: searchFilesSchema,
   search: searchFilesSchema,
   execute_command: executeCommandSchema,

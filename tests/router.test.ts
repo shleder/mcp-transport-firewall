@@ -1,16 +1,29 @@
-import { jest, describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals';
-import { registerRoute, removeRoute, getRegisteredRoutes, clearRoutes, routeRequest } from "../src/proxy/router.js";
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import {
+  clearRoutes,
+  configureRouteRegistryPersistence,
+  disableRouteRegistryPersistence,
+  getRegisteredRoutes,
+  registerRoute,
+  removeRoute,
+  routeRequest,
+} from "../src/proxy/router.js";
 
 describe("router", () => {
   let stderrSpy: jest.SpyInstance;
 
   beforeEach(() => {
     stderrSpy = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
+    disableRouteRegistryPersistence();
     clearRoutes();
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    disableRouteRegistryPersistence();
     clearRoutes();
   });
 
@@ -42,6 +55,65 @@ describe("router", () => {
 
     expect(removeRoute("temp_tool")).toBe(true);
     expect(getRegisteredRoutes().has("temp_tool")).toBe(false);
+  });
+
+  it("restores persisted route-registry entries after a restart-style reload", () => {
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "mcp-route-registry-"));
+
+    try {
+      configureRouteRegistryPersistence(stateDir);
+      registerRoute("search_tool", {
+        url: "https://mcp-server.example.com/search",
+        timeoutMs: 3000,
+      });
+
+      disableRouteRegistryPersistence();
+      clearRoutes();
+      expect(getRegisteredRoutes().size).toBe(0);
+
+      configureRouteRegistryPersistence(stateDir);
+
+      const routes = getRegisteredRoutes();
+      expect(routes.has("search_tool")).toBe(true);
+      expect(routes.get("search_tool")).toEqual({
+        url: "https://mcp-server.example.com/search",
+        timeoutMs: 3000,
+      });
+    } finally {
+      disableRouteRegistryPersistence();
+      clearRoutes();
+      fs.rmSync(stateDir, { recursive: true, force: true });
+    }
+  });
+
+  it("fails closed when the persisted route-registry snapshot is invalid", () => {
+    const stateDir = fs.mkdtempSync(path.join(os.tmpdir(), "mcp-route-registry-invalid-"));
+
+    try {
+      fs.writeFileSync(
+        path.join(stateDir, "route-registry.json"),
+        JSON.stringify({
+          version: 1,
+          routes: {
+            broken_tool: {
+              url: "not-a-url",
+              timeoutMs: 1000,
+            },
+          },
+        }),
+        "utf8",
+      );
+
+      configureRouteRegistryPersistence(stateDir);
+
+      expect(getRegisteredRoutes().size).toBe(0);
+      expect(stderrSpy).toHaveBeenCalled();
+      expect(String(stderrSpy.mock.calls.at(-1)?.[0] ?? "")).toContain("ROUTE_REGISTRY_RESTORE_FAILED");
+    } finally {
+      disableRouteRegistryPersistence();
+      clearRoutes();
+      fs.rmSync(stateDir, { recursive: true, force: true });
+    }
   });
 
   it("returns 403 UNKNOWN_ROUTE for unregistered tools (Fail-Closed)", async () => {

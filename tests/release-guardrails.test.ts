@@ -13,6 +13,24 @@ describe('release guardrails', () => {
   it('accepts expected package metadata', () => {
     const mismatches = validatePackageMetadata({
       name: 'mcp-transport-firewall',
+      main: 'dist/lib.js',
+      exports: {
+        '.': './dist/lib.js',
+        './package.json': './package.json',
+      },
+      files: [
+        'dist',
+        'docs',
+        '.env.example',
+        'LICENSE',
+        'README.md',
+        'CHANGELOG.md',
+        'SECURITY.md',
+        'SUPPORT.md',
+      ],
+      bin: {
+        'mcp-transport-firewall': 'dist/cli.js',
+      },
       repository: {
         type: 'git',
         url: 'git+https://github.com/shleder/mcp-transport-firewall.git',
@@ -24,9 +42,61 @@ describe('release guardrails', () => {
       publishConfig: {
         access: 'public',
       },
+      engines: {
+        node: '>=20.0.0',
+      },
+      scripts: {
+        prepare: 'npm run build',
+      },
     });
 
     expect(mismatches).toEqual([]);
+  });
+
+  it('rejects package metadata when the packaging and install contract drifts', () => {
+    const mismatches = validatePackageMetadata({
+      name: 'mcp-transport-firewall',
+      main: 'dist/index.js',
+      exports: {
+        '.': './dist/index.js',
+      },
+      files: [
+        'dist',
+        'README.md',
+      ],
+      bin: {
+        'mcp-transport-firewall': 'dist/index.js',
+      },
+      repository: {
+        type: 'git',
+        url: 'git+https://github.com/shleder/mcp-transport-firewall.git',
+      },
+      homepage: 'https://github.com/shleder/mcp-transport-firewall#readme',
+      bugs: {
+        url: 'https://github.com/shleder/mcp-transport-firewall/issues',
+      },
+      publishConfig: {
+        access: 'public',
+      },
+      engines: {
+        node: '>=18.0.0',
+      },
+      scripts: {},
+    });
+
+    expect(mismatches).toEqual(expect.arrayContaining([
+      'main must be dist/lib.js, got dist/index.js',
+      'exports["."] must be ./dist/lib.js, got ./dist/index.js',
+      'bin.mcp-transport-firewall must be dist/cli.js, got dist/index.js',
+      'engines.node must be >=20.0.0, got >=18.0.0',
+      'scripts.prepare must be npm run build, got undefined',
+      'files must include docs',
+      'files must include .env.example',
+      'files must include LICENSE',
+      'files must include CHANGELOG.md',
+      'files must include SECURITY.md',
+      'files must include SUPPORT.md',
+    ]));
   });
 
   it('rejects package metadata that points to a different homepage', () => {

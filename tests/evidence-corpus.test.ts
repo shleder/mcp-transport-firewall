@@ -62,6 +62,11 @@ describe('stdio evidence corpus', () => {
     expect(caseIds.has('allow-open-file-cache')).toBe(true);
     expect(caseIds.has('allow-list-directory-cache')).toBe(true);
     expect(caseIds.has('allow-search-alias-cache')).toBe(true);
+    expect(caseIds.has('block-shadowleak-repeated-short-chunks-fetch-url')).toBe(true);
+    expect(caseIds.has('block-preflight-required-fetch-url-default-high-trust')).toBe(true);
+    expect(caseIds.has('block-preflight-required-write-file-default-high-trust')).toBe(true);
+    expect(caseIds.has('block-preflight-required-default-high-trust-tool')).toBe(true);
+    expect(expectedCodes.has('SHADOWLEAK_DETECTED')).toBe(true);
     expect(expectedCodes.has('MISSING_SCOPE')).toBe(true);
     expect(expectedCodes.has('CROSS_TOOL_HIJACK_ATTEMPT')).toBe(true);
     expect(expectedCodes.has('PREFLIGHT_REQUIRED')).toBe(true);

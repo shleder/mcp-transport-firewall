@@ -32,16 +32,17 @@ The current corpus covers:
 - cacheable `read_file`
 - cacheable `open_file`
 - cacheable `list_directory`
-- ShadowLeak-style `fetch_url` exfiltration
+- ShadowLeak-style `fetch_url` exfiltration, including repeated short chunks under one query key
 - sensitive-path `read_file`
 - sensitive-path `write_file`
 - shell-injection `execute_command`
 - epistemic-contradiction denial on `search_files`
 - missing-authorization `search_files`
 - missing-scope denial on `execute_command`
-- strict schema rejection for invalid `fetch_url`
-- strict schema rejection for smuggled `write_file` arguments
+- missing preflight denial on default-high-trust `fetch_url`
+- missing preflight denial on default-high-trust `write_file`
 - mixed-trust cross-tool hijack denial in a bundled `tools` payload
+- missing preflight denial on default-high-trust `execute_command`
 - missing and unregistered preflight IDs for `blue` actions
 
 Definitions:

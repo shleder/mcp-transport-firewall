@@ -5,6 +5,14 @@ import { auditLogWithSIEM } from '../utils/auditLogger.js';
 import { extractToolInvocations } from '../utils/mcp-request.js';
 
 const PreflightIdSchema = z.string().uuid();
+const DEFAULT_HIGH_TRUST_TOOLS = new Set([
+  'write_file',
+  'write',
+  'create_file',
+  'execute_command',
+  'execute',
+  'fetch_url',
+]);
 
 const preflightRegistry = new Map<string, number>();
 const consumedRegistry = new Map<string, number>();
@@ -46,13 +54,27 @@ export const getPreflightStats = (): { pending: number; consumed: number } => {
   };
 };
 
+const getPreflightRequirementSource = (toolName?: string, color?: string): string | null => {
+  if (color === 'blue') {
+    return 'declared-blue';
+  }
+
+  if (toolName && DEFAULT_HIGH_TRUST_TOOLS.has(toolName)) {
+    return 'default-high-trust-tool';
+  }
+
+  return null;
+};
+
 export const validatePreflight = (body: Record<string, unknown>, ip = 'unknown'): void => {
   const tools = extractToolInvocations(body);
 
   for (const tool of tools) {
     const color = tool._meta?.color;
+    const toolName = tool.name ?? 'unknown';
+    const requirementSource = getPreflightRequirementSource(tool.name, color);
 
-    if (color !== 'blue') {
+    if (!requirementSource) {
       continue;
     }
 
@@ -60,12 +82,13 @@ export const validatePreflight = (body: Record<string, unknown>, ip = 'unknown')
 
     if (!preflightId || typeof preflightId !== 'string') {
       auditLogWithSIEM('PREFLIGHT_REQUIRED', {
-        reason: 'Blue tool invoked without preflightId',
-        toolName: tool.name ?? 'unknown',
+        reason: 'High-trust tool invoked without preflightId',
+        toolName,
+        requirementSource,
         ip,
       });
       throw new TrustGateError(
-        `Fail-Closed: Blue tool "${tool.name ?? 'unknown'}" requires a valid preflightId.`,
+        `Fail-Closed: High-trust tool "${toolName}" requires a valid preflightId.`,
         'PREFLIGHT_REQUIRED',
         403
       );
@@ -75,7 +98,8 @@ export const validatePreflight = (body: Record<string, unknown>, ip = 'unknown')
       auditLogWithSIEM('PREFLIGHT_REPLAY_BLOCKED', {
         reason: 'Replay attack: preflightId has already been consumed',
         preflightId,
-        toolName: tool.name ?? 'unknown',
+        toolName,
+        requirementSource,
         ip,
       });
       throw new TrustGateError(
@@ -90,7 +114,8 @@ export const validatePreflight = (body: Record<string, unknown>, ip = 'unknown')
       auditLogWithSIEM('PREFLIGHT_NOT_FOUND', {
         reason: 'preflightId not found or expired',
         preflightId,
-        toolName: tool.name ?? 'unknown',
+        toolName,
+        requirementSource,
         ip,
       });
       throw new TrustGateError(

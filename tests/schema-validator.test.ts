@@ -29,10 +29,49 @@ function createMockRes(): { res: Partial<Response>; statusCode: number; response
 describe('schema-validator (Progressive Disclosure)', () => {
   const validator = createSchemaValidator(mcpToolSchemas);
 
-  it('allows valid arguments for a registered file tool alias', () => {
+  it.each(['read_file', 'read', 'open_file'])(
+    'allows valid arguments for read-style alias %s',
+    (toolName) => {
+      const req = createMockReq({
+        method: 'tools/call',
+        params: { name: toolName, arguments: { path: '/etc/config', encoding: 'utf8', maxBytes: 256 } },
+      });
+      const { res } = createMockRes();
+      const next = jest.fn();
+
+      validator(req as Request, res as Response, next as NextFunction);
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(res.status).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['read_file', 'open_file'])(
+    'blocks invalid path payload for read-style alias %s',
+    (toolName) => {
+      const req = createMockReq({
+        method: 'tools/call',
+        params: { name: toolName, arguments: { path: '/tmp/\0secret.txt' } },
+      });
+      const { res } = createMockRes();
+      const next = jest.fn();
+
+      validator(req as Request, res as Response, next as NextFunction);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+    },
+  );
+
+  it('allows a strict read_multiple_files payload for common local filesystem workflows', () => {
     const req = createMockReq({
       method: 'tools/call',
-      params: { name: 'read', arguments: { path: '/etc/config', encoding: 'utf8', maxBytes: 256 } },
+      params: {
+        name: 'read_multiple_files',
+        arguments: {
+          paths: ['/workspace/README.md', '/workspace/docs/guide.md'],
+        },
+      },
     });
     const { res } = createMockRes();
     const next = jest.fn();
@@ -42,6 +81,260 @@ describe('schema-validator (Progressive Disclosure)', () => {
     expect(next).toHaveBeenCalledTimes(1);
     expect(res.status).not.toHaveBeenCalled();
   });
+
+  it('blocks read_multiple_files when the paths list is empty', () => {
+    const req = createMockReq({
+      method: 'tools/call',
+      params: {
+        name: 'read_multiple_files',
+        arguments: {
+          paths: [],
+        },
+      },
+    });
+    const { res } = createMockRes();
+    const next = jest.fn();
+
+    validator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+  });
+
+  it('allows a strict directory_tree payload', () => {
+    const req = createMockReq({
+      method: 'tools/call',
+      params: {
+        name: 'directory_tree',
+        arguments: {
+          path: '/workspace/src',
+        },
+      },
+    });
+    const { res } = createMockRes();
+    const next = jest.fn();
+
+    validator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('blocks directory_tree when unexpected fields are present', () => {
+    const req = createMockReq({
+      method: 'tools/call',
+      params: {
+        name: 'directory_tree',
+        arguments: {
+          path: '/workspace/src',
+          recursive: true,
+        },
+      },
+    });
+    const { res } = createMockRes();
+    const next = jest.fn();
+
+    validator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+  });
+
+  it('allows a strict get_file_info payload', () => {
+    const req = createMockReq({
+      method: 'tools/call',
+      params: {
+        name: 'get_file_info',
+        arguments: {
+          path: '/workspace/package.json',
+        },
+      },
+    });
+    const { res } = createMockRes();
+    const next = jest.fn();
+
+    validator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('blocks get_file_info when unexpected fields are present', () => {
+    const req = createMockReq({
+      method: 'tools/call',
+      params: {
+        name: 'get_file_info',
+        arguments: {
+          path: '/workspace/package.json',
+          followSymlinks: true,
+        },
+      },
+    });
+    const { res } = createMockRes();
+    const next = jest.fn();
+
+    validator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+  });
+
+  it('allows list_allowed_directories with an empty payload', () => {
+    const req = createMockReq({
+      method: 'tools/call',
+      params: {
+        name: 'list_allowed_directories',
+        arguments: {},
+      },
+    });
+    const { res } = createMockRes();
+    const next = jest.fn();
+
+    validator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('blocks list_allowed_directories when unexpected fields are present', () => {
+    const req = createMockReq({
+      method: 'tools/call',
+      params: {
+        name: 'list_allowed_directories',
+        arguments: {
+          path: '/workspace',
+        },
+      },
+    });
+    const { res } = createMockRes();
+    const next = jest.fn();
+
+    validator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+  });
+
+  it.each(['list_directory', 'list_files'])(
+    'allows valid arguments for list-style alias %s',
+    (toolName) => {
+      const req = createMockReq({
+        method: 'tools/call',
+        params: {
+          name: toolName,
+          arguments: {
+            path: '/workspace',
+            recursive: true,
+            includeHidden: false,
+            maxDepth: 4,
+            pattern: '*.ts',
+          },
+        },
+      });
+      const { res } = createMockRes();
+      const next = jest.fn();
+
+      validator(req as Request, res as Response, next as NextFunction);
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(res.status).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['list_directory', 'list_files'])(
+    'blocks NUL-bearing pattern for list-style alias %s',
+    (toolName) => {
+      const req = createMockReq({
+        method: 'tools/call',
+        params: {
+          name: toolName,
+          arguments: {
+            path: '/workspace',
+            pattern: '*.ts\0',
+          },
+        },
+      });
+      const { res } = createMockRes();
+      const next = jest.fn();
+
+      validator(req as Request, res as Response, next as NextFunction);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+    },
+  );
+
+  it.each(['search_files', 'search'])(
+    'allows valid arguments for search-style alias %s',
+    (toolName) => {
+      const req = createMockReq({
+        method: 'tools/call',
+        params: {
+          name: toolName,
+          arguments: {
+            query: 'TODO',
+            path: '/workspace',
+            include: ['*.ts'],
+            exclude: ['node_modules'],
+            recursive: true,
+            maxResults: 50,
+          },
+        },
+      });
+      const { res } = createMockRes();
+      const next = jest.fn();
+
+      validator(req as Request, res as Response, next as NextFunction);
+
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(res.status).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['search_files', 'search'])(
+    'blocks NUL-bearing query for search-style alias %s',
+    (toolName) => {
+      const req = createMockReq({
+        method: 'tools/call',
+        params: {
+          name: toolName,
+          arguments: {
+            query: 'TODO\0NOW',
+          },
+        },
+      });
+      const { res } = createMockRes();
+      const next = jest.fn();
+
+      validator(req as Request, res as Response, next as NextFunction);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+    },
+  );
+
+  it.each(['search_files', 'search'])(
+    'blocks NUL-bearing include patterns for search-style alias %s',
+    (toolName) => {
+      const req = createMockReq({
+        method: 'tools/call',
+        params: {
+          name: toolName,
+          arguments: {
+            query: 'TODO',
+            include: ['src/\0*.ts'],
+          },
+        },
+      });
+      const { res } = createMockRes();
+      const next = jest.fn();
+
+      validator(req as Request, res as Response, next as NextFunction);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+    },
+  );
 
   it('blocks invalid arguments when a strict schema sees an unexpected field', () => {
     const req = createMockReq({

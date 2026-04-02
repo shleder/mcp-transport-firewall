@@ -7,7 +7,12 @@ import request from 'supertest';
 import { initializeCache, getCache } from '../src/cache/index.js';
 import { clearColorSessions } from '../src/middleware/color-boundary.js';
 import { clearPreflightRegistries } from '../src/middleware/preflight-validator.js';
-import { clearRoutes, registerRoute } from '../src/proxy/router.js';
+import {
+  clearRoutes,
+  configureRouteRegistryPersistence,
+  disableRouteRegistryPersistence,
+  registerRoute,
+} from '../src/proxy/router.js';
 
 const serverToken = '12345678901234567890123456789012';
 
@@ -30,6 +35,7 @@ describe('app /mcp integration', () => {
   });
 
   beforeEach(async () => {
+    disableRouteRegistryPersistence();
     clearRoutes();
     clearPreflightRegistries();
     clearColorSessions();
@@ -41,6 +47,7 @@ describe('app /mcp integration', () => {
       alwaysCacheTools: ['search_files'],
       neverCacheTools: [],
     });
+    configureRouteRegistryPersistence(cacheDir);
 
     requestCount = 0;
     targetServer = http.createServer((req, res) => {
@@ -71,6 +78,11 @@ describe('app /mcp integration', () => {
   });
 
   afterEach(async () => {
+    disableRouteRegistryPersistence();
+    clearRoutes();
+    clearPreflightRegistries();
+    clearColorSessions();
+
     await new Promise<void>(resolve => {
       if (targetServer?.listening) {
         targetServer.close(() => resolve());
@@ -113,6 +125,39 @@ describe('app /mcp integration', () => {
       ok: true,
       tool: 'search_files',
       arguments: { query: 'hello' },
+    });
+    expect(requestCount).toBe(1);
+  });
+
+  it('restores the secondary route registry after a restart-style reload', async () => {
+    registerRoute('search_files', {
+      url: `${targetBaseUrl}/tools/search_files`,
+      timeoutMs: 1000,
+    });
+
+    disableRouteRegistryPersistence();
+    clearRoutes();
+    clearPreflightRegistries();
+    clearColorSessions();
+    configureRouteRegistryPersistence(cacheDir);
+
+    const response = await request(app)
+      .post('/mcp')
+      .set('Authorization', createAuthHeader(['tools.search_files']))
+      .send({
+        method: 'tools/call',
+        params: {
+          name: 'search_files',
+          arguments: { query: 'after-restart' },
+        },
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.headers['x-proxy-cache']).toBe('MISS');
+    expect(response.body).toEqual({
+      ok: true,
+      tool: 'search_files',
+      arguments: { query: 'after-restart' },
     });
     expect(requestCount).toBe(1);
   });

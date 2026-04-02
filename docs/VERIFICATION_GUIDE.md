@@ -1,23 +1,39 @@
 ## Verification Guide
 
+Updated: 2026-04-02
+
 This repository is easiest to verify as a reproducible transport control, not as a polished product demo.
 
-Recommended verification flow:
+## Short proof path
+
+Use this when you want the smallest repo-local proof of the main workflow:
+
+1. run `npm install`
+2. run `npm run build`
+3. run `npm run demo:stdio`
+
+That path proves one protected local filesystem/search-style workflow over `stdio`: safe `search_files` traffic reaches the downstream target, repeated allow traffic can be cached, and risky traffic is blocked before downstream execution.
+
+## Full verification flow
 
 1. inspect the risk model in [RISK_MODEL.md](RISK_MODEL.md)
 2. inspect the local setup examples in [CLIENT_CONFIG_EXAMPLES.md](CLIENT_CONFIG_EXAMPLES.md)
 3. inspect the runtime guarantees in [RUNTIME_CONTRACT.md](RUNTIME_CONTRACT.md)
-4. run `npm run verify:all`
-5. run `npm run benchmark:stdio -- --json --output evidence.json`
-6. run `npm run pack:dry-run`
-7. run `npm run pack:smoke`
-8. inspect `/metrics` on the admin control plane when running the Docker path
-9. compare documented claims to tests, benchmark results, tarball behavior, and control-plane state
+4. run `npm run assert:package-metadata`
+5. run `npm test`
+6. run `npm run verify:all`
+7. run `npm run benchmark:stdio -- --json --output evidence.json`
+8. run `npm run pack:dry-run`
+9. run `npm run pack:smoke`
+10. inspect `/metrics` on the admin control plane when running the Docker path
+11. compare documented claims to tests, benchmark results, tarball behavior, and control-plane state
 
 | Topic | Code | Evidence |
 |---|---|---|
 | stdio interception path | `src/cli.ts`, `src/stdio/proxy.ts` | `tests/cli.test.ts`, `scripts/stdio-demo.mjs` |
 | repeatable evidence corpus | `scripts/stdio-benchmark.mjs`, `examples/evidence-corpus.json` | `docs/STDIO_BENCHMARK_GUIDE.md` |
+| package install contract | `scripts/assert-package-metadata.mjs` | `tests/release-guardrails.test.ts` |
+| packaged downstream proxy proof | `scripts/pack-smoke.mjs` | `tests/package-proxy-smoke.test.ts` |
 | fail-closed auth | `src/middleware/nhi-auth-validator.ts` | `tests/nhi-auth.test.ts`, `tests/cli.test.ts` |
 | scope enforcement | `src/middleware/scope-validator.ts` | `tests/scope-validator.test.ts` |
 | trust-domain separation | `src/middleware/color-boundary.ts` | `tests/color-boundary.test.ts` |
@@ -46,9 +62,10 @@ Use the stdio path when you want:
 - proof that blocked traffic fails before tool execution
 - reproducible benchmark output from a deterministic local target
 
-CI does three useful things:
+CI does four useful things:
 
 - runs the full verification suite
+- keeps the package install contract pinned in testable metadata guardrails
 - uploads a JSON benchmark artifact named `stdio-evidence-benchmark`
 - runs distributable tarball smoke checks before npm publication
 
@@ -64,9 +81,9 @@ What this repo currently demonstrates:
 - fail-closed blocking on missing or invalid auth
 - fail-closed blocking on scope mismatch
 - fail-closed blocking on mixed red/blue trust domains
-- fail-closed blocking on missing or replayed preflight IDs
+- fail-closed blocking on missing, replayed, or unregistered preflight IDs for high-trust tools
 - strict argument validation for registered tool schemas
-- blocking of ShadowLeak-style exfiltration patterns
+- blocking of ShadowLeak-style exfiltration patterns, including repeated short chunks under one query key
 - response sanitization before tool output is returned
 - reproducible benchmark output and control-plane metrics
 

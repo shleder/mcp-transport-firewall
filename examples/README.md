@@ -16,20 +16,21 @@ Maintained package paths:
 2. demo path: protected local read/search workflow via `examples/demo-target.js`
 3. secondary standalone path: bundled MCP mode via `npx -y mcp-transport-firewall`
 
-Repo-local demo path:
+Canonical repo-local proof path:
 
 ```bash
+npm install
 npm run build
 npm run demo:stdio
 ```
 
-Manual interactive path:
+Manual interactive proof path:
 
 ```bash
 npm run start:cli -- -- node examples/demo-target.js
 ```
 
-MCP client configuration path:
+Canonical MCP client configuration path:
 
 ```json
 {
@@ -40,7 +41,7 @@ MCP client configuration path:
       "env": {
         "PROXY_AUTH_TOKEN": "replace-with-32-byte-secret",
         "MCP_TARGET_COMMAND": "node",
-        "MCP_TARGET_ARGS_JSON": "[\"C:/absolute/path/to/your-mcp-server.js\"]"
+        "MCP_TARGET_ARGS_JSON": "[\"C:/absolute/path/to/mcp-transport-firewall/examples/demo-target.js\"]"
       }
     }
   }
@@ -54,17 +55,12 @@ Read/search-shaped protected workflow using the packaged CLI:
 ```powershell
 $env:PROXY_AUTH_TOKEN = "12345678901234567890123456789012"
 $env:MCP_TARGET_COMMAND = "node"
-$env:MCP_TARGET_ARGS_JSON = "[\"C:/absolute/path/to/examples/demo-target.js\"]"
+$env:MCP_TARGET_ARGS_JSON = "[\"C:/absolute/path/to/mcp-transport-firewall/examples/demo-target.js\"]"
 npx --yes mcp-transport-firewall
 ```
 
 This uses a reproducible demo target for proof and regression coverage. It is not a full filesystem MCP server.
-
-Use the GitHub fallback only when you intentionally want repository HEAD instead of the npm package:
-
-```bash
-npx -y github:shleder/mcp-transport-firewall --help
-```
+In this proof path, safe `search_files` traffic is the intended allow case. Dangerous tool families such as `execute_command`, `fetch_url`, and `write_file` default to `preflightId`-required behavior and are exercised in the benchmark corpus rather than the short demo transcript.
 
 Secondary HTTP harness artifacts:
 

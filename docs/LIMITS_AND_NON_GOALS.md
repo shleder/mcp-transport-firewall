@@ -7,6 +7,7 @@ Current limits:
 - the shared-secret auth envelope is not cryptographic attestation
 - the current egress gate is recursive string inspection, not a full parser
 - cache behavior is optimized for allowlisted read-style tools only
+- this repository is not presented as a broad MCP platform or hosted control plane
 
 Non-goals:
 

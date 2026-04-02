@@ -51,7 +51,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <Cpu className="w-12 h-12 text-blue-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Connecting to transport firewall...</p>
+          <p className="text-gray-400">Connecting to Toolwall...</p>
         </div>
       </div>
     );
@@ -109,8 +109,8 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <Shield className="w-8 h-8 text-blue-500" />
             <div>
-              <h1 className="text-2xl font-bold">MCP Transport Firewall</h1>
-              <p className="text-sm text-gray-400">Fail-Closed Stdio Boundary Enforcement</p>
+              <h1 className="text-2xl font-bold">Toolwall</h1>
+              <p className="text-sm text-gray-400">Fail-closed stdio boundary for local MCP workflows</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -139,7 +139,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-400">HTTP Review Routes</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-400">HTTP Tool Routes</CardTitle>
               <Server className="w-4 h-4 text-gray-500" />
             </CardHeader>
             <CardContent>
@@ -240,10 +240,10 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50">
                   <div className="flex items-center gap-3">
                     <Key className="w-5 h-5 text-gray-400" />
-                    <span>NHI Authentication</span>
+                    <span>Shared-Secret Auth</span>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400">
-                    Active
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400">
+                    Env-Gated
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50">
@@ -258,7 +258,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between p-3 rounded-lg bg-gray-800/50">
                   <div className="flex items-center gap-3">
                     <Zap className="w-5 h-5 text-gray-400" />
-                    <span>Epistemic Egress Filter</span>
+                    <span>Semantic Egress Filter</span>
                   </div>
                   <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400">
                     Active
@@ -407,8 +407,8 @@ export default function Dashboard() {
         </Card>
 
         <footer className="text-center text-gray-600 text-sm pt-4 border-t border-gray-800">
-          <p>MCP Transport Firewall v2.2.2</p>
-          <p className="text-xs mt-1">Fail-closed stdio firewall with an HTTP compatibility harness</p>
+          <p>Toolwall admin dashboard</p>
+          <p className="text-xs mt-1">Technical package and CLI identity: mcp-transport-firewall</p>
         </footer>
       </div>
     </div>

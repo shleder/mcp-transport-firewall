@@ -223,4 +223,24 @@ describe("mcpColorBoundary", () => {
     expect(nextRed).not.toHaveBeenCalled();
     expect(resRed.status).toHaveBeenCalledWith(403);
   });
+
+  it("does not preserve session color after a restart-style session reset", () => {
+    const { res: resBlue } = createMockRes();
+    const nextBlue = jest.fn();
+    mcpColorBoundary(createMockReq({
+      tools: [{ name: "write_db", _meta: { color: "blue" } }]
+    }) as Request, resBlue as Response, nextBlue as NextFunction);
+    expect(nextBlue).toHaveBeenCalledTimes(1);
+
+    clearColorSessions();
+
+    const { res: resRed } = createMockRes();
+    const nextRed = jest.fn();
+    mcpColorBoundary(createMockReq({
+      tools: [{ name: "read_email", _meta: { color: "red" } }]
+    }) as Request, resRed as Response, nextRed as NextFunction);
+
+    expect(nextRed).toHaveBeenCalledTimes(1);
+    expect(resRed.status).not.toHaveBeenCalled();
+  });
 });

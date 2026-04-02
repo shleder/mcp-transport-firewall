@@ -2,8 +2,8 @@
   "benchmark": "stdio-evidence-benchmark",
   "description": "Repeatable validation corpus for fail-closed stdio evidence and false-positive measurement.",
   "source": "examples\\evidence-corpus.json",
-  "startedAt": "2026-03-28T11:44:46.316Z",
-  "finishedAt": "2026-03-28T11:44:54.552Z",
+  "startedAt": "2026-04-02T15:38:06.473Z",
+  "finishedAt": "2026-04-02T15:38:14.133Z",
   "verdict": "passed",
   "cases": [
     {
@@ -228,20 +228,20 @@
       ]
     },
     {
-      "id": "block-sensitive-path-read-file",
+      "id": "block-shadowleak-repeated-short-chunks-fetch-url",
       "kind": "block",
       "repeat": 1,
-      "expectedCode": "SENSITIVE_PATH_BLOCKED",
+      "expectedCode": "SHADOWLEAK_DETECTED",
       "requests": [
         {
           "id": 12,
           "status": "blocked",
-          "errorCode": "SENSITIVE_PATH_BLOCKED"
+          "errorCode": "SHADOWLEAK_DETECTED"
         }
       ]
     },
     {
-      "id": "block-sensitive-path-write-file",
+      "id": "block-sensitive-path-read-file",
       "kind": "block",
       "repeat": 1,
       "expectedCode": "SENSITIVE_PATH_BLOCKED",
@@ -254,13 +254,26 @@
       ]
     },
     {
+      "id": "block-sensitive-path-write-file",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "SENSITIVE_PATH_BLOCKED",
+      "requests": [
+        {
+          "id": 14,
+          "status": "blocked",
+          "errorCode": "SENSITIVE_PATH_BLOCKED"
+        }
+      ]
+    },
+    {
       "id": "block-shell-injection-execute-command",
       "kind": "block",
       "repeat": 1,
       "expectedCode": "SHELL_INJECTION_BLOCKED",
       "requests": [
         {
-          "id": 14,
+          "id": 15,
           "status": "blocked",
           "errorCode": "SHELL_INJECTION_BLOCKED"
         }
@@ -273,7 +286,7 @@
       "expectedCode": "EPISTEMIC_CONTRADICTION_DETECTED",
       "requests": [
         {
-          "id": 15,
+          "id": 16,
           "status": "blocked",
           "errorCode": "EPISTEMIC_CONTRADICTION_DETECTED"
         }
@@ -286,7 +299,7 @@
       "expectedCode": "AUTH_FAILURE",
       "requests": [
         {
-          "id": 16,
+          "id": 17,
           "status": "blocked",
           "errorCode": "AUTH_FAILURE"
         }
@@ -299,35 +312,35 @@
       "expectedCode": "MISSING_SCOPE",
       "requests": [
         {
-          "id": 17,
+          "id": 18,
           "status": "blocked",
           "errorCode": "MISSING_SCOPE"
         }
       ]
     },
     {
-      "id": "block-schema-validation-fetch-url",
+      "id": "block-preflight-required-fetch-url-default-high-trust",
       "kind": "block",
       "repeat": 1,
-      "expectedCode": "SCHEMA_VALIDATION_FAILED",
-      "requests": [
-        {
-          "id": 18,
-          "status": "blocked",
-          "errorCode": "SCHEMA_VALIDATION_FAILED"
-        }
-      ]
-    },
-    {
-      "id": "block-schema-smuggled-write-file",
-      "kind": "block",
-      "repeat": 1,
-      "expectedCode": "SCHEMA_VALIDATION_FAILED",
+      "expectedCode": "PREFLIGHT_REQUIRED",
       "requests": [
         {
           "id": 19,
           "status": "blocked",
-          "errorCode": "SCHEMA_VALIDATION_FAILED"
+          "errorCode": "PREFLIGHT_REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "block-preflight-required-write-file-default-high-trust",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "PREFLIGHT_REQUIRED",
+      "requests": [
+        {
+          "id": 20,
+          "status": "blocked",
+          "errorCode": "PREFLIGHT_REQUIRED"
         }
       ]
     },
@@ -338,7 +351,7 @@
       "expectedCode": "CROSS_TOOL_HIJACK_ATTEMPT",
       "requests": [
         {
-          "id": 20,
+          "id": 21,
           "status": "blocked",
           "errorCode": "CROSS_TOOL_HIJACK_ATTEMPT"
         }
@@ -351,7 +364,20 @@
       "expectedCode": "PREFLIGHT_REQUIRED",
       "requests": [
         {
-          "id": 21,
+          "id": 22,
+          "status": "blocked",
+          "errorCode": "PREFLIGHT_REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "block-preflight-required-default-high-trust-tool",
+      "kind": "block",
+      "repeat": 1,
+      "expectedCode": "PREFLIGHT_REQUIRED",
+      "requests": [
+        {
+          "id": 23,
           "status": "blocked",
           "errorCode": "PREFLIGHT_REQUIRED"
         }
@@ -364,7 +390,7 @@
       "expectedCode": "PREFLIGHT_NOT_FOUND",
       "requests": [
         {
-          "id": 22,
+          "id": 24,
           "status": "blocked",
           "errorCode": "PREFLIGHT_NOT_FOUND"
         }
@@ -372,25 +398,24 @@
     }
   ],
   "totals": {
-    "cases": 17,
-    "requests": 22,
+    "cases": 19,
+    "requests": 24,
     "allowedRequests": 10,
-    "blockedRequests": 12,
+    "blockedRequests": 14,
     "cacheHits": 5,
     "cacheConsistencyFailures": 0,
     "falsePositives": 0,
     "falseNegatives": 0
   },
   "blockedByCode": {
-    "SHADOWLEAK_DETECTED": 1,
+    "SHADOWLEAK_DETECTED": 2,
     "SENSITIVE_PATH_BLOCKED": 2,
     "SHELL_INJECTION_BLOCKED": 1,
     "EPISTEMIC_CONTRADICTION_DETECTED": 1,
     "AUTH_FAILURE": 1,
     "MISSING_SCOPE": 1,
-    "SCHEMA_VALIDATION_FAILED": 2,
+    "PREFLIGHT_REQUIRED": 4,
     "CROSS_TOOL_HIJACK_ATTEMPT": 1,
-    "PREFLIGHT_REQUIRED": 1,
     "PREFLIGHT_NOT_FOUND": 1
   }
 }
