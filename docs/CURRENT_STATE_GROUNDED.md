@@ -29,7 +29,7 @@ These PRs are public on GitHub, but they are not merged and they do not change t
 ## local-only
 
 - checked-out branch: `project/tests-first-quality`
-- the current checked-out tip is local-only and unpublished; re-read `git log --oneline --decorate -n 30` for the exact hash
+- the current checked-out tip is local-only and unpublished; at this review boundary it is `06e0245 docs(pr): Final review-readiness fix`
 - re-read `git status --short --branch` for the exact ahead count on the current tip
 - the intended local release-candidate boundary should keep a clean working tree
 - current local-only stack already includes:
@@ -45,6 +45,7 @@ These PRs are public on GitHub, but they are not merged and they do not change t
   - short-chunk ShadowLeak hardening
   - release-boundary convergence
   - first-read Toolwall cleanup for external review prep
+  - publication-review truth fix for the checked-out branch boundary
 - current local-only packets already include these recent unpublished commits:
   - `1d194f2 test(packaging): Lock packaged install contract`
   - `6d530b6 docs(grounding): reconcile local architecture and current state`
@@ -58,6 +59,7 @@ These PRs are public on GitHub, but they are not merged and they do not change t
   - `d71a736 feat(egress): Harden short-chunk ShadowLeak detection`
   - `dbb35d5 docs(release): Converge local stack for future release boundary`
   - `fa26c69 docs(readme): Clean first-read surface and remove logo`
+  - `06e0245 docs(pr): Final review-readiness fix`
 - separate unpublished local branch: `project/naming-and-ci-discipline` at `ebbdd73`
 
 ## convergence status
