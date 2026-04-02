@@ -12,7 +12,7 @@ import { preflightValidator } from './middleware/preflight-validator.js';
 import { createRateLimiter } from './middleware/rate-limiter.js';
 import { createSchemaValidator } from './middleware/schema-validator.js';
 import { scopeValidator } from './middleware/scope-validator.js';
-import { routeRequest } from './proxy/router.js';
+import { configureRouteRegistryPersistence, routeRequest } from './proxy/router.js';
 import { sanitizeResponse } from './proxy/shadow-leak-sanitizer.js';
 import { auditLog } from './utils/auditLogger.js';
 import { getPrimaryToolInvocation } from './utils/mcp-request.js';
@@ -139,6 +139,7 @@ if (process.env.NODE_ENV !== 'test') {
     alwaysCacheTools: ['read_file', 'read', 'open_file', 'list_directory', 'list_files', 'search_files', 'search'],
     neverCacheTools: ['write_file', 'write', 'create_file', 'execute_command', 'execute'],
   });
+  configureRouteRegistryPersistence(DEFAULT_CACHE_DIR);
 
   const adminPort = process.env.MCP_ADMIN_ENABLED === 'true' ? DEFAULT_ADMIN_PORT : 0;
   if (adminPort > 0) {

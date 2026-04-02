@@ -8,6 +8,13 @@ export const TargetServerConfigSchema = z.object({
 
 export type TargetServerConfig = z.infer<typeof TargetServerConfigSchema>;
 
+export const RouteRegistryStateSchema = z.object({
+  version: z.literal(1),
+  routes: z.record(TargetServerConfigSchema),
+}).strict();
+
+export type RouteRegistryState = z.infer<typeof RouteRegistryStateSchema>;
+
 export const RouteResultSchema = z.object({
   status: z.number().int(),
   body: z.unknown(),

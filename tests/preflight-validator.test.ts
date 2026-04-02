@@ -173,6 +173,34 @@ describe("preflightValidator", () => {
     expect(res.status).not.toHaveBeenCalled();
   });
 
+  it("does not preserve preflight approvals across a restart-style registry reset", () => {
+    const validId = "550e8400-e29b-41d4-a716-446655440003";
+    registerPreflight(validId);
+    clearPreflightRegistries();
+
+    const req = createMockReq({
+      method: "tools/call",
+      params: {
+        name: "execute_command",
+        arguments: {
+          command: "node",
+          args: ["--version"],
+        },
+        preflightId: validId,
+      },
+    });
+
+    const res = createMockRes();
+    const next = jest.fn();
+
+    preflightValidator(req as Request, res as Response, next as NextFunction);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+    const body = (res.json as jest.Mock).mock.calls[0][0];
+    expect(body.error.code).toBe("PREFLIGHT_NOT_FOUND");
+  });
+
   it("blocks default high-trust execute_command even when the caller labels it red", () => {
     const req = createMockReq({
       method: "tools/call",

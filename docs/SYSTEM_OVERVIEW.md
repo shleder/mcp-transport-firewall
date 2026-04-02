@@ -42,8 +42,10 @@ Important runtime nuance:
 ## Stateful Subsystems
 
 - `src/cache/index.ts`: swappable global cache manager with L1 memory + L2 SQLite persistence
-- `src/middleware/preflight-validator.ts`: in-memory preflight and replay registries
-- `src/proxy/router.ts`: in-memory tool-to-target route registry for the HTTP harness
+- `src/proxy/router.ts`: live tool-to-target route registry for the HTTP harness, restored from a local `route-registry.json` snapshot under the startup cache root
+- `src/middleware/preflight-validator.ts`: in-memory preflight and replay registries that reset on restart
+- `src/middleware/color-boundary.ts`: in-memory color session state that resets on restart
+- `src/middleware/rate-limiter.ts`: in-memory tenant override config that resets on restart in this batch
 
 ## Verification Surface
 

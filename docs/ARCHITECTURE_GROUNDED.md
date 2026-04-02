@@ -64,7 +64,7 @@ Non-`tools/call` JSON-RPC messages pass through the stdio proxy without trust-ga
 
 Important grounded detail:
 
-- `src/proxy/router.ts` uses an in-memory route registry
+- `src/proxy/router.ts` restores and updates a persisted `route-registry.json` snapshot for the HTTP/admin surface
 - there are no built-in routes in the codebase
 - if no admin route has been registered, the HTTP harness fails closed with `UNKNOWN_ROUTE`
 
@@ -87,9 +87,11 @@ So the HTTP harness is real, but it is a secondary, control-plane-configured sur
 
 - `src/cache/index.ts` exposes a swappable global cache manager so long-lived proxy references can survive cache reinitialization
 - `src/middleware/preflight-validator.ts` keeps pending and consumed preflight IDs in memory
-- `src/proxy/router.ts` keeps route state in memory
+- `src/middleware/color-boundary.ts` keeps per-session color state in memory
+- `src/middleware/rate-limiter.ts` keeps tenant override config in memory
+- `src/proxy/router.ts` keeps live route state in memory, but now backs the HTTP/admin route registry with a local `route-registry.json` snapshot under the startup cache root
 
-This means the current control plane is process-local and runtime-local; it is not backed by a remote control store.
+This means the current control plane is still local and process-scoped overall. In this batch only the HTTP/admin route registry becomes restart-durable; preflight, color sessions, and tenant rate-limit overrides remain process-local and reset on restart.
 
 ## Verification And Release Guardrails
 

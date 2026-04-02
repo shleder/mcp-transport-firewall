@@ -82,6 +82,16 @@ Observed denial surfaces include:
 - cache behavior is L1 memory plus L2 SQLite persistence
 - cache keys are derived from `serverId`, method name, and request parameters
 
+## Secondary operator-state contract
+
+- the HTTP/admin route registry now survives restart
+- on process start, secondary-surface route state is restored from `route-registry.json` under the startup cache root (`MCP_CACHE_DIR` or the default `.mcp-cache` directory)
+- admin route registration, deletion, and clear operations update that on-disk snapshot before the in-memory registry is swapped in
+- if the route snapshot is missing, unreadable, or invalid, the HTTP harness fails closed with an empty registry instead of guessing
+- preflight registrations remain in-memory and do not survive restart
+- color-boundary session state remains in-memory and does not survive restart
+- tenant rate-limit config remains in-memory and does not survive restart in this batch
+
 ## Core runtime variables
 
 | Variable | Mode | Behavior |
