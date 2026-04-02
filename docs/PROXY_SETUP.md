@@ -51,6 +51,7 @@ What this proves:
 - the missing-auth sample is denied at the transport boundary
 
 The proof path uses `examples/demo-target.js` as a reproducible downstream target. It demonstrates a protected local filesystem/search-style workflow without claiming to be a full filesystem MCP server.
+The short demo intentionally stays on the safe `search_files` path; default-high-trust preflight denials are covered by the benchmark corpus and snapshot.
 
 After the proof:
 

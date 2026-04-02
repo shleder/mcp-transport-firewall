@@ -88,7 +88,7 @@ See [docs/LIMITS_AND_NON_GOALS.md](docs/LIMITS_AND_NON_GOALS.md) for the explici
 
 - missing or invalid auth envelopes when shared-secret auth is enabled
 - scope escalation across tool boundaries
-- mixed-trust boundary violations and missing preflight for high-trust actions
+- mixed-trust boundary violations and missing preflight for explicit or default high-trust actions
 - schema-smuggled arguments on registered tool contracts
 - ShadowLeak-style exfiltration strings, sensitive paths, and shell-injection markers
 
@@ -148,7 +148,7 @@ If you want a deeper operator walkthrough after the install/proof path:
 | `nhi-auth-validator` | fail-closed shared-secret authorization envelope and scope extraction | `src/middleware/nhi-auth-validator.ts` |
 | `scope-validator` | reject tool calls outside declared scopes | `src/middleware/scope-validator.ts` |
 | `color-boundary` | block mixed trust domains and session color flips | `src/middleware/color-boundary.ts` |
-| `preflight-validator` | require one-time preflight IDs for high-trust (`blue`) actions | `src/middleware/preflight-validator.ts` |
+| `preflight-validator` | require one-time preflight IDs for explicit `blue` and default high-trust tools | `src/middleware/preflight-validator.ts` |
 | `schema-validator` | enforce strict contracts for registered tool schemas | `src/middleware/schema-validator.ts` |
 | `ast-egress-filter` | deny exfiltration, sensitive-path, shell-injection, and epistemic-risk markers | `src/middleware/ast-egress-filter.ts` |
 

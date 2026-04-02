@@ -40,7 +40,7 @@ Use this when you want the smallest reproducible protected workflow backed by th
 ```powershell
 $env:PROXY_AUTH_TOKEN = "12345678901234567890123456789012"
 $env:MCP_TARGET_COMMAND = "node"
-$env:MCP_TARGET_ARGS_JSON = "[\"C:/absolute/path/to/your-mcp-server.js\"]"
+$env:MCP_TARGET_ARGS_JSON = "[\"C:/absolute/path/to/mcp-transport-firewall/examples/demo-target.js\"]"
 npx --yes mcp-transport-firewall
 ```
 
@@ -64,6 +64,12 @@ Example request shape:
 ```
 
 This is a demo path for proof and regression testing, not a full filesystem MCP server.
+
+High-trust note:
+
+- `execute_command`, `fetch_url`, `write_file`, `write`, and `create_file` are treated as high-trust tool families by default
+- they require a valid `preflightId` even when the caller does not mark `_meta.color` as `blue`
+- the short demo path intentionally sticks to safe `search_files`; use the benchmark corpus for the blocked high-trust path
 
 ## Secondary paths
 
