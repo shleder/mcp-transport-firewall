@@ -2,6 +2,14 @@
 
 Use this checklist before cutting a tagged release.
 
+Release-candidate boundary:
+
+- confirm the candidate still preserves one local filesystem/search MCP workflow over stdio as the primary story
+- confirm `public/current` and `local-only` state are written separately in repo and handoff docs
+- confirm the intended candidate is one coherent branch boundary, not a mental merge of unrelated draft PRs and side branches
+- confirm any carry-over from `project/naming-and-ci-discipline` is limited to non-renaming hygiene or is explicitly deferred
+- do not claim exact `2.2.6` contents until that candidate exists as a real review boundary
+
 Pre-release:
 
 - confirm `main` is the intended release source
